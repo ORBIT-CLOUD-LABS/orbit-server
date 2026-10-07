@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
         return respond(CommonErrorCode.INVALID_INPUT);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
+        log.warn("잘못된 인자로 요청을 처리하지 못했습니다.", e);
+        return respond(CommonErrorCode.INVALID_INPUT);
+    }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException e) {
         return respond(CommonErrorCode.METHOD_NOT_ALLOWED);
