@@ -1,4 +1,4 @@
-package com.orbit.server.common.error;
+package com.orbit.server.global.error;
 
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;

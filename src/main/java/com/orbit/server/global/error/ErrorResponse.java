@@ -1,4 +1,4 @@
-package com.orbit.server.common.error;
+package com.orbit.server.global.error;
 
 public record ErrorResponse(String code, String message) {
 

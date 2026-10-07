@@ -1,4 +1,4 @@
-package com.orbit.server.common.error;
+package com.orbit.server.global.error;
 
 import org.springframework.http.HttpStatus;
 
