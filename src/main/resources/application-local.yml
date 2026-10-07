@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/orbit}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/vehicle_db}
 
 logging:
   level:
