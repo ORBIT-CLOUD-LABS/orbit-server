@@ -18,8 +18,8 @@ Java 코드 작성·리뷰 시 확인한다. [clean-code.md](clean-code.md) 와 
 
 ## 1. 자바 코드 컨벤션
 
-- Google 스타일([google-java-format](https://github.com/google/google-java-format))을 따른다.
-- IntelliJ 에서 google-java-format 플러그인으로 포맷팅한다.
+- [palantir-java-format](https://github.com/palantir/palantir-java-format) 스타일을 따른다.
+- IntelliJ 에서 palantir-java-format 플러그인으로 포맷팅한다.
 - 최종 판정은 `spotlessCheck`. → [lint-and-ci.md](lint-and-ci.md)
 
 ## 2. 들여쓰기 1단계

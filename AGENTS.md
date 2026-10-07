@@ -57,10 +57,10 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 ## 빌드·검증
 
 ```bash
-./gradlew spotlessApply   # 포맷 적용 (google-java-format)
+./gradlew spotlessApply   # 포맷 적용 (palantir-java-format)
 ./gradlew spotlessCheck   # 포맷 검사
 ./gradlew test            # 테스트
 ./gradlew build           # 전체 빌드
 ```
 
-- 포맷은 손으로 맞추지 않고 google-java-format 에 맡긴다. 들여쓰기는 공백 2칸. 강제 방식은 [docs/lint-and-ci.md](docs/lint-and-ci.md).
+- 포맷은 손으로 맞추지 않고 palantir-java-format 에 맡긴다. 들여쓰기는 공백 4칸. 강제 방식은 [docs/lint-and-ci.md](docs/lint-and-ci.md).
