@@ -2,6 +2,7 @@ package com.orbit.server.domain.campaign.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.artifact.model.Artifact;
 import com.orbit.server.domain.artifact.model.ArtifactFile;
 import com.orbit.server.domain.artifact.model.ArtifactRelease;
@@ -12,12 +13,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(TestcontainersConfiguration.class)
 @Transactional
 class CampaignConditionPersistenceTest {
 
