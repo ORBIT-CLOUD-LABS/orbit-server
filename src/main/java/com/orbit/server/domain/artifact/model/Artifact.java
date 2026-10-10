@@ -7,7 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import org.hibernate.annotations.Generated;
 
@@ -33,7 +33,7 @@ public class Artifact {
     // 등록 시각은 DB 시각(NOW(3))을 기준으로 한다
     @Generated
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     protected Artifact() {}
 

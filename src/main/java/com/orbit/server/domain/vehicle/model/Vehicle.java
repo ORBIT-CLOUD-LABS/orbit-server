@@ -7,7 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
@@ -33,12 +33,12 @@ public class Vehicle {
 
     @Generated
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     // 수정 시각은 DB 의 ON UPDATE 로 갱신한다
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     protected Vehicle() {}
 

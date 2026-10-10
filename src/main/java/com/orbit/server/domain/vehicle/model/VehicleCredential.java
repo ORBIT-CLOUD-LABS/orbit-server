@@ -9,7 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -42,10 +42,10 @@ public class VehicleCredential {
 
     @Generated
     @Column(name = "issued_at")
-    private LocalDateTime issuedAt;
+    private Instant issuedAt;
 
     @Column(name = "revoked_at")
-    private LocalDateTime revokedAt;
+    private Instant revokedAt;
 
     protected VehicleCredential() {}
 
