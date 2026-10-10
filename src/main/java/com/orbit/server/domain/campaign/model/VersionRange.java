@@ -1,6 +1,7 @@
 package com.orbit.server.domain.campaign.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
@@ -20,7 +21,7 @@ public record VersionRange(
     private static final int MAX_LENGTH = 50;
 
     /**
-     * @throws IllegalArgumentException 버전이 50자를 넘는 경우
+     * @throws InvalidValueException 버전이 50자를 넘는 경우
      */
     public VersionRange {
         Preconditions.requireMaxLength(min, MAX_LENGTH, "최소 버전");

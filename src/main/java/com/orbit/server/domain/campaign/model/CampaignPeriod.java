@@ -1,5 +1,6 @@
 package com.orbit.server.domain.campaign.model;
 
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.time.LocalDateTime;
@@ -16,14 +17,14 @@ public record CampaignPeriod(
         @Column(name = "end_at") LocalDateTime endAt) {
 
     /**
-     * @throws IllegalArgumentException 시각이 없거나 종료 시각이 시작 시각보다 늦지 않은 경우
+     * @throws InvalidValueException 시각이 없거나 종료 시각이 시작 시각보다 늦지 않은 경우
      */
     public CampaignPeriod {
         if (startAt == null || endAt == null) {
-            throw new IllegalArgumentException("캠페인 시작·종료 시각은 비어 있을 수 없습니다.");
+            throw new InvalidValueException("캠페인 시작·종료 시각은 비어 있을 수 없습니다.");
         }
         if (!startAt.isBefore(endAt)) {
-            throw new IllegalArgumentException("캠페인 종료 시각은 시작 시각보다 늦어야 합니다.");
+            throw new InvalidValueException("캠페인 종료 시각은 시작 시각보다 늦어야 합니다.");
         }
     }
 }

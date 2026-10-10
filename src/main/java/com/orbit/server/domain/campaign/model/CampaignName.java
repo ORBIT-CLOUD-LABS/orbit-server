@@ -1,6 +1,7 @@
 package com.orbit.server.domain.campaign.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
@@ -15,7 +16,7 @@ public record CampaignName(@Column(name = "name") String value) {
     private static final int MAX_LENGTH = 100;
 
     /**
-     * @throws IllegalArgumentException 이름이 비어 있거나 100자를 넘는 경우
+     * @throws InvalidValueException 이름이 비어 있거나 100자를 넘는 경우
      */
     public CampaignName {
         Preconditions.requireText(value, MAX_LENGTH, "캠페인 이름");

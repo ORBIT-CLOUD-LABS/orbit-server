@@ -1,6 +1,7 @@
 package com.orbit.server.domain.campaign.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -38,7 +39,7 @@ public class CampaignTarget {
      * @param model 대상 차종. 공백 불가, 50자 이하
      * @param hwVersions 대상 HW 버전. null 이거나 비어 있으면 전체
      * @param regions 대상 지역. null 이거나 비어 있으면 전체
-     * @throws IllegalArgumentException 차종이나 HW 버전·지역 값이 비어 있거나 50자를 넘는 경우
+     * @throws InvalidValueException 차종이나 HW 버전·지역 값이 비어 있거나 50자를 넘는 경우
      */
     public CampaignTarget(String model, Set<String> hwVersions, Set<String> regions) {
         this.model = Preconditions.requireText(model, MAX_LENGTH, "대상 차종");
