@@ -27,4 +27,11 @@ public record VersionRange(
         Preconditions.requireMaxLength(min, MAX_LENGTH, "최소 버전");
         Preconditions.requireMaxLength(max, MAX_LENGTH, "최대 버전");
     }
+
+    /**
+     * @return 양 끝 모두 제한이 없는 범위
+     */
+    public static VersionRange unbounded() {
+        return new VersionRange(null, null);
+    }
 }
