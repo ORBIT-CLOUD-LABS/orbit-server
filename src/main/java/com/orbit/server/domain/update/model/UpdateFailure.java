@@ -1,6 +1,7 @@
 package com.orbit.server.domain.update.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
@@ -24,11 +25,11 @@ public record UpdateFailure(
     private static final int DETAIL_MAX_LENGTH = 500;
 
     /**
-     * @throws IllegalArgumentException 실패 사유가 없거나 상세 내용이 500자를 넘는 경우
+     * @throws InvalidValueException 실패 사유가 없거나 상세 내용이 500자를 넘는 경우
      */
     public UpdateFailure {
         if (reason == null) {
-            throw new IllegalArgumentException("실패 사유는 비어 있을 수 없습니다.");
+            throw new InvalidValueException("실패 사유는 비어 있을 수 없습니다.");
         }
         Preconditions.requireMaxLength(detail, DETAIL_MAX_LENGTH, "실패 상세");
     }

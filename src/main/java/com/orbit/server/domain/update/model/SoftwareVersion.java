@@ -1,6 +1,7 @@
 package com.orbit.server.domain.update.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Embeddable;
 
 /**
@@ -14,7 +15,7 @@ public record SoftwareVersion(String value) {
     private static final int MAX_LENGTH = 50;
 
     /**
-     * @throws IllegalArgumentException 버전이 비어 있거나 50자를 넘는 경우
+     * @throws InvalidValueException 버전이 비어 있거나 50자를 넘는 경우
      */
     public SoftwareVersion {
         Preconditions.requireText(value, MAX_LENGTH, "소프트웨어 버전");

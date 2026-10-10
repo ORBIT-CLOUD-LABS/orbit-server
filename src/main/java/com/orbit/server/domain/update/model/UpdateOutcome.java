@@ -1,5 +1,6 @@
 package com.orbit.server.domain.update.model;
 
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
@@ -25,15 +26,15 @@ public record UpdateOutcome(
         @Column(name = "finished_at") LocalDateTime finishedAt) {
 
     /**
-     * @throws IllegalArgumentException 상태나 완료 시각이 없거나, 실패 여부와 실패 정보 유무가 맞지 않는 경우
+     * @throws InvalidValueException 상태나 완료 시각이 없거나, 실패 여부와 실패 정보 유무가 맞지 않는 경우
      */
     public UpdateOutcome {
         if (status == null || finishedAt == null) {
-            throw new IllegalArgumentException("업데이트 결과와 완료 시각은 비어 있을 수 없습니다.");
+            throw new InvalidValueException("업데이트 결과와 완료 시각은 비어 있을 수 없습니다.");
         }
         // DB 검사 제약(ck_update_result_failure)과 같은 규칙
         if ((status == UpdateStatus.FAILED) != (failure != null)) {
-            throw new IllegalArgumentException("실패한 업데이트에만 실패 정보가 있어야 합니다.");
+            throw new InvalidValueException("실패한 업데이트에만 실패 정보가 있어야 합니다.");
         }
     }
 }

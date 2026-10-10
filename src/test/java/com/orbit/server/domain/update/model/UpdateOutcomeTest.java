@@ -3,6 +3,7 @@ package com.orbit.server.domain.update.model;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.global.error.InvalidValueException;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,20 +31,20 @@ class UpdateOutcomeTest {
     @DisplayName("UPDATE-REQ-001: 실패 결과에 실패 정보가 없으면 거부한다")
     void rejectsFailedWithoutFailure() {
         assertThatThrownBy(() -> new UpdateOutcome(UpdateStatus.FAILED, null, FINISHED_AT))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidValueException.class);
     }
 
     @Test
     @DisplayName("UPDATE-REQ-001: 성공 결과에 실패 정보가 있으면 거부한다")
     void rejectsSucceededWithFailure() {
         assertThatThrownBy(() -> new UpdateOutcome(UpdateStatus.SUCCEEDED, FAILURE, FINISHED_AT))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidValueException.class);
     }
 
     @Test
     @DisplayName("UPDATE-REQ-001: 완료 시각이 없으면 거부한다")
     void rejectsMissingFinishedAt() {
         assertThatThrownBy(() -> new UpdateOutcome(UpdateStatus.SUCCEEDED, null, null))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidValueException.class);
     }
 }
