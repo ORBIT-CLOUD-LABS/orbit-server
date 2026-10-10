@@ -2,7 +2,7 @@
 
 ## 포맷
 
-- google-java-format (공백 2칸 들여쓰기, 100자). 수동 정렬하지 않는다.
+- palantir-java-format (공백 4칸 들여쓰기, 120자). 수동 정렬하지 않는다.
 - 커밋 전 `./gradlew spotlessApply`. 빌드 시 `spotlessCheck` 이 위반을 잡는다.
 - 설정은 [lint-and-ci.md](lint-and-ci.md).
 
