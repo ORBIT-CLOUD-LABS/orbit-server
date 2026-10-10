@@ -6,7 +6,7 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -23,7 +23,7 @@ public record UpdateOutcome(
         UpdateStatus status,
 
         @Embedded UpdateFailure failure,
-        @Column(name = "finished_at") LocalDateTime finishedAt) {
+        @Column(name = "finished_at") Instant finishedAt) {
 
     /**
      * @throws InvalidValueException 상태나 완료 시각이 없거나, 실패 여부와 실패 정보 유무가 맞지 않는 경우

@@ -7,7 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
@@ -36,7 +36,7 @@ public class UpdateResult {
 
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "reported_at")
-    private LocalDateTime reportedAt;
+    private Instant reportedAt;
 
     protected UpdateResult() {}
 

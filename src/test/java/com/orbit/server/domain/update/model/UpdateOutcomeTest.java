@@ -4,13 +4,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.orbit.server.global.error.InvalidValueException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class UpdateOutcomeTest {
 
-    private static final LocalDateTime FINISHED_AT = LocalDateTime.of(2026, 10, 1, 12, 0);
+    private static final Instant FINISHED_AT = Instant.parse("2026-10-01T12:00:00Z");
     private static final UpdateFailure FAILURE = new UpdateFailure(FailureReason.HASH_MISMATCH, null);
 
     @Test

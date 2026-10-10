@@ -6,7 +6,7 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
@@ -29,12 +29,12 @@ public class VehicleState {
     private SoftwareVersion currentVersion;
 
     @Column(name = "last_seen_at")
-    private LocalDateTime lastSeenAt;
+    private Instant lastSeenAt;
 
     // SSE 가 이 시각으로 변경분을 조회하므로 DB 의 ON UPDATE 로만 갱신한다
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     protected VehicleState() {}
 
