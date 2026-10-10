@@ -5,10 +5,19 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    # DB 기본값(CURRENT_TIMESTAMP)으로 채우는 시각과 애플리케이션이 넘기는 시각의 기준을 UTC 로 맞춘다.
+    # DB_URL 은 환경마다 주입되므로 URL 파라미터가 아닌 드라이버 속성으로 고정한다.
+    # 'UTC' 대신 오프셋을 쓰는 이유: 시간대 테이블이 없는 MySQL 에서도 세션 time_zone 설정이 실패하지 않게 하기 위해서다.
+    hikari:
+      data-source-properties:
+        connectionTimeZone: "+00:00"
+        forceConnectionTimeZoneToSession: true
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
 
 management:
   endpoints:
