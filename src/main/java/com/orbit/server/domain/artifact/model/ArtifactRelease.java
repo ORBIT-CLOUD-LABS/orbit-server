@@ -1,6 +1,7 @@
 package com.orbit.server.domain.artifact.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
@@ -18,7 +19,7 @@ public record ArtifactRelease(
     private static final int MAX_LENGTH = 50;
 
     /**
-     * @throws IllegalArgumentException 차종이나 버전이 비어 있거나 50자를 넘는 경우
+     * @throws InvalidValueException 차종이나 버전이 비어 있거나 50자를 넘는 경우
      */
     public ArtifactRelease {
         Preconditions.requireText(model, MAX_LENGTH, "차종");

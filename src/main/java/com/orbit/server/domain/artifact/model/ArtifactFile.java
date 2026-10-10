@@ -1,6 +1,7 @@
 package com.orbit.server.domain.artifact.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.util.regex.Pattern;
@@ -27,14 +28,14 @@ public record ArtifactFile(
     private static final int PATH_MAX_LENGTH = 500;
 
     /**
-     * @throws IllegalArgumentException 해시 형식이 틀리거나, 크기가 0 이하이거나, 경로가 비어 있거나 너무 긴 경우
+     * @throws InvalidValueException 해시 형식이 틀리거나, 크기가 0 이하이거나, 경로가 비어 있거나 너무 긴 경우
      */
     public ArtifactFile {
         if (sha256 == null || !SHA256_FORMAT.matcher(sha256).matches()) {
-            throw new IllegalArgumentException("SHA-256 은 소문자 16진수 64자여야 합니다.");
+            throw new InvalidValueException("SHA-256 은 소문자 16진수 64자여야 합니다.");
         }
         if (sizeBytes <= 0) {
-            throw new IllegalArgumentException("파일 크기는 0보다 커야 합니다.");
+            throw new InvalidValueException("파일 크기는 0보다 커야 합니다.");
         }
         Preconditions.requireText(path, PATH_MAX_LENGTH, "Origin 경로");
     }
