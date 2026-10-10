@@ -6,8 +6,6 @@ public enum FailureReason {
     DOWNLOAD_FAILED,
     /** 받은 파일의 SHA-256 이 매니페스트와 다름. */
     HASH_MISMATCH,
-    /** Ed25519 서명 검증 실패. */
-    SIGNATURE_INVALID,
     /** 설치 중 실패. */
     INSTALL_FAILED
 }

@@ -41,7 +41,7 @@ public class Artifact {
      * 업데이트 파일을 등록한다.
      *
      * @param release 차종과 버전. null 불가
-     * @param file 파일 해시·크기·서명·Origin 경로. null 불가
+     * @param file 파일 해시·크기·Origin 경로. null 불가
      */
     public Artifact(ArtifactRelease release, ArtifactFile file) {
         this.release = Objects.requireNonNull(release, "release");

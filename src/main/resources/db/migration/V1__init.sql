@@ -1,13 +1,13 @@
 -- Artifact: Origin 에 등록한 업데이트 파일 메타데이터
 -- 등록 후 수정하지 않으므로 updated_at 을 두지 않는다. 버전마다 새 Origin 경로를 쓴다.
+-- Phase1 은 SHA-256 해시로 무결성만 확인한다. 서명은 Phase2 에서 NOT NULL 컬럼으로 추가한다.
 CREATE TABLE artifact (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
     model       VARCHAR(50)  NOT NULL,
     version     VARCHAR(50)  NOT NULL,
     sha256      CHAR(64)     NOT NULL,
     size_bytes  BIGINT       NOT NULL,
-    signature   VARCHAR(128) NOT NULL,
-    path        VARCHAR(500) NOT NULL,
+    path       VARCHAR(500) NOT NULL,
     created_at  DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     CONSTRAINT uk_artifact_model_version UNIQUE (model, version),
     CONSTRAINT uk_artifact_path UNIQUE (path),
@@ -117,7 +117,7 @@ CREATE TABLE update_result (
     CONSTRAINT ck_update_result_result CHECK (result IN ('SUCCEEDED', 'FAILED')),
     CONSTRAINT ck_update_result_failure_reason CHECK (
         failure_reason IS NULL
-        OR failure_reason IN ('DOWNLOAD_FAILED', 'HASH_MISMATCH', 'SIGNATURE_INVALID', 'INSTALL_FAILED')
+        OR failure_reason IN ('DOWNLOAD_FAILED', 'HASH_MISMATCH', 'INSTALL_FAILED')
     ),
     CONSTRAINT ck_update_result_failure CHECK ((result = 'FAILED') = (failure_reason IS NOT NULL))
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
