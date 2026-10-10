@@ -1,5 +1,6 @@
 package com.orbit.server.domain.vehicle.model;
 
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import java.util.regex.Pattern;
@@ -20,11 +21,11 @@ public record TokenHash(
     private static final Pattern FORMAT = Pattern.compile("^[0-9a-f]{64}$");
 
     /**
-     * @throws IllegalArgumentException 소문자 16진수 64자가 아닌 경우
+     * @throws InvalidValueException 소문자 16진수 64자가 아닌 경우
      */
     public TokenHash {
         if (value == null || !FORMAT.matcher(value).matches()) {
-            throw new IllegalArgumentException("토큰 해시는 소문자 16진수 64자여야 합니다.");
+            throw new InvalidValueException("토큰 해시는 소문자 16진수 64자여야 합니다.");
         }
     }
 }

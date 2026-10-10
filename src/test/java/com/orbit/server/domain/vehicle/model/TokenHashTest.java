@@ -3,6 +3,7 @@ package com.orbit.server.domain.vehicle.model;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.global.error.InvalidValueException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,6 +23,6 @@ class TokenHashTest {
     @ValueSource(strings = {"", "raw-token", "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF"})
     @DisplayName("VEHICLE-REQ-002: 해시 형식이 아니면 거부한다")
     void rejectsInvalidHash(String value) {
-        assertThatThrownBy(() -> new TokenHash(value)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new TokenHash(value)).isInstanceOf(InvalidValueException.class);
     }
 }

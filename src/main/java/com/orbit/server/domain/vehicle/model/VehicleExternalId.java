@@ -1,6 +1,7 @@
 package com.orbit.server.domain.vehicle.model;
 
 import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
@@ -16,7 +17,7 @@ public record VehicleExternalId(
     private static final int MAX_LENGTH = 64;
 
     /**
-     * @throws IllegalArgumentException 식별자가 비어 있거나 64자를 넘는 경우
+     * @throws InvalidValueException 식별자가 비어 있거나 64자를 넘는 경우
      */
     public VehicleExternalId {
         Preconditions.requireText(value, MAX_LENGTH, "차량 식별자");
