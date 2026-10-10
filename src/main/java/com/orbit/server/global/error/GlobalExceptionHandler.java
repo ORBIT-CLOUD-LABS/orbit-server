@@ -42,9 +42,10 @@ public class GlobalExceptionHandler {
         return respond(CommonErrorCode.INVALID_INPUT);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
-        log.warn("잘못된 인자로 요청을 처리하지 못했습니다.", e);
+    // IllegalArgumentException 은 서버 버그·프레임워크 내부에서도 던져지므로 400 으로 매핑하지 않고 500 으로 둔다
+    @ExceptionHandler(InvalidValueException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidValue(InvalidValueException e) {
+        log.info("도메인 값 검증 실패: {}", e.getMessage());
         return respond(CommonErrorCode.INVALID_INPUT);
     }
 
