@@ -3,6 +3,7 @@ package com.orbit.server.global.common;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.global.error.InvalidValueException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,15 +17,14 @@ class PreconditionsTest {
     @ValueSource(strings = {" ", "\t"})
     @DisplayName("필수 문자열이 비어 있으면 거부한다")
     void rejectsBlankText(String value) {
-        assertThatThrownBy(() -> Preconditions.requireText(value, 10, "값"))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Preconditions.requireText(value, 10, "값")).isInstanceOf(InvalidValueException.class);
     }
 
     @Test
     @DisplayName("최대 길이를 넘으면 거부한다")
     void rejectsTooLongText() {
         assertThatThrownBy(() -> Preconditions.requireText("12345678901", 10, "값"))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidValueException.class);
     }
 
     @Test

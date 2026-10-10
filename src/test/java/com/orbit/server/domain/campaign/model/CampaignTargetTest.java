@@ -3,6 +3,7 @@ package com.orbit.server.domain.campaign.model;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.global.error.InvalidValueException;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,14 +19,13 @@ class CampaignTargetTest {
     @Test
     @DisplayName("CAMPAIGN-REQ-001: 대상 차종이 없으면 거부한다")
     void rejectsMissingModel() {
-        assertThatThrownBy(() -> new CampaignTarget(" ", Set.of(), Set.of()))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new CampaignTarget(" ", Set.of(), Set.of())).isInstanceOf(InvalidValueException.class);
     }
 
     @Test
     @DisplayName("CAMPAIGN-REQ-001: 빈 HW 버전 값이 있으면 거부한다")
     void rejectsBlankHwVersion() {
         assertThatThrownBy(() -> new CampaignTarget("model-a", Set.of(""), Set.of()))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(InvalidValueException.class);
     }
 }
