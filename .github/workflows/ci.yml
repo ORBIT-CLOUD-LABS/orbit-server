@@ -11,28 +11,8 @@ permissions:
 
 jobs:
   build:
+    # 테스트 DB 는 Testcontainers 가 러너의 Docker 로 직접 띄운다
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.4
-        env:
-          MYSQL_ROOT_PASSWORD: root_pw
-          MYSQL_DATABASE: orbit_test
-          MYSQL_USER: orbit_test
-          MYSQL_PASSWORD: test_pw
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-
-    env:
-      TEST_DB_URL: jdbc:mysql://127.0.0.1:3306/orbit_test?allowPublicKeyRetrieval=true&useSSL=false
-      TEST_DB_USERNAME: orbit_test
-      TEST_DB_PASSWORD: test_pw
 
     steps:
       - name: Checkout
