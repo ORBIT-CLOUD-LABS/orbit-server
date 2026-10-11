@@ -47,4 +47,13 @@ public class Artifact {
         this.release = Objects.requireNonNull(release, "release");
         this.file = Objects.requireNonNull(file, "file");
     }
+
+    /**
+     * 다른 Aggregate 와 응답이 이 파일을 가리킬 때 쓰는 식별자. 상태를 노출하는 getter 가 아니므로 예외적으로 둔다.
+     *
+     * @return 저장 전이면 null
+     */
+    public Long id() {
+        return id;
+    }
 }
