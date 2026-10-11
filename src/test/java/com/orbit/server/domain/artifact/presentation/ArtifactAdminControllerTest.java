@@ -50,7 +50,8 @@ class ArtifactAdminControllerTest {
     void setUp() {
         artifactRegistrationService = mock(ArtifactRegistrationService.class);
         artifactQueryService = mock(ArtifactQueryService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new ArtifactAdminController(artifactRegistrationService, artifactQueryService))
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                        new ArtifactAdminController(artifactRegistrationService, artifactQueryService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -88,7 +89,8 @@ class ArtifactAdminControllerTest {
     @Test
     @DisplayName("ORIGIN-REQ-001: 파일을 등록하면 201 과 ID·크기·해시·경로를 응답한다")
     void respondsCreated() throws Exception {
-        given(artifactRegistrationService.register(any())).willReturn(new ArtifactRegistrationResult(1L, 1, SHA256, PATH));
+        given(artifactRegistrationService.register(any()))
+                .willReturn(new ArtifactRegistrationResult(1L, 1, SHA256, PATH));
 
         mockMvc.perform(validRequest().param("sha256", SHA256))
                 .andExpect(status().isCreated())
@@ -123,7 +125,8 @@ class ArtifactAdminControllerTest {
     @Test
     @DisplayName("ORIGIN-REQ-001: 해시가 다르면 422 HASH_MISMATCH 로 응답한다")
     void respondsHashMismatch() throws Exception {
-        given(artifactRegistrationService.register(any())).willThrow(new BusinessException(ArtifactErrorCode.HASH_MISMATCH));
+        given(artifactRegistrationService.register(any()))
+                .willThrow(new BusinessException(ArtifactErrorCode.HASH_MISMATCH));
 
         mockMvc.perform(validRequest())
                 .andExpect(status().isUnprocessableContent())
@@ -133,7 +136,8 @@ class ArtifactAdminControllerTest {
     @Test
     @DisplayName("ORIGIN-POL-001: 같은 차종·버전이 있으면 409 ARTIFACT_VERSION_EXISTS 로 응답한다")
     void respondsVersionExists() throws Exception {
-        given(artifactRegistrationService.register(any())).willThrow(new BusinessException(ArtifactErrorCode.ARTIFACT_VERSION_EXISTS));
+        given(artifactRegistrationService.register(any()))
+                .willThrow(new BusinessException(ArtifactErrorCode.ARTIFACT_VERSION_EXISTS));
 
         mockMvc.perform(validRequest())
                 .andExpect(status().isConflict())
@@ -143,7 +147,8 @@ class ArtifactAdminControllerTest {
     @Test
     @DisplayName("ORIGIN-REQ-001: Origin 업로드에 실패하면 502 ORIGIN_UPLOAD_FAILED 로 응답한다")
     void respondsOriginUploadFailed() throws Exception {
-        given(artifactRegistrationService.register(any())).willThrow(new OriginUploadException(new IOException("origin unavailable")));
+        given(artifactRegistrationService.register(any()))
+                .willThrow(new OriginUploadException(new IOException("origin unavailable")));
 
         mockMvc.perform(validRequest())
                 .andExpect(status().isBadGateway())
