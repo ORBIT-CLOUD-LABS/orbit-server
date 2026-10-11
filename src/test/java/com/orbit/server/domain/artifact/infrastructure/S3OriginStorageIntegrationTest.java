@@ -3,6 +3,7 @@ package com.orbit.server.domain.artifact.infrastructure;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.domain.artifact.application.OriginFileExistsException;
 import com.orbit.server.domain.artifact.application.OriginUploadException;
 import com.orbit.server.domain.artifact.model.ArtifactFile;
 import java.net.URI;
@@ -96,6 +97,17 @@ class S3OriginStorageIntegrationTest {
         assertThatThrownBy(() -> s3Client.headObject(
                         request -> request.bucket(BUCKET).key("firmware/model-a/2.0.0/firmware.bin")))
                 .isInstanceOf(NoSuchKeyException.class);
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 같은 경로에 이미 올린 파일이 있으면 덮어쓰지 않고 같은 버전이 있다고 알린다")
+    void doesNotOverwriteExistingFile() {
+        S3OriginStorage originStorage = new S3OriginStorage(s3Client, propertiesOf(SECRET_KEY));
+        ArtifactFile file = new ArtifactFile(CONTENT_SHA256, CONTENT.length, "/firmware/model-a/3.0.0/firmware.bin");
+        originStorage.upload(file, new ByteArrayResource(CONTENT));
+
+        assertThatThrownBy(() -> originStorage.upload(file, new ByteArrayResource(CONTENT)))
+                .isInstanceOf(OriginFileExistsException.class);
     }
 
     @Test

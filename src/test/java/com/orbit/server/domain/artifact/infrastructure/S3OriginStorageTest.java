@@ -7,6 +7,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import com.orbit.server.domain.artifact.application.ArtifactErrorCode;
+import com.orbit.server.domain.artifact.application.OriginFileExistsException;
 import com.orbit.server.domain.artifact.application.OriginUploadException;
 import com.orbit.server.domain.artifact.model.ArtifactFile;
 import java.io.IOException;
@@ -21,6 +23,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 class S3OriginStorageTest {
 
@@ -64,6 +67,37 @@ class S3OriginStorageTest {
     }
 
     @Test
+    @DisplayName("ORIGIN-POL-001: 같은 경로에 객체가 있으면 거부하도록 If-None-Match 조건을 붙인다")
+    void sendsIfNoneMatchCondition() {
+        originStorage.upload(FILE, new ByteArrayResource(CONTENT));
+
+        ArgumentCaptor<PutObjectRequest> request = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(s3Client).putObject(request.capture(), any(RequestBody.class));
+        assertThat(request.getValue().ifNoneMatch()).isEqualTo("*");
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: Origin 이 412 로 거부하면 같은 버전이 있다고 알린다")
+    void throwsFileExistsWhenPreconditionFailed() {
+        given(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .willThrow(s3ExceptionOf(412));
+
+        assertThatThrownBy(() -> originStorage.upload(FILE, new ByteArrayResource(CONTENT)))
+                .isInstanceOf(OriginFileExistsException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.ARTIFACT_VERSION_EXISTS);
+    }
+
+    @Test
+    @DisplayName("ORIGIN-REQ-001: Origin 이 412 외의 오류로 거부하면 업로드 실패로 알린다")
+    void throwsUploadFailureWhenOriginRejects() {
+        given(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+                .willThrow(s3ExceptionOf(500));
+
+        assertThatThrownBy(() -> originStorage.upload(FILE, new ByteArrayResource(CONTENT)))
+                .isInstanceOf(OriginUploadException.class);
+    }
+
+    @Test
     @DisplayName("ORIGIN-REQ-001: Origin 이 요청을 처리하지 못하면 원인을 담아 업로드 실패로 알린다")
     void throwsUploadFailureWhenOriginFails() {
         SdkClientException cause = SdkClientException.create("connection refused");
@@ -85,5 +119,9 @@ class S3OriginStorageTest {
         assertThatThrownBy(() -> originStorage.upload(FILE, unreadable))
                 .isInstanceOf(OriginUploadException.class)
                 .hasCauseInstanceOf(IOException.class);
+    }
+
+    private static S3Exception s3ExceptionOf(int statusCode) {
+        return (S3Exception) S3Exception.builder().statusCode(statusCode).build();
     }
 }
