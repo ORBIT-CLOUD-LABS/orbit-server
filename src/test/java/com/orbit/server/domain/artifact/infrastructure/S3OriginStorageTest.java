@@ -53,6 +53,17 @@ class S3OriginStorageTest {
     }
 
     @Test
+    @DisplayName("ORIGIN-REQ-001: 계산한 SHA-256 을 Base64 체크섬으로 보내 Origin 이 받은 바이트를 검증하게 한다")
+    void sendsSha256Checksum() {
+        originStorage.upload(FILE, new ByteArrayResource(CONTENT));
+
+        ArgumentCaptor<PutObjectRequest> request = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(s3Client).putObject(request.capture(), any(RequestBody.class));
+        // 0xaa 32바이트의 Base64: python3 -c "import base64;print(base64.b64encode(bytes.fromhex('aa'*32)).decode())"
+        assertThat(request.getValue().checksumSHA256()).isEqualTo("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=");
+    }
+
+    @Test
     @DisplayName("ORIGIN-REQ-001: Origin 이 요청을 처리하지 못하면 원인을 담아 업로드 실패로 알린다")
     void throwsUploadFailureWhenOriginFails() {
         SdkClientException cause = SdkClientException.create("connection refused");
