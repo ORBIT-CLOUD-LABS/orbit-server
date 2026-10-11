@@ -1,5 +1,6 @@
 package com.orbit.server.domain.artifact.model;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -32,5 +33,26 @@ class ArtifactFileTest {
     @DisplayName("ORIGIN-REQ-001: 파일 크기가 0 이하면 거부한다")
     void rejectsNonPositiveSize(long sizeBytes) {
         assertThatThrownBy(() -> new ArtifactFile(SHA256, sizeBytes, PATH)).isInstanceOf(InvalidValueException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            })
+    @DisplayName("ORIGIN-REQ-001: 요청 해시가 파일 해시와 대소문자만 달라도 일치로 본다")
+    void matchesSameSha256IgnoringCase(String expectedSha256) {
+        ArtifactFile file = new ArtifactFile(SHA256, 1, PATH);
+
+        assertThat(file.matchesSha256(expectedSha256)).isTrue();
+    }
+
+    @Test
+    @DisplayName("ORIGIN-REQ-001: 요청 해시가 파일 해시와 다르면 불일치로 본다")
+    void doesNotMatchDifferentSha256() {
+        ArtifactFile file = new ArtifactFile(SHA256, 1, PATH);
+
+        assertThat(file.matchesSha256("b".repeat(64))).isFalse();
     }
 }

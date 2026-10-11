@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 class GlobalExceptionHandlerTest {
 
@@ -39,8 +40,21 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.INTERNAL_SERVER_ERROR.getCode()));
     }
 
+    @Test
+    @DisplayName("ORIGIN-REQ-001: 업로드 크기 제한을 넘으면 413 CONTENT_TOO_LARGE 로 응답한다")
+    void respondsContentTooLargeForMaxUploadSizeExceeded() throws Exception {
+        mockMvc.perform(get("/max-upload-size-exceeded"))
+                .andExpect(status().isContentTooLarge())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.CONTENT_TOO_LARGE.getCode()));
+    }
+
     @RestController
     static class ThrowingController {
+
+        @GetMapping("/max-upload-size-exceeded")
+        void throwMaxUploadSizeExceeded() {
+            throw new MaxUploadSizeExceededException(1024);
+        }
 
         @GetMapping("/invalid-value")
         void throwInvalidValue() {

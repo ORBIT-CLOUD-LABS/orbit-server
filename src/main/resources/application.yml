@@ -12,12 +12,26 @@ spring:
       data-source-properties:
         connectionTimeZone: "+00:00"
         forceConnectionTimeZoneToSession: true
+  servlet:
+    multipart:
+      # 펌웨어 최대 크기. 요청 전체는 파일과 함께 오는 폼 필드(model, version, sha256)만큼 여유를 둔다
+      max-file-size: 1GB
+      max-request-size: 1025MB
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
     properties:
       hibernate.jdbc.time_zone: UTC
+
+orbit:
+  origin:
+    endpoint: ${ORIGIN_ENDPOINT}
+    # S3 호환 서버(SeaweedFS)는 리전을 검사하지 않으므로 SDK 기본값으로 둔다
+    region: ${ORIGIN_REGION:us-east-1}
+    bucket: ${ORIGIN_BUCKET}
+    access-key: ${ORIGIN_ACCESS_KEY}
+    secret-key: ${ORIGIN_SECRET_KEY}
 
 management:
   endpoints:
