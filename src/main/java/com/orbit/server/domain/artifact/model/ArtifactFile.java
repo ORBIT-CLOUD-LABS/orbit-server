@@ -39,4 +39,16 @@ public record ArtifactFile(
         }
         Preconditions.requireText(path, PATH_MAX_LENGTH, "Origin 경로");
     }
+
+    /**
+     * 관리자가 알려 준 해시가 실제 파일 해시와 같은지 확인한다. 업로드 중 파일이 바뀌었는지 검증하는 데 쓴다. (ORIGIN-REQ-001)
+     *
+     * <p>16진수 표기는 대소문자가 달라도 같은 값이므로 대소문자를 구분하지 않는다.
+     *
+     * @param expectedSha256 관리자가 요청에 담은 SHA-256
+     * @return 같으면 true
+     */
+    public boolean matchesSha256(String expectedSha256) {
+        return sha256.equalsIgnoreCase(expectedSha256);
+    }
 }
