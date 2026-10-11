@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
@@ -62,6 +63,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     public ResponseEntity<ErrorResponse> handleMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException e) {
         return respond(CommonErrorCode.NOT_ACCEPTABLE);
+    }
+
+    // 업로드 크기 제한(spring.servlet.multipart)을 넘은 요청은 서버 오류가 아니므로 500 으로 떨어지지 않게 막는다
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        log.info("업로드 크기 제한 초과: maxUploadSize={}", e.getMaxUploadSize());
+        return respond(CommonErrorCode.CONTENT_TOO_LARGE);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
