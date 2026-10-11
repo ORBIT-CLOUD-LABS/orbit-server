@@ -1,0 +1,7 @@
+# 컨텍스트 테스트는 S3 클라이언트를 만들기만 하고 Origin 에 접속하지 않으므로 더미 값을 쓴다
+orbit:
+  origin:
+    endpoint: http://localhost:8333
+    bucket: test-bucket
+    access-key: test-access-key
+    secret-key: test-secret-key

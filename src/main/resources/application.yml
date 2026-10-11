@@ -19,6 +19,15 @@ spring:
     properties:
       hibernate.jdbc.time_zone: UTC
 
+orbit:
+  origin:
+    endpoint: ${ORIGIN_ENDPOINT}
+    # S3 호환 서버(SeaweedFS)는 리전을 검사하지 않으므로 SDK 기본값으로 둔다
+    region: ${ORIGIN_REGION:us-east-1}
+    bucket: ${ORIGIN_BUCKET}
+    access-key: ${ORIGIN_ACCESS_KEY}
+    secret-key: ${ORIGIN_SECRET_KEY}
+
 management:
   endpoints:
     web:
