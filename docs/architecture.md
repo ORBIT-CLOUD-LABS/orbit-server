@@ -53,6 +53,7 @@ global/external → service   (포트 구현)
 
 - `entity` 는 다른 패키지를 모른다. Spring 에 의존하지 않는다. (JPA 매핑 어노테이션만 예외, 아래 참고)
 - `service` 는 외부 시스템을 포트(인터페이스)로만 쓴다. 구현은 `global/external` 에 둔다.
+- 조회 전용 포트(예: `ArtifactSummaryQuery`)는 결과 타입과 함께 `service` 에 두고 `repository` 가 구현한다. 이때만 `repository → service` 의존을 허용한다.
 - `controller` 는 `entity` 를 응답으로 직접 노출하지 않는다. `dto/response` 로 변환한다.
 - `exception` 은 어느 패키지에서든 쓸 수 있다.
 
