@@ -8,6 +8,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -45,6 +46,20 @@ public class CampaignTarget {
         this.model = Preconditions.requireText(model, MAX_LENGTH, "대상 차종");
         this.hwVersions = copyOf(hwVersions, "대상 HW 버전");
         this.regions = copyOf(regions, "대상 지역");
+    }
+
+    // 중복 캠페인 판정에 쓴다. HW 버전·지역은 순서와 무관하게 집합으로 비교한다
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof CampaignTarget other)) {
+            return false;
+        }
+        return model.equals(other.model) && hwVersions.equals(other.hwVersions) && regions.equals(other.regions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(model, hwVersions, regions);
     }
 
     // JPA 가 컬렉션을 감싸 관리하므로 불변 컬렉션이 아닌 복사본을 둔다

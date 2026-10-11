@@ -34,6 +34,16 @@ public class CampaignCondition {
         this.period = Objects.requireNonNull(period, "period");
     }
 
+    /**
+     * 적용 기간을 뺀 대상 조건(차종·HW·지역·현재 버전 범위)이 같은지 판정한다. (CAMPAIGN-POL-001)
+     *
+     * @param other 비교할 조건
+     * @return 대상 조건이 모두 같으면 true
+     */
+    boolean hasSameTargetAs(CampaignCondition other) {
+        return target.equals(other.target) && currentVersionRange().equals(other.currentVersionRange());
+    }
+
     // Hibernate 는 컬럼이 모두 NULL 인 embeddable 을 null 로 채우므로, 필드를 직접 쓰지 않고 이 메서드로 읽는다
     VersionRange currentVersionRange() {
         if (currentVersionRange == null) {
