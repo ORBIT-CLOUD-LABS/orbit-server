@@ -79,6 +79,25 @@ class ArtifactSummaryJpaQueryTest {
         assertThat(artifactSummaryQuery.findAllByModel("model-b")).isEmpty();
     }
 
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: ID 로 파일을 조회한다")
+    void findById() {
+        save(new ArtifactRelease("model-a", "1.0.0"));
+        Artifact target = save(new ArtifactRelease("model-a", "1.0.1"));
+
+        assertThat(artifactSummaryQuery.findById(target.id()))
+                .map(ArtifactSummary::version)
+                .contains("1.0.1");
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: 해당 ID 의 파일이 없으면 빈 값을 조회한다")
+    void emptyWhenNoArtifactOfId() {
+        Artifact artifact = save(new ArtifactRelease("model-a", "1.0.0"));
+
+        assertThat(artifactSummaryQuery.findById(artifact.id() + 1)).isEmpty();
+    }
+
     private Artifact save(ArtifactRelease release) {
         return artifactRepository.save(
                 new Artifact(release, new ArtifactFile(SHA256, SIZE_BYTES, release.originPath())));

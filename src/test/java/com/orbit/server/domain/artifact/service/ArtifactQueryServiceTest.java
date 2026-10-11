@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,6 +54,13 @@ class ArtifactQueryServiceTest {
             return summaries.stream()
                     .filter(summary -> summary.model().equals(model))
                     .toList();
+        }
+
+        @Override
+        public Optional<ArtifactSummary> findById(Long id) {
+            return summaries.stream()
+                    .filter(summary -> summary.artifactId().equals(id))
+                    .findFirst();
         }
     }
 }

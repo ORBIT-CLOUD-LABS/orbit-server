@@ -4,6 +4,7 @@ import com.orbit.server.domain.artifact.entity.Artifact;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
 import com.orbit.server.domain.artifact.service.ArtifactSummaryQuery;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
@@ -34,4 +35,13 @@ interface ArtifactSummaryJpaQuery extends Repository<Artifact, Long>, ArtifactSu
             order by a.createdAt desc, a.id desc
             """)
     List<ArtifactSummary> findAllByModel(@Param("model") String model);
+
+    @Override
+    @Query("""
+            select new com.orbit.server.domain.artifact.service.ArtifactSummary(
+                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path, a.createdAt)
+            from Artifact a
+            where a.id = :id
+            """)
+    Optional<ArtifactSummary> findById(@Param("id") Long id);
 }
