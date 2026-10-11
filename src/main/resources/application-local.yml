@@ -2,6 +2,14 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/vehicle_db}
 
+# 로컬 SeaweedFS(S3 기본 포트 8333)를 가정한 기본값. 띄우지 않으면 업로드만 502 로 실패하고 앱은 실행된다
+orbit:
+  origin:
+    endpoint: ${ORIGIN_ENDPOINT:http://localhost:8333}
+    bucket: ${ORIGIN_BUCKET:orbit-firmware}
+    access-key: ${ORIGIN_ACCESS_KEY:local-access-key}
+    secret-key: ${ORIGIN_SECRET_KEY:local-secret-key}
+
 logging:
   level:
     com.orbit.server: DEBUG
