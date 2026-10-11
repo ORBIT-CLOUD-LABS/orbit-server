@@ -32,13 +32,23 @@ public class ArtifactRegistrationService {
      */
     public ArtifactRegistrationResult register(RegisterArtifactCommand command) {
         ArtifactRelease release = command.release();
-        // 업로드보다 먼저 확인해 이미 등록된 버전의 Origin 파일을 덮어쓰지 않는다
+        // 이미 등록된 버전이면 큰 파일을 읽고 올리기 전에 끝낸다. 동시에 이 확인을 통과한 요청은 Origin 의 조건부 쓰기가 막는다
         requireNewRelease(release);
         ArtifactFile file = digest(command);
         requireSameSha256(file, command);
         originStorage.upload(file, command.content());
-        Artifact artifact = artifactRepository.save(new Artifact(release, file));
+        Artifact artifact = saveOrDiscardUpload(new Artifact(release, file), file);
         return ArtifactRegistrationResult.of(artifact.id(), file);
+    }
+
+    // 저장에 실패한 파일이 Origin 에 남으면 같은 경로 조건부 쓰기에 걸려 이 버전을 다시 등록할 수 없으므로 지운다
+    private Artifact saveOrDiscardUpload(Artifact artifact, ArtifactFile file) {
+        try {
+            return artifactRepository.save(artifact);
+        } catch (RuntimeException e) {
+            originStorage.delete(file);
+            throw e;
+        }
     }
 
     private void requireNewRelease(ArtifactRelease release) {

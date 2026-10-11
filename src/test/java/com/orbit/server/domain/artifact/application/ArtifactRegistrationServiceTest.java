@@ -96,10 +96,21 @@ class ArtifactRegistrationServiceTest {
         assertThat(artifactRepository.saved).isEmpty();
     }
 
+    @Test
+    @DisplayName("ORIGIN-POL-001: 업로드 후 저장에 실패하면 올린 파일을 지워 같은 버전을 다시 등록할 수 있게 하고 원래 오류를 알린다")
+    void deletesUploadedFileWhenSaveFails() {
+        artifactRepository.saveFailure = new IllegalStateException("db unavailable");
+
+        assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
+                .isSameAs(artifactRepository.saveFailure);
+        assertThat(originStorage.deleted).containsExactly(new ArtifactFile(HELLO_SHA256, 5, PATH));
+    }
+
     private static class FakeArtifactRepository implements ArtifactRepository {
 
         private final Set<ArtifactRelease> releases = new HashSet<>();
         private final List<Artifact> saved = new ArrayList<>();
+        private RuntimeException saveFailure;
 
         @Override
         public boolean existsByRelease(ArtifactRelease release) {
@@ -108,6 +119,9 @@ class ArtifactRegistrationServiceTest {
 
         @Override
         public Artifact save(Artifact artifact) {
+            if (saveFailure != null) {
+                throw saveFailure;
+            }
             // ID 는 DB 가 채우므로 저장 순서대로 흉내 낸다
             ReflectionTestUtils.setField(artifact, "id", saved.size() + 1L);
             saved.add(artifact);
@@ -118,6 +132,7 @@ class ArtifactRegistrationServiceTest {
     private static class FakeOriginStorage implements OriginStorage {
 
         private final List<ArtifactFile> uploaded = new ArrayList<>();
+        private final List<ArtifactFile> deleted = new ArrayList<>();
         private boolean failing;
 
         @Override
@@ -126,6 +141,11 @@ class ArtifactRegistrationServiceTest {
                 throw new OriginUploadException(new IOException("origin unavailable"));
             }
             uploaded.add(file);
+        }
+
+        @Override
+        public void delete(ArtifactFile file) {
+            deleted.add(file);
         }
     }
 }

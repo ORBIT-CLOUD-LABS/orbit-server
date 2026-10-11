@@ -19,4 +19,13 @@ public interface OriginStorage {
      * @throws OriginUploadException 업로드에 실패한 경우
      */
     void upload(ArtifactFile file, InputStreamSource content);
+
+    /**
+     * 올린 파일을 지운다. 등록을 마치지 못했을 때 정리하는 데만 쓴다.
+     *
+     * <p>정리는 원래 오류를 처리하는 도중에 하므로, 실패해도 예외를 던지지 않고 기록만 남긴다.
+     *
+     * @param file 지울 파일의 위치
+     */
+    void delete(ArtifactFile file);
 }

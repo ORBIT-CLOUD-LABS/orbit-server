@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -40,6 +41,20 @@ class S3OriginStorage implements OriginStorage {
             throw translate(file, e);
         } catch (IOException | SdkException e) {
             throw uploadFailed(file, e);
+        }
+    }
+
+    @Override
+    public void delete(ArtifactFile file) {
+        DeleteObjectRequest request = DeleteObjectRequest.builder()
+                .bucket(properties.bucket())
+                .key(objectKeyOf(file))
+                .build();
+        try {
+            s3Client.deleteObject(request);
+        } catch (SdkException e) {
+            // 남은 파일은 같은 경로 조건부 쓰기에 걸려 이 버전의 재등록을 막으므로 수동으로 지워야 한다
+            log.error("Origin 파일을 정리하지 못했습니다. 수동 삭제가 필요합니다: path={}", file.path(), e);
         }
     }
 

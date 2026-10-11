@@ -1,6 +1,7 @@
 package com.orbit.server.domain.artifact.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -22,6 +23,7 @@ import org.springframework.core.io.InputStreamSource;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -119,6 +121,27 @@ class S3OriginStorageTest {
         assertThatThrownBy(() -> originStorage.upload(FILE, unreadable))
                 .isInstanceOf(OriginUploadException.class)
                 .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 등록을 마치지 못한 파일은 올린 키 그대로 지운다")
+    void deletesUploadedObject() {
+        originStorage.delete(FILE);
+
+        ArgumentCaptor<DeleteObjectRequest> request = ArgumentCaptor.forClass(DeleteObjectRequest.class);
+        verify(s3Client).deleteObject(request.capture());
+        assertThat(request.getValue())
+                .returns("orbit-firmware", DeleteObjectRequest::bucket)
+                .returns("firmware/model-a/1.0.0/firmware.bin", DeleteObjectRequest::key);
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 정리에 실패해도 원래 오류를 가리지 않도록 예외를 던지지 않는다")
+    void doesNotThrowWhenDeleteFails() {
+        given(s3Client.deleteObject(any(DeleteObjectRequest.class)))
+                .willThrow(SdkClientException.create("connection refused"));
+
+        assertThatCode(() -> originStorage.delete(FILE)).doesNotThrowAnyException();
     }
 
     private static S3Exception s3ExceptionOf(int statusCode) {
