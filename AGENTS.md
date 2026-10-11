@@ -27,10 +27,11 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 
 문서를 다 읽지 못했더라도 아래는 반드시 지킨다.
 
-- 패키지는 최상위 `domain` / `global` 로 나눈다. `domain` 아래는 바운디드 컨텍스트별로 `model` / `application` / `infrastructure` / `presentation` 을 둔다.
-- 의존 방향은 `presentation → application → model ← infrastructure`, `domain → global`. 다른 컨텍스트는 `application` 인터페이스나 이벤트로만 접근한다.
+- 패키지는 최상위 `domain` / `global` 로 나눈다. `domain` 아래는 바운디드 컨텍스트별로 `controller` / `dto` (`request`, `response`) / `service` / `repository` / `entity` / `exception` 을 둔다.
+- 의존 방향은 `controller → service → repository → entity`, `domain → global`. 다른 컨텍스트는 `service` 나 이벤트로만 접근한다.
 - `global` 에는 설정·전역 예외·보안 같은 기술 기반만 둔다. 비즈니스 규칙은 두지 않는다.
-- `XxxService` 는 `application` 의 애플리케이션 서비스만 쓴다. `model` 의 도메인 서비스는 역할로 이름 짓는다. (`DispatchPolicy`)
+  외부 시스템 연동 구현은 `global/external/{시스템}` 에 두고, `service` 의 포트(인터페이스)를 구현한다.
+- `XxxService` 는 유스케이스를 조율하는 서비스만 쓴다. 도메인 서비스는 역할로 이름 짓는다. (`DispatchPolicy`)
 
 - 메서드 들여쓰기 1단계, `else` 금지, 조기 반환.
 - 메서드 인자 3개 이하, 한 가지 일만.
