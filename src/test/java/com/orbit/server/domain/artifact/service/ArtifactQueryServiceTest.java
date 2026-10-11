@@ -1,7 +1,10 @@
 package com.orbit.server.domain.artifact.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
+import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +39,21 @@ class ArtifactQueryServiceTest {
     @DisplayName("ORIGIN-REQ-001: 차종이 없거나 비어 있으면 전체 목록을 조회한다")
     void findsAllWithoutModel(String model) {
         assertThat(service.findAll(model)).containsExactly(MODEL_B, MODEL_A);
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: ID 로 파일을 조회한다")
+    void getsById() {
+        assertThat(service.getById(1L)).isEqualTo(MODEL_A);
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: 해당 ID 의 파일이 없으면 ARTIFACT_NOT_FOUND 로 실패한다")
+    void failsWhenArtifactNotFound() {
+        assertThatThrownBy(() -> service.getById(3L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ArtifactErrorCode.ARTIFACT_NOT_FOUND);
     }
 
     private static ArtifactSummary summaryOf(Long id, String model) {
