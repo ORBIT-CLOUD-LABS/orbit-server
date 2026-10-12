@@ -73,6 +73,16 @@ public class Campaign {
     }
 
     /**
+     * 이 캠페인이 배포하는 Artifact 의 ID. 목표 버전은 Artifact 에 있으므로 대상 판정에서 이 ID 로 조회한다. 다른 Aggregate 를
+     * 가리키는 식별자라 {@link #id()} 처럼 예외적으로 둔다.
+     *
+     * @return Artifact ID
+     */
+    public Long artifactId() {
+        return artifactId;
+    }
+
+    /**
      * 차량이 이 캠페인의 대상 조건과 적용 기간을 모두 만족하는지 판정한다. (VEHICLE-POL-001)
      *
      * <p>활성 여부는 호출하는 쪽이 활성 캠페인만 골라 판정한다. 현재 버전이 이미 목표 버전인지는 목표 버전이 Artifact 에 있으므로
