@@ -60,4 +60,13 @@ public class VehicleCredential {
         this.tokenHash = Objects.requireNonNull(tokenHash, "tokenHash");
         this.status = CredentialStatus.ACTIVE;
     }
+
+    /**
+     * 발급 시각. 등록 응답에 담아 차량에 알려준다. DB 가 기록하므로 저장 후에 채워진다.
+     *
+     * @return 저장 전이면 null
+     */
+    public Instant issuedAt() {
+        return issuedAt;
+    }
 }
