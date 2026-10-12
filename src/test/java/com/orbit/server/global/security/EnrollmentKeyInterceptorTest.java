@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +29,10 @@ class EnrollmentKeyInterceptorTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    // @WebMvcTest 가 차량 토큰 인터셉터 설정도 올리므로 포트 구현 대신 넣는다
+    @MockitoBean
+    private VehicleTokenAuthenticator vehicleTokenAuthenticator;
 
     @Test
     @DisplayName("VEHICLE-POL-003: 등록 키가 맞으면 등록 요청을 통과시킨다")
