@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -128,6 +129,12 @@ class ArtifactRegistrationServiceTest {
             ReflectionTestUtils.setField(artifact, "id", saved.size() + 1L);
             saved.add(artifact);
             return artifact;
+        }
+
+        // 파일 등록은 잠금을 쓰지 않는다
+        @Override
+        public Optional<Long> lockById(Long id) {
+            throw new UnsupportedOperationException();
         }
     }
 

@@ -42,6 +42,22 @@ class ArtifactJpaRepositoryTest {
                 .isFalse();
     }
 
+    @Test
+    @DisplayName("CAMPAIGN-POL-001: 저장된 파일을 잠그면 그 ID 를 돌려준다")
+    void locksSavedArtifact() {
+        Artifact artifact = artifactRepository.save(artifactOf(RELEASE));
+
+        assertThat(artifactRepository.lockById(artifact.id())).contains(artifact.id());
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-POL-001: 없는 파일을 잠그려 하면 빈 값을 돌려준다")
+    void lockReturnsEmptyWhenArtifactNotFound() {
+        Artifact artifact = artifactRepository.save(artifactOf(RELEASE));
+
+        assertThat(artifactRepository.lockById(artifact.id() + 1)).isEmpty();
+    }
+
     private Artifact artifactOf(ArtifactRelease release) {
         return new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
     }
