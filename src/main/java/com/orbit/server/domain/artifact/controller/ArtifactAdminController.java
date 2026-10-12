@@ -1,6 +1,7 @@
 package com.orbit.server.domain.artifact.controller;
 
 import com.orbit.server.domain.artifact.dto.request.RegisterArtifactRequest;
+import com.orbit.server.domain.artifact.dto.response.ArtifactDetailResponse;
 import com.orbit.server.domain.artifact.dto.response.ArtifactListResponse;
 import com.orbit.server.domain.artifact.dto.response.ArtifactRegistrationResponse;
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,5 +51,16 @@ public class ArtifactAdminController {
     @GetMapping
     public ArtifactListResponse findAll(@RequestParam(required = false) String model) {
         return ArtifactListResponse.from(artifactQueryService.findAll(model));
+    }
+
+    /**
+     * Origin 파일 한 건의 해시·경로를 조회한다.
+     *
+     * @param artifactId Artifact ID
+     * @return 200 과 Origin 파일 정보. 없으면 404 ARTIFACT_NOT_FOUND
+     */
+    @GetMapping("/{artifactId}")
+    public ArtifactDetailResponse getById(@PathVariable Long artifactId) {
+        return ArtifactDetailResponse.from(artifactQueryService.getById(artifactId));
     }
 }

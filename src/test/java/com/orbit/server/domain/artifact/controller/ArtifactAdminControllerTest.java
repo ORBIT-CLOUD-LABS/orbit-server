@@ -86,6 +86,43 @@ class ArtifactAdminControllerTest {
         verify(artifactQueryService).findAll(null);
     }
 
+    // 보조 API(제안)라 요구사항 ID 가 없다
+    @Test
+    @DisplayName("Origin 파일 상세: 파일 한 건의 해시·경로를 200 으로 응답한다")
+    void respondsArtifactDetail() throws Exception {
+        given(artifactQueryService.getById(1L))
+                .willReturn(new ArtifactSummary(1L, "model-a", "1.0.0", 1, SHA256, PATH, Instant.parse(CREATED_AT)));
+
+        mockMvc.perform(get(URL + "/{artifactId}", 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.artifactId").value(1))
+                .andExpect(jsonPath("$.model").value("model-a"))
+                .andExpect(jsonPath("$.version").value("1.0.0"))
+                .andExpect(jsonPath("$.fileSize").value(1))
+                .andExpect(jsonPath("$.sha256").value(SHA256))
+                .andExpect(jsonPath("$.path").value(PATH))
+                .andExpect(jsonPath("$.createdAt").value(CREATED_AT));
+    }
+
+    @Test
+    @DisplayName("Origin 파일 상세: 파일이 없으면 404 ARTIFACT_NOT_FOUND 로 응답한다")
+    void respondsArtifactNotFound() throws Exception {
+        given(artifactQueryService.getById(1L)).willThrow(new BusinessException(ArtifactErrorCode.ARTIFACT_NOT_FOUND));
+
+        mockMvc.perform(get(URL + "/{artifactId}", 1L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(ArtifactErrorCode.ARTIFACT_NOT_FOUND.getCode()));
+    }
+
+    @Test
+    @DisplayName("Origin 파일 상세: ID 가 숫자가 아니면 400 INVALID_INPUT 으로 응답한다")
+    void rejectsNonNumericArtifactId() throws Exception {
+        mockMvc.perform(get(URL + "/{artifactId}", "abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+        verify(artifactQueryService, never()).getById(any());
+    }
+
     @Test
     @DisplayName("ORIGIN-REQ-001: 파일을 등록하면 201 과 ID·크기·해시·경로를 응답한다")
     void respondsCreated() throws Exception {
