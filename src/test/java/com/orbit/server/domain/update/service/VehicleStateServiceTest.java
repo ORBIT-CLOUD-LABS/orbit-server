@@ -68,6 +68,41 @@ class VehicleStateServiceTest {
                 .isInstanceOf(InvalidValueException.class);
     }
 
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 체크인하면 현재 버전과 마지막 체크인 시각을 덮어쓴다")
+    void recordsCheckIn() {
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+
+        vehicleStateService.recordCheckIn(vehicleId, "1.0.1");
+
+        assertThat(currentVersions()).containsExactly("1.0.1");
+        assertThat(lastSeenRecorded()).isTrue();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 상태가 없는 차량의 체크인은 데이터가 어긋난 것이므로 서버 오류다")
+    void failsCheckInWithoutState() {
+        assertThatThrownBy(() -> vehicleStateService.recordCheckIn(vehicleId, "1.0.0"))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 체크인한 현재 버전이 비어 있으면 거부한다")
+    void rejectsBlankCheckInVersion() {
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+
+        assertThatThrownBy(() -> vehicleStateService.recordCheckIn(vehicleId, " "))
+                .isInstanceOf(InvalidValueException.class);
+    }
+
+    private boolean lastSeenRecorded() {
+        Object recorded = entityManager
+                .createNativeQuery("SELECT last_seen_at IS NOT NULL FROM vehicle_state WHERE vehicle_id = :vehicleId")
+                .setParameter("vehicleId", vehicleId)
+                .getSingleResult();
+        return ((Number) recorded).intValue() == 1;
+    }
+
     // 엔티티에 getter 를 두지 않으므로 저장된 버전을 DB 에서 직접 읽는다
     @SuppressWarnings("unchecked")
     private List<String> currentVersions() {
