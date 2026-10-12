@@ -1,5 +1,6 @@
 package com.orbit.server.domain.campaign.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -37,5 +38,23 @@ class CampaignPeriodTest {
     @DisplayName("CAMPAIGN-REQ-001: 시각이 없으면 거부한다")
     void rejectsMissingTime() {
         assertThatThrownBy(() -> new CampaignPeriod(null, START)).isInstanceOf(InvalidValueException.class);
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-001: 시작 시각부터 종료 직전까지가 적용 기간이다")
+    void containsFromStartUntilBeforeEnd() {
+        CampaignPeriod period = new CampaignPeriod(START, START.plus(ONE_DAY));
+
+        assertThat(period.contains(START)).isTrue();
+        assertThat(period.contains(START.plus(ONE_DAY).minusMillis(1))).isTrue();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-001: 시작 전이나 종료 시각부터는 적용 기간이 아니다")
+    void excludesBeforeStartAndFromEnd() {
+        CampaignPeriod period = new CampaignPeriod(START, START.plus(ONE_DAY));
+
+        assertThat(period.contains(START.minusMillis(1))).isFalse();
+        assertThat(period.contains(START.plus(ONE_DAY))).isFalse();
     }
 }

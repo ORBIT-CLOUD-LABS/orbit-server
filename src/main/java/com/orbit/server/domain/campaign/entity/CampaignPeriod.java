@@ -29,4 +29,15 @@ public record CampaignPeriod(
             throw new InvalidValueException("캠페인 종료 시각은 시작 시각보다 늦어야 합니다.");
         }
     }
+
+    /**
+     * 시각이 적용 기간 안인지 판정한다. 기간이 이어지는 두 캠페인이 같은 시각에 함께 적용되지 않도록 종료 시각은 포함하지 않는다.
+     * (VEHICLE-POL-001)
+     *
+     * @param time 판정할 시각
+     * @return 시작 시각 이상, 종료 시각 미만이면 true
+     */
+    boolean contains(Instant time) {
+        return !time.isBefore(startAt) && time.isBefore(endAt);
+    }
 }
