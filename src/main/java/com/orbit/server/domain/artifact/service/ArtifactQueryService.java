@@ -37,8 +37,8 @@ public class ArtifactQueryService {
     }
 
     /**
-     * 캠페인 등록 때 고른 파일을 조회한다. 캠페인 컨텍스트는 Artifact 를 직접 읽지 않고 이 메서드로 차종·버전을 확인한다.
-     * (CAMPAIGN-REQ-001)
+     * 파일 한 건을 조회한다. 관리자의 상세 조회와 캠페인 등록에서 쓴다. 캠페인 컨텍스트는 Artifact 를 직접 읽지 않고 이 메서드로
+     * 차종·버전을 확인한다. (CAMPAIGN-REQ-001)
      *
      * @param artifactId Artifact ID
      * @return 이 ID 의 Origin 파일
