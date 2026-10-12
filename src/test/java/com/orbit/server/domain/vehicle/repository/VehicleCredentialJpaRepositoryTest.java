@@ -3,6 +3,7 @@ package com.orbit.server.domain.vehicle.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
+import com.orbit.server.domain.vehicle.entity.TokenHash;
 import com.orbit.server.domain.vehicle.entity.Vehicle;
 import com.orbit.server.domain.vehicle.entity.VehicleCredential;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
@@ -77,6 +78,38 @@ class VehicleCredentialJpaRepositoryTest {
     @DisplayName("VEHICLE-REQ-002: 처음 등록하는 차량이면 폐기할 토큰이 없다")
     void revokesNothingForNewVehicle() {
         assertThat(credentialRepository.revokeActiveByVehicleId(vehicleId)).isZero();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-003: 유효 토큰 해시로 차량 식별자를 찾는다")
+    void findsVehicleExternalIdByActiveToken() {
+        TokenHash tokenHash = VehicleToken.issue().hash();
+        credentialRepository.save(new VehicleCredential(vehicleId, tokenHash));
+        entityManager.flush();
+
+        assertThat(credentialRepository.findActiveVehicleExternalId(tokenHash))
+                .contains(new VehicleExternalId("vehicle-001"));
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-003: 폐기한 토큰 해시로는 차량을 찾지 않는다")
+    void findsNothingByRevokedToken() {
+        TokenHash tokenHash = VehicleToken.issue().hash();
+        credentialRepository.save(new VehicleCredential(vehicleId, tokenHash));
+        credentialRepository.revokeActiveByVehicleId(vehicleId);
+
+        assertThat(credentialRepository.findActiveVehicleExternalId(tokenHash)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-003: 발급하지 않은 토큰 해시로는 차량을 찾지 않는다")
+    void findsNothingByUnknownToken() {
+        credentialRepository.save(newCredential());
+        entityManager.flush();
+
+        assertThat(credentialRepository.findActiveVehicleExternalId(
+                        VehicleToken.issue().hash()))
+                .isEmpty();
     }
 
     private VehicleCredential newCredential() {
