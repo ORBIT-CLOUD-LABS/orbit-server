@@ -52,4 +52,22 @@ public class Vehicle {
         this.externalId = Objects.requireNonNull(externalId, "externalId");
         this.spec = Objects.requireNonNull(spec, "spec");
     }
+
+    /**
+     * 차량 ID. 토큰·상태처럼 차량에 딸린 데이터를 저장할 때 참조한다.
+     *
+     * @return 저장 전이면 null
+     */
+    public Long id() {
+        return id;
+    }
+
+    /**
+     * 재등록한 차량의 차종·HW 버전·지역을 바꾼다. 이 값은 등록 때만 받으므로 바뀌면 재등록으로 반영한다. (VEHICLE-REQ-002)
+     *
+     * @param spec 새 차종·HW 버전·지역. null 불가
+     */
+    public void reregister(VehicleSpec spec) {
+        this.spec = Objects.requireNonNull(spec, "spec");
+    }
 }
