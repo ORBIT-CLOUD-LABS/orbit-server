@@ -9,6 +9,8 @@ orbit:
     bucket: ${ORIGIN_BUCKET:orbit-firmware}
     access-key: ${ORIGIN_ACCESS_KEY:local-access-key}
     secret-key: ${ORIGIN_SECRET_KEY:local-secret-key}
+  enrollment:
+    key: ${ENROLLMENT_KEY:local-enrollment-key}
 
 logging:
   level:

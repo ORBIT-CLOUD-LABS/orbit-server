@@ -48,4 +48,13 @@ public class VehicleState {
         this.vehicleId = Objects.requireNonNull(vehicleId, "vehicleId");
         this.currentVersion = Objects.requireNonNull(currentVersion, "currentVersion");
     }
+
+    /**
+     * 차량이 알려 준 현재 소프트웨어 버전으로 덮어쓴다.
+     *
+     * @param currentVersion 차량의 현재 소프트웨어 버전. null 불가
+     */
+    public void changeVersion(SoftwareVersion currentVersion) {
+        this.currentVersion = Objects.requireNonNull(currentVersion, "currentVersion");
+    }
 }
