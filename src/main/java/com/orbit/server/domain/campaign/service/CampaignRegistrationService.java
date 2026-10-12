@@ -26,20 +26,21 @@ public class CampaignRegistrationService {
     private final CampaignRepository campaignRepository;
 
     /**
-     * 파일 확인 → 차종·목표 버전 검증 → 중복 활성 캠페인 확인 → 저장 순서로 등록한다.
+     * 파일 잠금·확인 → 차종·목표 버전 검증 → 중복 활성 캠페인 확인 → 저장 순서로 등록한다.
      *
-     * <p>중복 확인은 HW 버전·지역이 여러 테이블에 걸쳐 DB 제약으로 막을 수 없어 앱에서 한다. 같은 요청이 동시에 이 확인을 통과하면 중복
-     * 등록될 수 있지만, 관리자만 호출하는 API 라 받아들인다.
+     * <p>중복 확인은 HW 버전·지역이 여러 테이블에 걸쳐 DB 제약으로 막을 수 없어 앱에서 한다. 같은 요청이 동시에 이 확인을 통과하지
+     * 않도록, 고른 파일 행을 커밋할 때까지 잠가 같은 파일의 등록 요청을 순서대로 처리한다.
      *
      * @param command 등록 요청
      * @return 등록한 캠페인 ID
      * @throws BusinessException 파일이 없으면 ARTIFACT_NOT_FOUND, 중복 활성 캠페인이 있으면 ACTIVE_CAMPAIGN_EXISTS
      * @throws InvalidValueException 대상 차종이나 목표 버전이 파일과 다른 경우
      */
-    // HW 버전·지역 컬렉션을 지연 로딩해 비교하므로 조회부터 저장까지 한 트랜잭션으로 묶는다
+    // 파일 잠금을 저장·커밋까지 유지하고 HW 버전·지역 컬렉션을 지연 로딩해 비교하므로 조회부터 저장까지 한 트랜잭션으로 묶는다
     @Transactional
     public Long register(RegisterCampaignCommand command) {
-        ArtifactSummary artifact = artifactQueryService.getById(command.artifactId());
+        // 잠금이 첫 조회여야 앞선 요청이 커밋한 캠페인을 중복 확인에서 볼 수 있다
+        ArtifactSummary artifact = artifactQueryService.lockAndGetById(command.artifactId());
         TargetRelease release = command.release();
         release.requireSameAs(new TargetRelease(artifact.model(), artifact.version()));
         Campaign campaign = command.toCampaign();
