@@ -3,7 +3,10 @@ package com.orbit.server.domain.campaign.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.domain.artifact.entity.Artifact;
+import com.orbit.server.domain.artifact.entity.ArtifactRelease;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
+import com.orbit.server.domain.artifact.repository.ArtifactRepository;
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
 import com.orbit.server.domain.artifact.service.ArtifactSummaryQuery;
@@ -41,7 +44,8 @@ class CampaignRegistrationServiceTest {
     @BeforeEach
     void setUp() {
         campaignRepository = new FakeCampaignRepository();
-        ArtifactQueryService artifactQueryService = new ArtifactQueryService(new FakeArtifactSummaryQuery(ARTIFACT));
+        ArtifactQueryService artifactQueryService = new ArtifactQueryService(
+                new FakeArtifactSummaryQuery(ARTIFACT), new FakeArtifactRepository(ARTIFACT_ID));
         service = new CampaignRegistrationService(artifactQueryService, campaignRepository);
     }
 
@@ -121,6 +125,25 @@ class CampaignRegistrationServiceTest {
         @Override
         public Optional<ArtifactSummary> findById(Long id) {
             return Optional.of(artifact).filter(summary -> summary.artifactId().equals(id));
+        }
+    }
+
+    private record FakeArtifactRepository(Long artifactId) implements ArtifactRepository {
+
+        @Override
+        public Optional<Long> lockById(Long id) {
+            return Optional.of(artifactId).filter(id::equals);
+        }
+
+        // 캠페인 등록은 파일 등록 기능을 쓰지 않는다
+        @Override
+        public boolean existsByRelease(ArtifactRelease release) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Artifact save(Artifact artifact) {
+            throw new UnsupportedOperationException();
         }
     }
 
