@@ -73,6 +73,20 @@ public class Campaign {
     }
 
     /**
+     * 차량이 이 캠페인의 대상 조건과 적용 기간을 모두 만족하는지 판정한다. (VEHICLE-POL-001)
+     *
+     * <p>활성 여부는 호출하는 쪽이 활성 캠페인만 골라 판정한다. 현재 버전이 이미 목표 버전인지는 목표 버전이 Artifact 에 있으므로
+     * 여기서 보지 않고, 대상 캠페인을 고르는 쪽에서 거른다.
+     *
+     * @param vehicle 판정할 차량
+     * @param now 판정 시각
+     * @return 차종·HW·지역·현재 버전 범위·적용 기간을 모두 만족하면 true
+     */
+    public boolean targets(TargetVehicle vehicle, Instant now) {
+        return condition.matches(vehicle, now);
+    }
+
+    /**
      * 같은 파일을 같은 대상 조건으로 배포하는 캠페인인지 판정한다. 적용 기간은 비교하지 않는다. (CAMPAIGN-POL-001)
      *
      * <p>조건이 일부만 겹치는 경우는 중복으로 보지 않는다. 한 차량이 여러 캠페인에 걸릴 때의 처리는 체크인 대상 판정에서 정한다.

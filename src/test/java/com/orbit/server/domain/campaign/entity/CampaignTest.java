@@ -70,6 +70,35 @@ class CampaignTest {
         assertThat(campaign.duplicates(other)).isFalse();
     }
 
+    @Test
+    @DisplayName("VEHICLE-POL-001: 차종·HW·지역·현재 버전 범위·적용 기간을 모두 만족하면 대상이다")
+    void targetsVehicleMatchingAllConditions() {
+        assertThat(campaign.targets(vehicleOf("hw-1", "1.0.5"), START)).isTrue();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-001: 대상 HW 버전이 아니면 대상이 아니다")
+    void notTargetWhenOutOfTarget() {
+        assertThat(campaign.targets(vehicleOf("hw-3", "1.0.5"), START)).isFalse();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-001: 현재 버전이 범위 밖이면 대상이 아니다")
+    void notTargetWhenVersionOutOfRange() {
+        assertThat(campaign.targets(vehicleOf("hw-1", "1.0.10"), START)).isFalse();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-001: 적용 기간 밖이면 대상이 아니다")
+    void notTargetWhenOutOfPeriod() {
+        assertThat(campaign.targets(vehicleOf("hw-1", "1.0.5"), START.minusMillis(1)))
+                .isFalse();
+    }
+
+    private static TargetVehicle vehicleOf(String hwVersion, String currentVersion) {
+        return new TargetVehicle("model-a", hwVersion, "KR", currentVersion);
+    }
+
     private static CampaignCondition conditionOf(CampaignTarget target, VersionRange range) {
         return new CampaignCondition(target, range, PERIOD);
     }
