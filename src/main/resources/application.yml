@@ -34,6 +34,9 @@ orbit:
     secret-key: ${ORIGIN_SECRET_KEY}
   enrollment:
     key: ${ENROLLMENT_KEY}
+  check-in:
+    # 기본값은 요구사항 예시(30초). 데모처럼 빠른 반응이 필요하면 환경 변수로 줄인다
+    interval-seconds: ${CHECK_IN_INTERVAL_SECONDS:30}
 
 management:
   endpoints:
