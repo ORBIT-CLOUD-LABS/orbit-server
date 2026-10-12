@@ -48,6 +48,22 @@ public class CampaignTarget {
         this.regions = copyOf(regions, "대상 지역");
     }
 
+    /**
+     * 차량의 차종·HW 버전·지역이 대상에 드는지 판정한다. HW 버전·지역은 비어 있으면 전체가 대상이다. (VEHICLE-POL-001)
+     *
+     * @param vehicle 판정할 차량
+     * @return 차종이 같고 HW 버전·지역이 모두 대상에 들면 true
+     */
+    boolean includes(TargetVehicle vehicle) {
+        return model.equals(vehicle.model())
+                && includesOrAll(hwVersions, vehicle.hwVersion())
+                && includesOrAll(regions, vehicle.region());
+    }
+
+    private static boolean includesOrAll(Set<String> targets, String value) {
+        return targets.isEmpty() || targets.contains(value);
+    }
+
     // 중복 캠페인 판정에 쓴다. HW 버전·지역은 순서와 무관하게 집합으로 비교한다
     @Override
     public boolean equals(Object o) {
