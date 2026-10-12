@@ -62,4 +62,25 @@ public class Campaign {
         this.condition = Objects.requireNonNull(condition, "condition");
         this.status = CampaignStatus.ACTIVE;
     }
+
+    /**
+     * 응답과 다른 Aggregate 가 이 캠페인을 가리킬 때 쓰는 식별자. 상태를 노출하는 getter 가 아니므로 예외적으로 둔다.
+     *
+     * @return 저장 전이면 null
+     */
+    public Long id() {
+        return id;
+    }
+
+    /**
+     * 같은 파일을 같은 대상 조건으로 배포하는 캠페인인지 판정한다. 적용 기간은 비교하지 않는다. (CAMPAIGN-POL-001)
+     *
+     * <p>조건이 일부만 겹치는 경우는 중복으로 보지 않는다. 한 차량이 여러 캠페인에 걸릴 때의 처리는 체크인 대상 판정에서 정한다.
+     *
+     * @param other 비교할 캠페인. 활성 여부는 호출하는 쪽이 활성 캠페인만 골라 넘긴다
+     * @return 파일과 대상 조건이 모두 같으면 true
+     */
+    public boolean duplicates(Campaign other) {
+        return artifactId.equals(other.artifactId) && condition.hasSameTargetAs(other.condition);
+    }
 }
