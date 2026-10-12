@@ -5,3 +5,5 @@ orbit:
     bucket: test-bucket
     access-key: test-access-key
     secret-key: test-secret-key
+  enrollment:
+    key: test-enrollment-key

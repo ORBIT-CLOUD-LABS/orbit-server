@@ -32,6 +32,8 @@ orbit:
     bucket: ${ORIGIN_BUCKET}
     access-key: ${ORIGIN_ACCESS_KEY}
     secret-key: ${ORIGIN_SECRET_KEY}
+  enrollment:
+    key: ${ENROLLMENT_KEY}
 
 management:
   endpoints:
