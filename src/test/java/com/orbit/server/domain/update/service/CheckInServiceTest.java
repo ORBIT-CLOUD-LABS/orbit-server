@@ -14,6 +14,7 @@ import com.orbit.server.domain.campaign.entity.CampaignPeriod;
 import com.orbit.server.domain.campaign.entity.CampaignTarget;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.update.entity.UpdateStatus;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
 import com.orbit.server.domain.vehicle.service.RegisterVehicleCommand;
@@ -25,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -109,6 +111,62 @@ class CheckInServiceTest {
     void rejectsBlankVersion() {
         assertThatThrownBy(() -> service.checkIn(new CheckInCommand(VEHICLE_ID, " ")))
                 .isInstanceOf(InvalidValueException.class);
+    }
+
+    @Test
+    @DisplayName("UPDATE-REQ-001: 업데이트 결과가 있으면 상태와 함께 기록한다")
+    void recordsLastUpdateWithState() {
+        Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
+        ReportUpdateResultCommand report =
+                new ReportUpdateResultCommand(campaignId, UpdateStatus.SUCCEEDED, null, null, NOW);
+
+        CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(report)));
+
+        assertThat(updateResultsOf(campaignId)).containsExactly("SUCCEEDED");
+        assertThat(stateOf()).containsExactly("1.0.1:true");
+        assertThat(result.updateTarget()).isFalse();
+    }
+
+    @Test
+    @DisplayName("UPDATE-REQ-001: 업데이트 결과가 없으면 결과를 기록하지 않는다")
+    void recordsNoResultWithoutLastUpdate() {
+        Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
+
+        service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0"));
+
+        assertThat(updateResultsOf(campaignId)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("UPDATE-REQ-001: 없는 캠페인의 결과가 와도 체크인은 처리한다")
+    void checksInWithResultOfMissingCampaign() {
+        ReportUpdateResultCommand report =
+                new ReportUpdateResultCommand(Long.MAX_VALUE, UpdateStatus.SUCCEEDED, null, null, NOW);
+
+        CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(report)));
+
+        assertThat(result.nextCheckInSeconds()).isEqualTo(30);
+        assertThat(stateOf()).containsExactly("1.0.1:true");
+    }
+
+    @Test
+    @DisplayName("UPDATE-POL-001: 업데이트 결과의 형식이 틀리면 체크인을 거부한다")
+    void rejectsMalformedLastUpdate() {
+        Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
+        ReportUpdateResultCommand report =
+                new ReportUpdateResultCommand(campaignId, UpdateStatus.FAILED, null, null, NOW);
+
+        assertThatThrownBy(() -> service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0", Optional.of(report))))
+                .isInstanceOf(InvalidValueException.class);
+    }
+
+    // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다
+    @SuppressWarnings("unchecked")
+    private List<String> updateResultsOf(Long campaignId) {
+        em.flush();
+        return em.createNativeQuery("SELECT result FROM update_result WHERE campaign_id = :campaignId")
+                .setParameter("campaignId", campaignId)
+                .getResultList();
     }
 
     private Long registerCampaign(String targetVersion, CampaignPeriod period) {
