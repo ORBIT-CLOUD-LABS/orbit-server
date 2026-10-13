@@ -1,6 +1,10 @@
 spring:
   application:
     name: orbit-server
+  autoconfigure:
+    # 인증은 Bearer 토큰 필터가 맡아 사용자 저장소가 필요 없다.
+    # 켜 두면 기본 사용자를 만들고 그 비밀번호를 로그에 남기므로 끈다
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -33,7 +37,13 @@ orbit:
     access-key: ${ORIGIN_ACCESS_KEY}
     secret-key: ${ORIGIN_SECRET_KEY}
   enrollment:
-    key: ${ENROLLMENT_KEY}
+    # 환경 변수가 없으면 플레이스홀더 원문(${ENROLLMENT_KEY})이 그대로 키가 되므로,
+    # 빈 기본값을 줘서 @NotBlank 검증으로 앱이 뜨지 않게 한다
+    key: ${ENROLLMENT_KEY:}
+  admin:
+    # 환경 변수가 없으면 플레이스홀더 원문(${ADMIN_TOKEN})이 그대로 토큰이 되므로,
+    # 빈 기본값을 줘서 @NotBlank 검증으로 앱이 뜨지 않게 한다
+    token: ${ADMIN_TOKEN:}
   check-in:
     # 기본값은 요구사항 예시(30초). 데모처럼 빠른 반응이 필요하면 환경 변수로 줄인다
     interval-seconds: ${CHECK_IN_INTERVAL_SECONDS:30}

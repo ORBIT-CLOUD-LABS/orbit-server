@@ -21,9 +21,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,6 +51,9 @@ class CampaignRegistrationConcurrencyTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Value("${orbit.admin.token}")
+    private String adminToken;
 
     private Long artifactId;
 
@@ -102,6 +107,7 @@ class CampaignRegistrationConcurrencyTest {
                  "target": {"model": "model-a", "hwVersions": ["hw-1"], "regions": ["KR"]},
                  "startAt": "2026-10-01T00:00:00Z", "endAt": "2026-10-02T00:00:00Z"}""".formatted(artifactId);
         return mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andReturn()
