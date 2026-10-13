@@ -65,6 +65,12 @@ class ArtifactQueryServiceTest {
     }
 
     @Test
+    @DisplayName("#18: 여러 ID 의 파일을 한 번에 조회하고 없는 ID 는 뺀다")
+    void findsAllByIds() {
+        assertThat(service.findAllByIds(List.of(1L, 3L))).containsExactly(MODEL_A);
+    }
+
+    @Test
     @DisplayName("CAMPAIGN-POL-001: 파일 행을 잠근 뒤 조회한다")
     void locksAndGetsById() {
         assertThat(service.lockAndGetById(1L)).isEqualTo(MODEL_A);
