@@ -46,6 +46,19 @@ public class CampaignQueryService {
                 .map(TargetCampaign::campaignId);
     }
 
+    /**
+     * 캠페인이 있는지 확인한다. 차량이 보고한 업데이트 결과를 기록하기 전에 쓴다. (UPDATE-REQ-001)
+     *
+     * <p>배포를 중지한 비활성 캠페인도 이미 진행 중이던 차량의 결과는 남겨야 하므로 활성 여부는 보지 않는다.
+     *
+     * @param campaignId 캠페인 ID
+     * @return 캠페인이 있으면 true
+     */
+    @Transactional(readOnly = true)
+    public boolean exists(Long campaignId) {
+        return campaignRepository.existsById(campaignId);
+    }
+
     private Optional<TargetCampaign> toTargetCampaign(Campaign campaign) {
         ArtifactSummary artifact = artifactQueryService.getById(campaign.artifactId());
         return DottedVersion.parse(artifact.version()).map(version -> new TargetCampaign(campaign.id(), version));

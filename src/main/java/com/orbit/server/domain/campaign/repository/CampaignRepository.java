@@ -17,6 +17,12 @@ public interface CampaignRepository {
     List<Campaign> findAllActiveByModel(String model);
 
     /**
+     * @param campaignId 캠페인 ID
+     * @return 이 ID 의 캠페인이 있으면 true. 활성 여부는 보지 않는다
+     */
+    boolean existsById(Long campaignId);
+
+    /**
      * 캠페인을 저장한다.
      *
      * @param campaign 저장할 캠페인

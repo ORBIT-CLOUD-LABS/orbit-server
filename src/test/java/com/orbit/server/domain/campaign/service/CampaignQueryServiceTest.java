@@ -106,6 +106,20 @@ class CampaignQueryServiceTest {
         assertThat(findTarget(VEHICLE)).isEmpty();
     }
 
+    @Test
+    @DisplayName("UPDATE-REQ-001: 등록한 캠페인이면 있다고 확인한다")
+    void confirmsRegisteredCampaign() {
+        Long campaignId = register("1.0.1", VersionRange.unbounded());
+
+        assertThat(service.exists(campaignId)).isTrue();
+    }
+
+    @Test
+    @DisplayName("UPDATE-REQ-001: 등록하지 않은 캠페인이면 없다고 확인한다")
+    void confirmsMissingCampaign() {
+        assertThat(service.exists(Long.MAX_VALUE)).isFalse();
+    }
+
     // 지연 로딩하는 HW 버전·지역까지 DB 에서 다시 읽은 캠페인으로 판정하도록 영속성 컨텍스트를 비운다
     private Optional<Long> findTarget(TargetVehicle vehicle) {
         em.flush();
