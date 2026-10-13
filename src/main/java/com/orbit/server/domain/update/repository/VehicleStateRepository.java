@@ -16,6 +16,15 @@ public interface VehicleStateRepository {
     Optional<VehicleState> findById(Long vehicleId);
 
     /**
+     * 차량의 현재 버전만 조회한다. 매니페스트 발급에서 마지막 체크인 때 기록한 버전으로 대상을 다시 판정할 때 쓴다.
+     * (MANIFEST-POL-001)
+     *
+     * @param vehicleId 차량 ID
+     * @return 차량의 현재 버전. 상태가 없으면 빈 값
+     */
+    Optional<SoftwareVersion> findCurrentVersionById(Long vehicleId);
+
+    /**
      * 체크인한 차량의 현재 버전과 마지막 체크인 시각을 덮어쓴다. 마지막 체크인 시각은 DB 시계로 기록한다. (VEHICLE-REQ-001)
      *
      * @param vehicleId 차량 ID

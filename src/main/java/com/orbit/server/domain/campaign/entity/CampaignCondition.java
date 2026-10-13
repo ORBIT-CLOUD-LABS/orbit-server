@@ -58,6 +58,16 @@ public class CampaignCondition {
                 && period.contains(now);
     }
 
+    /**
+     * 시각이 적용 기간 안인지 판정한다. (MANIFEST-POL-001)
+     *
+     * @param now 판정 시각
+     * @return 시작 시각 이상, 종료 시각 미만이면 true
+     */
+    boolean isInPeriod(Instant now) {
+        return period.contains(now);
+    }
+
     // Hibernate 는 컬럼이 모두 NULL 인 embeddable 을 null 로 채우므로, 필드를 직접 쓰지 않고 이 메서드로 읽는다
     VersionRange currentVersionRange() {
         if (currentVersionRange == null) {

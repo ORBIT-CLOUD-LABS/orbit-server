@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.orbit.server.TestcontainersConfiguration;
+import com.orbit.server.domain.update.entity.SoftwareVersion;
 import com.orbit.server.domain.vehicle.entity.Vehicle;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
@@ -93,6 +94,22 @@ class VehicleStateServiceTest {
 
         assertThatThrownBy(() -> vehicleStateService.recordCheckIn(vehicleId, " "))
                 .isInstanceOf(InvalidValueException.class);
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 마지막 체크인 때 기록한 현재 버전을 조회한다")
+    void getsCurrentVersionRecordedAtLastCheckIn() {
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+        vehicleStateService.recordCheckIn(vehicleId, "1.0.1");
+
+        assertThat(vehicleStateService.getCurrentVersion(vehicleId)).isEqualTo(new SoftwareVersion("1.0.1"));
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 상태가 없는 차량의 현재 버전 조회는 데이터가 어긋난 것이므로 서버 오류다")
+    void failsGettingCurrentVersionWithoutState() {
+        assertThatThrownBy(() -> vehicleStateService.getCurrentVersion(vehicleId))
+                .isInstanceOf(IllegalStateException.class);
     }
 
     private boolean lastSeenRecorded() {

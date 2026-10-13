@@ -7,3 +7,5 @@ orbit:
     secret-key: test-secret-key
   enrollment:
     key: test-enrollment-key
+  cdn:
+    base-url: http://cdn.test

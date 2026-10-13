@@ -11,6 +11,9 @@ orbit:
     secret-key: ${ORIGIN_SECRET_KEY:local-secret-key}
   enrollment:
     key: ${ENROLLMENT_KEY:local-enrollment-key}
+  # 로컬에는 CDN 이 없으므로 매니페스트 응답 확인용 임시 주소. 실제로 받으려면 환경 변수로 바꾼다
+  cdn:
+    base-url: ${CDN_BASE_URL:http://localhost:8080}
 
 logging:
   level:
