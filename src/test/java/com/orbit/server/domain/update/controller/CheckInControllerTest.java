@@ -28,6 +28,8 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -192,14 +194,43 @@ class CheckInControllerTest {
         assertThat(updateResults()).containsExactly(campaignId + ":FAILED:DOWNLOAD_FAILED");
     }
 
-    @Test
-    @DisplayName("UPDATE-POL-001: 정의하지 않은 실패 사유면 400 INVALID_INPUT 으로 응답한다")
-    void rejectsUnknownFailureReason() throws Exception {
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                // 정의하지 않은 실패 사유
+                """
+                {"campaignId": %d, "result": "FAILED", "failureReason": "DISK_FULL", "finishedAt": "2026-10-01T12:00:00Z"}""",
+                // 정의하지 않은 결과
+                """
+                {"campaignId": %d, "result": "SUCCESS", "finishedAt": "2026-10-01T12:00:00Z"}""",
+                // 성공 보고에 실패 상세
+                """
+                {"campaignId": %d, "result": "SUCCEEDED", "failureDetail": "ok", "finishedAt": "2026-10-01T12:00:00Z"}""",
+                // ISO-8601 이 아닌 완료 시각
+                """
+                {"campaignId": %d, "result": "SUCCEEDED", "finishedAt": "2026-10-01"}""",
+                // 완료 시각 누락
+                """
+                {"campaignId": %d, "result": "SUCCEEDED"}"""
+            })
+    @DisplayName("UPDATE-POL-001: 형식이 틀린 결과는 차량이 체크인을 계속할 수 있도록 버리고 200 으로 응답한다")
+    void discardsMalformedLastUpdate(String lastUpdateFormat) throws Exception {
         Long campaignId = registerCampaign("1.0.1", "hw-1");
 
-        checkInWithLastUpdate("1.0.0", lastUpdateOf(campaignId, "FAILED", "\"DISK_FULL\""))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+        checkInWithLastUpdate("1.0.0", lastUpdateFormat.formatted(campaignId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.updateTarget").value(true));
+
+        assertThat(updateResults()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("UPDATE-POL-001: 캠페인 ID 가 없는 결과도 버리고 200 으로 응답한다")
+    void discardsLastUpdateWithoutCampaignId() throws Exception {
+        checkInWithLastUpdate("1.0.0", """
+                        {"result": "SUCCEEDED", "finishedAt": "2026-10-01T12:00:00Z"}""").andExpect(status().isOk());
+
+        assertThat(updateResults()).isEmpty();
     }
 
     @Test
