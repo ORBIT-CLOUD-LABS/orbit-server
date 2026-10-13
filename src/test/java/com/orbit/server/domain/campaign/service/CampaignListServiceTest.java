@@ -45,8 +45,9 @@ class CampaignListServiceTest {
     @Autowired
     private EntityManager em;
 
+    // 보조 API(제안)라 요구사항 ID 가 없다
     @Test
-    @DisplayName("#18: 캠페인마다 배포하는 Artifact 의 버전을 목표 버전으로 붙인다")
+    @DisplayName("캠페인 목록: 캠페인마다 배포하는 Artifact 의 버전을 목표 버전으로 붙인다")
     void attachesTargetVersion() {
         Long older = register("model-a", "1.0.1");
         Long newer = register("model-a", "1.0.2");
@@ -57,7 +58,7 @@ class CampaignListServiceTest {
     }
 
     @Test
-    @DisplayName("#18: 필터에 맞는 캠페인만 목표 버전과 함께 조회한다")
+    @DisplayName("캠페인 목록: 필터에 맞는 캠페인만 목표 버전과 함께 조회한다")
     void appliesFilter() {
         register("model-a", "1.0.1");
         Long modelB = register("model-b", "2.0.0");
@@ -68,7 +69,7 @@ class CampaignListServiceTest {
     }
 
     @Test
-    @DisplayName("#18: 필터에 맞는 캠페인이 없으면 빈 목록을 조회한다")
+    @DisplayName("캠페인 목록: 필터에 맞는 캠페인이 없으면 빈 목록을 조회한다")
     void emptyWhenNoCampaign() {
         register("model-a", "1.0.1");
 

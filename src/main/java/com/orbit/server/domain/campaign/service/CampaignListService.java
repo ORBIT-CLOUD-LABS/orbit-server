@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
- * 관리자가 보는 캠페인 목록을 조회한다. (#18)
+ * 관리자가 보는 캠페인 목록을 조회한다.
  *
  * <p>목표 버전은 Artifact 에 있으므로 다른 컨텍스트인 Artifact 를 {@link ArtifactQueryService} 로 읽어 붙인다. 캠페인마다 따로
  * 조회하지 않도록 목록에 나온 Artifact 를 한 번에 읽는다.

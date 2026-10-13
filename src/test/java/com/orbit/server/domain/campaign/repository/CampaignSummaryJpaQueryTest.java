@@ -70,8 +70,9 @@ class CampaignSummaryJpaQueryTest {
         deactivate(inactiveB);
     }
 
+    // 보조 API(제안)라 요구사항 ID 가 없다
     @Test
-    @DisplayName("#18: 필터가 없으면 전체 캠페인을 최근 등록한 순서로 조회한다")
+    @DisplayName("캠페인 목록: 필터가 없으면 전체 캠페인을 최근 등록한 순서로 조회한다")
     void findAllWithoutFilter() {
         List<CampaignSummary> summaries = campaignSummaryQuery.findAll(new CampaignFilter(null, null));
 
@@ -81,7 +82,7 @@ class CampaignSummaryJpaQueryTest {
     }
 
     @Test
-    @DisplayName("#18: 상태로만 필터링하면 그 상태의 캠페인만 조회한다")
+    @DisplayName("캠페인 목록: 상태로만 필터링하면 그 상태의 캠페인만 조회한다")
     void findAllByStatus() {
         List<CampaignSummary> summaries =
                 campaignSummaryQuery.findAll(new CampaignFilter(CampaignStatus.INACTIVE, null));
@@ -90,7 +91,7 @@ class CampaignSummaryJpaQueryTest {
     }
 
     @Test
-    @DisplayName("#18: 차종으로만 필터링하면 그 차종의 캠페인만 조회한다")
+    @DisplayName("캠페인 목록: 차종으로만 필터링하면 그 차종의 캠페인만 조회한다")
     void findAllByModel() {
         List<CampaignSummary> summaries = campaignSummaryQuery.findAll(new CampaignFilter(null, "model-a"));
 
@@ -98,7 +99,7 @@ class CampaignSummaryJpaQueryTest {
     }
 
     @Test
-    @DisplayName("#18: 상태와 차종으로 함께 필터링하면 둘 다 맞는 캠페인만 조회한다")
+    @DisplayName("캠페인 목록: 상태와 차종으로 함께 필터링하면 둘 다 맞는 캠페인만 조회한다")
     void findAllByStatusAndModel() {
         List<CampaignSummary> summaries =
                 campaignSummaryQuery.findAll(new CampaignFilter(CampaignStatus.ACTIVE, "model-b"));
@@ -107,14 +108,14 @@ class CampaignSummaryJpaQueryTest {
     }
 
     @Test
-    @DisplayName("#18: 필터에 맞는 캠페인이 없으면 빈 목록을 조회한다")
+    @DisplayName("캠페인 목록: 필터에 맞는 캠페인이 없으면 빈 목록을 조회한다")
     void emptyWhenNoMatch() {
         assertThat(campaignSummaryQuery.findAll(new CampaignFilter(null, "model-c")))
                 .isEmpty();
     }
 
     @Test
-    @DisplayName("#18: 조회 결과에 캠페인 정보와 등록 시각을 담는다")
+    @DisplayName("캠페인 목록: 조회 결과에 캠페인 정보와 등록 시각을 담는다")
     void summaryContainsCampaignInfo() {
         CampaignSummary summary = campaignSummaryQuery
                 .findAll(new CampaignFilter(CampaignStatus.ACTIVE, "model-a"))
