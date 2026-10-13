@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.global.error.CommonErrorCode;
+import jakarta.servlet.DispatcherType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,7 @@ class SecurityConfigTest {
 
     private static final String ADMIN_URL = "/api/v1/admin/artifacts";
     private static final String DASHBOARD_URL = "/api/v1/dashboard/unknown";
+    private static final String SNAPSHOT_URL = "/api/v1/dashboard/vehicles";
     private static final String CHECK_IN_URL = "/api/v1/vehicles/vehicle-001/check-in";
     private static final String UNKNOWN_URL = "/api/v1/unknown";
 
@@ -96,6 +98,20 @@ class SecurityConfigTest {
         mockMvc.perform(get(DASHBOARD_URL).header(HttpHeaders.AUTHORIZATION, bearer(ADMIN_TOKEN)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.RESOURCE_NOT_FOUND.getCode()));
+    }
+
+    // SSE 처럼 비동기로 처리한 요청은 응답을 마칠 때 같은 요청이 ASYNC 로 다시 dispatch 된다.
+    // 관리자 토큰 필터는 ASYNC dispatch 를 건너뛰므로, 막히면 이미 응답 중인 스트림에 오류를 쓰려다 실패한다
+    @Test
+    @DisplayName("인가를 통과한 대시보드 요청의 ASYNC dispatch 는 다시 막지 않는다")
+    void allowsAsyncDispatchOfDashboardRequest() throws Exception {
+        mockMvc.perform(get(SNAPSHOT_URL)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(ADMIN_TOKEN))
+                        .with(request -> {
+                            request.setDispatcherType(DispatcherType.ASYNC);
+                            return request;
+                        }))
+                .andExpect(status().isOk());
     }
 
     @ParameterizedTest

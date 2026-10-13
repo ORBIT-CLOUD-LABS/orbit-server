@@ -3,6 +3,7 @@ package com.orbit.server.global.error;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
@@ -89,7 +90,11 @@ public class GlobalExceptionHandler {
         return respond(CommonErrorCode.INTERNAL_SERVER_ERROR);
     }
 
+    // 요청이 text/event-stream 처럼 JSON 이 아닌 형식만 받는 API 여도 오류 본문을 비우지 않도록 형식을 정해 둔다.
+    // 정하지 않으면 핸들러의 produces 로 협상해 JSON 을 쓸 수 없어 본문 없이 상태 코드만 나간다
     private ResponseEntity<ErrorResponse> respond(ErrorCode errorCode) {
-        return ResponseEntity.status(errorCode.getStatus()).body(ErrorResponse.of(errorCode));
+        return ResponseEntity.status(errorCode.getStatus())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ErrorResponse.of(errorCode));
     }
 }

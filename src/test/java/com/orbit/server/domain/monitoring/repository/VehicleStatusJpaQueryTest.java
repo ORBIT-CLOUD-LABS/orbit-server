@@ -1,9 +1,13 @@
 package com.orbit.server.domain.monitoring.repository;
 
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.within;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.VehicleStatusChanges;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQuery;
 import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
 import jakarta.persistence.EntityManager;
@@ -155,6 +159,89 @@ class VehicleStatusJpaQueryTest {
                 .satisfies(status -> assertThat(snapshot.asOf()).isAfterOrEqualTo(status.updatedAt()));
     }
 
+    @Test
+    @DisplayName("MONITORING-POL-001: 기준 시각은 JVM 시간대와 상관없이 DB 시각과 같은 순간이다")
+    void asOfIsSameInstantAsDbTime() {
+        insertVehicle("vehicle-001");
+
+        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+
+        assertThat(snapshot.vehicles())
+                .singleElement()
+                .satisfies(status -> assertThat(snapshot.asOf()).isCloseTo(status.updatedAt(), within(1, MINUTES)));
+    }
+
+    @Test
+    @DisplayName("MONITORING-POL-001: 변경분의 기준 시각은 JVM 시간대와 상관없이 DB 시각과 같은 순간이다")
+    void changesAsOfIsSameInstantAsDbTime() {
+        insertVehicle("vehicle-001");
+
+        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+
+        assertThat(changes.vehicles())
+                .singleElement()
+                .satisfies(status -> assertThat(changes.asOf()).isCloseTo(status.updatedAt(), within(1, MINUTES)));
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: 주어진 시각보다 늦게 바뀐 차량만 변경분으로 응답한다")
+    void returnsVehiclesUpdatedAfterSince() {
+        changeStateAt(insertVehicle("vehicle-001"), EARLIER);
+        changeStateAt(insertVehicle("vehicle-002"), LATER);
+
+        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+
+        assertThat(changes.vehicles()).extracting(VehicleStatus::vehicleId).containsExactly("vehicle-002");
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: 주어진 시각과 같은 시각에 바뀐 차량은 변경분에 넣지 않는다")
+    void excludesVehicleUpdatedAtSince() {
+        changeStateAt(insertVehicle("vehicle-001"), LATER);
+
+        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(LATER);
+
+        assertThat(changes.vehicles()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: 바뀐 차량이 없으면 기준 시각과 빈 목록을 응답한다")
+    void returnsEmptyChangesWithAsOf() {
+        changeStateAt(insertVehicle("vehicle-001"), EARLIER);
+
+        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(LATER);
+
+        assertThat(changes.asOf()).isNotNull();
+        assertThat(changes.vehicles()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: 변경분은 스냅샷과 같은 형식으로 vehicleId 오름차순으로 응답한다")
+    void returnsChangesInSnapshotFormatOrderedByVehicleId() {
+        Long secondVehicleId = insertVehicle("vehicle-002");
+        insertFailed(secondVehicleId, firstCampaignId, EARLIER);
+        changeStateAt(secondVehicleId, LATER);
+        changeStateAt(insertVehicle("vehicle-001"), LATER);
+
+        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+
+        assertThat(changes.vehicles())
+                .extracting(VehicleStatus::vehicleId, VehicleStatus::updatedAt, VehicleStatus::lastResult)
+                .containsExactly(tuple("vehicle-001", LATER, null), tuple("vehicle-002", LATER, "FAILED"));
+    }
+
+    @Test
+    @DisplayName("MONITORING-POL-001: 변경분의 기준 시각은 차량 상태를 읽기 전 DB 시각이라 상태 변경 시각보다 앞서지 않는다")
+    void changesAsOfIsNotBeforeUpdatedAt() {
+        insertVehicle("vehicle-001");
+
+        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+
+        assertThat(changes.vehicles())
+                .singleElement()
+                .satisfies(status -> assertThat(changes.asOf()).isAfterOrEqualTo(status.updatedAt()));
+    }
+
     private Long insertCampaign(String version) {
         em.createNativeQuery("INSERT INTO artifact (model, version, sha256, size_bytes, path)"
                         + " VALUES ('model-a', :version, :sha256, 1, :path)")
@@ -186,6 +273,14 @@ class VehicleStatusJpaQueryTest {
     private void checkIn(Long vehicleId) {
         em.createNativeQuery("UPDATE vehicle_state SET last_seen_at = :lastSeenAt WHERE vehicle_id = :vehicleId")
                 .setParameter("lastSeenAt", EARLIER)
+                .setParameter("vehicleId", vehicleId)
+                .executeUpdate();
+    }
+
+    // updated_at 을 직접 넣으면 ON UPDATE 로 덮이지 않으므로 변경 시각을 정할 수 있다
+    private void changeStateAt(Long vehicleId, Instant updatedAt) {
+        em.createNativeQuery("UPDATE vehicle_state SET updated_at = :updatedAt WHERE vehicle_id = :vehicleId")
+                .setParameter("updatedAt", updatedAt)
                 .setParameter("vehicleId", vehicleId)
                 .executeUpdate();
     }

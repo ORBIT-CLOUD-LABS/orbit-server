@@ -47,8 +47,9 @@ class SecurityConfig {
                                 new ErrorResponseAuthenticationEntryPoint(exceptionResolver))
                         .accessDeniedHandler(new ErrorResponseAccessDeniedHandler(exceptionResolver)))
                 .authorizeHttpRequests(requests -> requests
-                        // 이미 인가를 통과한 요청의 오류 응답을 만드는 내부 재요청이므로 다시 막지 않는다
-                        .dispatcherTypeMatchers(DispatcherType.ERROR)
+                        // 이미 인가를 통과한 요청의 오류 응답을 만들거나(ERROR) 비동기 응답을 마무리하는(ASYNC, SSE 등)
+                        // 내부 재요청이므로 다시 막지 않는다. 관리자 토큰 필터는 ASYNC dispatch 를 건너뛰어 막으면 401 이 된다
+                        .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC)
                         .permitAll()
                         .requestMatchers(HEALTH_PATHS)
                         .permitAll()
