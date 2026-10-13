@@ -37,7 +37,9 @@ orbit:
     access-key: ${ORIGIN_ACCESS_KEY}
     secret-key: ${ORIGIN_SECRET_KEY}
   enrollment:
-    key: ${ENROLLMENT_KEY}
+    # 환경 변수가 없으면 플레이스홀더 원문(${ENROLLMENT_KEY})이 그대로 키가 되므로,
+    # 빈 기본값을 줘서 @NotBlank 검증으로 앱이 뜨지 않게 한다
+    key: ${ENROLLMENT_KEY:}
   admin:
     # 환경 변수가 없으면 플레이스홀더 원문(${ADMIN_TOKEN})이 그대로 토큰이 되므로,
     # 빈 기본값을 줘서 @NotBlank 검증으로 앱이 뜨지 않게 한다
