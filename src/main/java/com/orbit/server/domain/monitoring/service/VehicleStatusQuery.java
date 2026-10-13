@@ -1,5 +1,7 @@
 package com.orbit.server.domain.monitoring.service;
 
+import java.time.Instant;
+
 /**
  * 대시보드용 차량 상태 조회. 구현은 repository 에 둔다.
  *
@@ -16,4 +18,15 @@ public interface VehicleStatusQuery {
      * @return DB 시각 기준의 스냅샷. 차량은 vehicleId 오름차순
      */
     VehicleStatusSnapshot findSnapshot();
+
+    /**
+     * 상태 변경 시각(vehicle_state.updated_at)이 주어진 시각보다 늦은 차량을 조회한다. (MONITORING-REQ-001 / MONITORING-POL-001)
+     *
+     * <p>updated_at 은 커밋이 아니라 UPDATE 실행 시각이므로, 늦게 커밋된 변경을 놓치지 않으려면 호출하는 쪽이 이전 기준 시각보다 앞선
+     * 시각을 넘겨 겹쳐 조회해야 한다.
+     *
+     * @param since 이 시각보다 늦게 바뀐 차량만 조회한다. 같은 시각은 포함하지 않는다
+     * @return DB 시각 기준의 변경분. 차량은 vehicleId 오름차순, 없으면 빈 목록
+     */
+    VehicleStatusChanges findChangesSince(Instant since);
 }
