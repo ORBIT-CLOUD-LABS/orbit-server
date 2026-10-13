@@ -1,10 +1,12 @@
 package com.orbit.server.global.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,6 +36,16 @@ class AdminPropertiesTest {
     void failsWithBlankAdminToken() {
         contextRunner
                 .withPropertyValues("orbit.admin.token= ")
+                .run(context -> assertThat(context).hasFailed());
+    }
+
+    @Test
+    @DisplayName("application.yml 을 읽을 때 ADMIN_TOKEN 환경 변수가 없으면 앱을 띄우지 않는다")
+    void failsWithoutAdminTokenEnvironment() {
+        assumeTrue(System.getenv("ADMIN_TOKEN") == null, "ADMIN_TOKEN 이 설정된 환경에서는 확인할 수 없다");
+
+        contextRunner
+                .withInitializer(new ConfigDataApplicationContextInitializer())
                 .run(context -> assertThat(context).hasFailed());
     }
 
