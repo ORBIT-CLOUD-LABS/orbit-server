@@ -15,4 +15,14 @@ public class InvalidValueException extends RuntimeException {
     public InvalidValueException(String message) {
         super(message);
     }
+
+    /**
+     * 날짜 파싱처럼 JDK 가 던진 예외를 입력 오류로 바꿀 때 쓴다. 원인을 추적할 수 있도록 cause 를 유지한다.
+     *
+     * @param message 어떤 값이 어떤 규칙을 어겼는지
+     * @param cause 원인 예외
+     */
+    public InvalidValueException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
