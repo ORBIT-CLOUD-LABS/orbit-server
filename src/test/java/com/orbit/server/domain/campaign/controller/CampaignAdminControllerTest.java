@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -13,23 +14,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.campaign.entity.CampaignName;
 import com.orbit.server.domain.campaign.entity.CampaignPeriod;
+import com.orbit.server.domain.campaign.entity.CampaignStatus;
 import com.orbit.server.domain.campaign.entity.TargetRelease;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
+import com.orbit.server.domain.campaign.service.CampaignFilter;
+import com.orbit.server.domain.campaign.service.CampaignListItem;
+import com.orbit.server.domain.campaign.service.CampaignListService;
 import com.orbit.server.domain.campaign.service.CampaignRegistrationService;
+import com.orbit.server.domain.campaign.service.CampaignSummary;
 import com.orbit.server.domain.campaign.service.RegisterCampaignCommand;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class CampaignAdminControllerTest {
@@ -37,19 +47,83 @@ class CampaignAdminControllerTest {
     private static final String URL = "/api/v1/admin/campaigns";
     private static final String START_AT = "2026-10-01T00:00:00Z";
     private static final String END_AT = "2026-10-02T00:00:00Z";
+    private static final String CREATED_AT = "2026-09-30T07:00:00.123Z";
     private static final String TARGET = """
             {"model": "model-a", "hwVersions": ["hw-1"], "regions": ["KR"],
              "currentVersionMin": "1.0.0", "currentVersionMax": "1.0.9"}""";
 
     private CampaignRegistrationService campaignRegistrationService;
+    private CampaignListService campaignListService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         campaignRegistrationService = mock(CampaignRegistrationService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new CampaignAdminController(campaignRegistrationService))
+        campaignListService = mock(CampaignListService.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(
+                        new CampaignAdminController(campaignRegistrationService, campaignListService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
+    }
+
+    // 보조 API(제안)라 요구사항 ID 가 없다
+    @Test
+    @DisplayName("캠페인 목록: 캠페인과 목표 버전을 200 으로 응답한다")
+    void respondsCampaigns() throws Exception {
+        CampaignSummary campaign = new CampaignSummary(
+                1L,
+                10L,
+                "campaign",
+                "model-a",
+                CampaignStatus.ACTIVE,
+                Instant.parse(START_AT),
+                Instant.parse(END_AT),
+                Instant.parse(CREATED_AT));
+        given(campaignListService.findAll(any())).willReturn(List.of(new CampaignListItem(campaign, "1.0.1")));
+
+        mockMvc.perform(get(URL))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.campaigns.length()").value(1))
+                .andExpect(jsonPath("$.campaigns[0].campaignId").value(1))
+                .andExpect(jsonPath("$.campaigns[0].name").value("campaign"))
+                .andExpect(jsonPath("$.campaigns[0].model").value("model-a"))
+                .andExpect(jsonPath("$.campaigns[0].targetVersion").value("1.0.1"))
+                .andExpect(jsonPath("$.campaigns[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.campaigns[0].startAt").value(START_AT))
+                .andExpect(jsonPath("$.campaigns[0].endAt").value(END_AT))
+                .andExpect(jsonPath("$.campaigns[0].createdAt").value(CREATED_AT));
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+            nullValues = "NULL",
+            value = {"NULL, NULL", "INACTIVE, NULL", "NULL, model-a", "ACTIVE, model-a"})
+    @DisplayName("캠페인 목록: 상태·차종 필터 조합을 그대로 넘긴다")
+    void passesFilter(CampaignStatus status, String model) throws Exception {
+        given(campaignListService.findAll(any())).willReturn(List.of());
+        MockHttpServletRequestBuilder request = get(URL);
+        if (status != null) {
+            request.param("status", status.name());
+        }
+        if (model != null) {
+            request.param("model", model);
+        }
+
+        mockMvc.perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.campaigns").isEmpty());
+
+        verify(campaignListService).findAll(new CampaignFilter(status, model));
+    }
+
+    @Test
+    @DisplayName("캠페인 목록: 정의되지 않은 상태로 필터링하면 400 INVALID_INPUT 이고 조회하지 않는다")
+    void rejectsUnknownStatus() throws Exception {
+        mockMvc.perform(get(URL).param("status", "PAUSED"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+
+        verify(campaignListService, never()).findAll(any());
     }
 
     @Test
