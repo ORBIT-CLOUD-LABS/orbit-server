@@ -64,8 +64,9 @@ class ArtifactQueryServiceTest {
                 .isEqualTo(ArtifactErrorCode.ARTIFACT_NOT_FOUND);
     }
 
+    // 보조 API(제안)라 요구사항 ID 가 없다
     @Test
-    @DisplayName("#18: 여러 ID 의 파일을 한 번에 조회하고 없는 ID 는 뺀다")
+    @DisplayName("캠페인 목록: 여러 ID 의 파일을 한 번에 조회하고 없는 ID 는 뺀다")
     void findsAllByIds() {
         assertThat(service.findAllByIds(List.of(1L, 3L))).containsExactly(MODEL_A);
     }

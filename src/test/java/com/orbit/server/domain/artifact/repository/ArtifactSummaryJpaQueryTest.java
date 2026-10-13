@@ -98,8 +98,9 @@ class ArtifactSummaryJpaQueryTest {
         assertThat(artifactSummaryQuery.findById(artifact.id() + 1)).isEmpty();
     }
 
+    // 보조 API(제안)라 요구사항 ID 가 없다
     @Test
-    @DisplayName("#18: 여러 ID 의 파일을 한 번에 조회하고 없는 ID 는 뺀다")
+    @DisplayName("캠페인 목록: 여러 ID 의 파일을 한 번에 조회하고 없는 ID 는 뺀다")
     void findAllByIds() {
         Artifact first = save(new ArtifactRelease("model-a", "1.0.0"));
         save(new ArtifactRelease("model-a", "1.0.1"));
@@ -111,7 +112,7 @@ class ArtifactSummaryJpaQueryTest {
     }
 
     @Test
-    @DisplayName("#18: ID 를 주지 않으면 빈 목록을 조회한다")
+    @DisplayName("캠페인 목록: ID 를 주지 않으면 빈 목록을 조회한다")
     void emptyWhenNoIds() {
         save(new ArtifactRelease("model-a", "1.0.0"));
 
