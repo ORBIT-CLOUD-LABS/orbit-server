@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @WebMvcTest(
         controllers = EnrollmentKeyInterceptorTest.ProbeController.class,
         properties = "orbit.enrollment.key=" + EnrollmentKeyInterceptorTest.ENROLLMENT_KEY)
-@Import({EnrollmentKeyInterceptorTest.ProbeController.class, GlobalExceptionHandler.class})
+@Import({EnrollmentKeyInterceptorTest.ProbeController.class, GlobalExceptionHandler.class, SecurityConfig.class})
 class EnrollmentKeyInterceptorTest {
 
     static final String ENROLLMENT_KEY = "test-enrollment-key";

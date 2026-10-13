@@ -1,6 +1,10 @@
 spring:
   application:
     name: orbit-server
+  autoconfigure:
+    # 인증은 Bearer 토큰 필터가 맡아 사용자 저장소가 필요 없다.
+    # 켜 두면 기본 사용자를 만들고 그 비밀번호를 로그에 남기므로 끈다
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
