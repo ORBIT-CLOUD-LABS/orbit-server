@@ -22,7 +22,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 // 전역 예외 처리기를 거친 실제 응답을 확인하려고 MVC 예외 해석기가 올라오는 슬라이스에서 검증한다
 @WebMvcTest(
         controllers = ErrorResponseAuthenticationEntryPointTest.ProbeController.class,
-        properties = "orbit.enrollment.key=test-enrollment-key")
+        properties = {"orbit.enrollment.key=test-enrollment-key", "orbit.admin.token=test-admin-token"})
 @Import({GlobalExceptionHandler.class, SecurityConfig.class})
 class ErrorResponseAuthenticationEntryPointTest {
 

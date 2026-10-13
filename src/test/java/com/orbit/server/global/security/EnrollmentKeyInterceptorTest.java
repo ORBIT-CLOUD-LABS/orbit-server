@@ -20,12 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @WebMvcTest(
         controllers = EnrollmentKeyInterceptorTest.ProbeController.class,
-        properties = "orbit.enrollment.key=" + EnrollmentKeyInterceptorTest.ENROLLMENT_KEY)
+        properties = {
+            "orbit.enrollment.key=" + EnrollmentKeyInterceptorTest.ENROLLMENT_KEY,
+            "orbit.admin.token=test-admin-token"
+        })
 @Import({EnrollmentKeyInterceptorTest.ProbeController.class, GlobalExceptionHandler.class, SecurityConfig.class})
 class EnrollmentKeyInterceptorTest {
 
     static final String ENROLLMENT_KEY = "test-enrollment-key";
-    private static final String OTHER_PATH = "/api/v1/other";
+    // 규칙에 없는 경로는 보안 필터가 거부하므로, 필터를 통과하는 차량 경로 중 등록이 아닌 경로로 확인한다
+    private static final String OTHER_PATH = "/api/v1/vehicles/{vehicleId}/check-in";
 
     @Autowired
     private MockMvc mockMvc;
@@ -62,7 +66,8 @@ class EnrollmentKeyInterceptorTest {
     @Test
     @DisplayName("VEHICLE-POL-003: 등록 경로가 아니면 등록 키를 검사하지 않는다")
     void skipsOtherPaths() throws Exception {
-        mockMvc.perform(post(OTHER_PATH)).andExpect(status().isOk());
+        mockMvc.perform(post(OTHER_PATH, "vehicle-001").header(HttpHeaders.AUTHORIZATION, "Bearer vehicle-token"))
+                .andExpect(status().isOk());
     }
 
     @RestController

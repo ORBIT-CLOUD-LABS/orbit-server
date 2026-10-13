@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @WebMvcTest(
         controllers = VehicleTokenInterceptorTest.ProbeController.class,
-        properties = "orbit.enrollment.key=test-enrollment-key")
+        properties = {"orbit.enrollment.key=test-enrollment-key", "orbit.admin.token=test-admin-token"})
 @Import({VehicleTokenInterceptorTest.ProbeController.class, GlobalExceptionHandler.class, SecurityConfig.class})
 class VehicleTokenInterceptorTest {
 
