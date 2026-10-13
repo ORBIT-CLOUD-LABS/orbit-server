@@ -1,7 +1,6 @@
 package com.orbit.server.domain.update.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.artifact.entity.Artifact;
@@ -18,7 +17,6 @@ import com.orbit.server.domain.update.entity.UpdateStatus;
 import com.orbit.server.domain.vehicle.entity.Vehicle;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
-import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.time.Instant;
@@ -102,25 +100,29 @@ class UpdateResultServiceTest {
     }
 
     @Test
-    @DisplayName("UPDATE-POL-001: 실패 보고에 실패 사유가 없으면 거부한다")
-    void rejectsFailedWithoutReason() {
-        assertThatThrownBy(() -> service.record(vehicleId, reportOf(campaignId, UpdateStatus.FAILED, null)))
-                .isInstanceOf(InvalidValueException.class);
+    @DisplayName("UPDATE-POL-001: 실패 보고에 실패 사유가 없으면 차량이 체크인을 계속할 수 있도록 오류 없이 버린다")
+    void discardsFailedWithoutReason() {
+        service.record(vehicleId, reportOf(campaignId, UpdateStatus.FAILED, null));
+
+        assertThat(allResults()).isEmpty();
     }
 
     @Test
-    @DisplayName("UPDATE-POL-001: 성공 보고에 실패 사유가 있으면 거부한다")
-    void rejectsSucceededWithReason() {
-        ReportUpdateResultCommand report = reportOf(campaignId, UpdateStatus.SUCCEEDED, FailureReason.DOWNLOAD_FAILED);
+    @DisplayName("UPDATE-POL-001: 성공 보고에 실패 사유가 있으면 오류 없이 버린다")
+    void discardsSucceededWithReason() {
+        service.record(vehicleId, reportOf(campaignId, UpdateStatus.SUCCEEDED, FailureReason.DOWNLOAD_FAILED));
 
-        assertThatThrownBy(() -> service.record(vehicleId, report)).isInstanceOf(InvalidValueException.class);
+        assertThat(allResults()).isEmpty();
     }
 
     @Test
-    @DisplayName("UPDATE-POL-001: 형식이 틀린 보고는 캠페인이 없어도 거부한다")
-    void rejectsMalformedReportEvenForMissingCampaign() {
-        assertThatThrownBy(() -> service.record(vehicleId, reportOf(Long.MAX_VALUE, UpdateStatus.FAILED, null)))
-                .isInstanceOf(InvalidValueException.class);
+    @DisplayName("UPDATE-POL-001: 성공 보고에 실패 상세가 있으면 조용히 저장하지 않고 오류 없이 버린다")
+    void discardsSucceededWithDetail() {
+        service.record(
+                vehicleId,
+                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, "detail", FINISHED_AT.toString()));
+
+        assertThat(allResults()).isEmpty();
     }
 
     private static ReportUpdateResultCommand reportOf(Long campaignId, UpdateStatus result, FailureReason reason) {

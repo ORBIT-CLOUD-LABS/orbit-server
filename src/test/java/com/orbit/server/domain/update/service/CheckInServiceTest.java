@@ -149,14 +149,17 @@ class CheckInServiceTest {
     }
 
     @Test
-    @DisplayName("UPDATE-POL-001: 업데이트 결과의 형식이 틀리면 체크인을 거부한다")
-    void rejectsMalformedLastUpdate() {
+    @DisplayName("UPDATE-POL-001: 업데이트 결과의 형식이 틀려도 결과만 버리고 체크인은 처리한다")
+    void checksInWithMalformedLastUpdate() {
         Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
         ReportUpdateResultCommand report =
                 new ReportUpdateResultCommand(campaignId, "FAILED", null, null, NOW.toString());
 
-        assertThatThrownBy(() -> service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0", Optional.of(report))))
-                .isInstanceOf(InvalidValueException.class);
+        CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0", Optional.of(report)));
+
+        assertThat(result.targetCampaignId()).contains(campaignId);
+        assertThat(stateOf()).containsExactly("1.0.0:true");
+        assertThat(updateResultsOf(campaignId)).isEmpty();
     }
 
     // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다

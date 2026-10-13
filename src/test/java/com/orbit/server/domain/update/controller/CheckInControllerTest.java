@@ -203,13 +203,14 @@ class CheckInControllerTest {
     }
 
     @Test
-    @DisplayName("UPDATE-POL-001: 성공 보고에 실패 사유가 있으면 400 INVALID_INPUT 으로 응답한다")
-    void rejectsSucceededWithFailureReason() throws Exception {
+    @DisplayName("UPDATE-POL-001: 성공 보고에 실패 사유가 있으면 결과는 버리고 체크인에 200 으로 응답한다")
+    void discardsSucceededWithFailureReason() throws Exception {
         Long campaignId = registerCampaign("1.0.1", "hw-1");
 
         checkInWithLastUpdate("1.0.1", lastUpdateOf(campaignId, "SUCCEEDED", "\"INSTALL_FAILED\""))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+                .andExpect(status().isOk());
+
+        assertThat(updateResults()).isEmpty();
     }
 
     @Test

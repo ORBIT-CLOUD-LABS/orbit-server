@@ -4,6 +4,7 @@ import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.update.entity.UpdateOutcome;
 import com.orbit.server.domain.update.repository.UpdateResultRepository;
 import com.orbit.server.global.error.InvalidValueException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,25 +26,45 @@ public class UpdateResultService {
     /**
      * 보고 검증 → 캠페인 확인 → 기록 순서로 처리한다.
      *
-     * <p>없는 캠페인의 결과는 기록하지 않고 버린다. 차량은 체크인이 성공할 때까지 같은 결과를 다시 보내므로, 오류로 응답하면 그 차량의
-     * 체크인이 계속 실패한다.
+     * <p>형식이 틀린 보고와 없는 캠페인의 결과는 기록하지 않고 버린다. 차량은 체크인이 성공할 때까지 같은 결과를 다시 보내므로, 오류로
+     * 응답하면 그 차량의 체크인이 계속 실패한다.
      *
      * @param vehicleId 결과를 보고한 차량 ID
      * @param report 차량이 보낸 업데이트 결과
-     * @throws InvalidValueException 결과나 완료 시각이 없거나, 실패 여부와 실패 사유 유무가 맞지 않거나, 실패 상세가 500자를 넘는 경우
      */
-    // 형식이 틀린 보고는 차량 쪽 버그이므로 캠페인 유무와 상관없이 먼저 검증해 드러낸다
     @Transactional
     public void record(Long vehicleId, ReportUpdateResultCommand report) {
-        UpdateOutcome outcome = report.toOutcome();
-        if (!campaignQueryService.exists(report.campaignId())) {
-            log.warn(
-                    "없는 캠페인의 업데이트 결과를 버립니다: vehicleId={}, campaignId={}, result={}",
-                    vehicleId,
-                    report.campaignId(),
-                    report.result());
+        Optional<UpdateOutcome> outcome = validate(vehicleId, report);
+        if (outcome.isEmpty() || !campaignExists(vehicleId, report)) {
             return;
         }
-        updateResultRepository.record(vehicleId, report.campaignId(), outcome);
+        updateResultRepository.record(vehicleId, report.campaignId(), outcome.get());
+    }
+
+    // 형식이 틀린 보고는 차량 쪽 버그이므로 ERROR 로 남겨 드러낸다. 상세는 길이를 검증하지 못했으므로 로그에 남기지 않는다
+    private Optional<UpdateOutcome> validate(Long vehicleId, ReportUpdateResultCommand report) {
+        try {
+            return Optional.of(report.toOutcome());
+        } catch (InvalidValueException e) {
+            log.error(
+                    "형식이 틀린 업데이트 결과를 버립니다: vehicleId={}, campaignId={}, reason={}",
+                    vehicleId,
+                    report.campaignId(),
+                    e.getMessage(),
+                    e);
+            return Optional.empty();
+        }
+    }
+
+    private boolean campaignExists(Long vehicleId, ReportUpdateResultCommand report) {
+        if (campaignQueryService.exists(report.campaignId())) {
+            return true;
+        }
+        log.warn(
+                "없는 캠페인의 업데이트 결과를 버립니다: vehicleId={}, campaignId={}, result={}",
+                vehicleId,
+                report.campaignId(),
+                report.result());
+        return false;
     }
 }
