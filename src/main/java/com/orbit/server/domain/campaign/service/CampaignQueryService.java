@@ -6,7 +6,9 @@ import com.orbit.server.domain.campaign.entity.Campaign;
 import com.orbit.server.domain.campaign.entity.DottedVersion;
 import com.orbit.server.domain.campaign.entity.TargetCampaign;
 import com.orbit.server.domain.campaign.entity.TargetVehicle;
+import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 차량이 업데이트할 캠페인을 고른다. 다른 컨텍스트(체크인)는 캠페인을 직접 읽지 않고 이 서비스로만 대상 여부를 묻는다. (VEHICLE-POL-001)
+ * 차량이 업데이트할 캠페인을 고른다. 다른 컨텍스트(체크인, 매니페스트 발급)는 캠페인을 직접 읽지 않고 이 서비스로만 대상 여부를 묻는다.
+ * (VEHICLE-POL-001, MANIFEST-POL-001)
  *
  * <p>다른 컨텍스트인 Artifact 는 {@link ArtifactQueryService} 로만 읽는다.
  */
@@ -59,8 +62,55 @@ public class CampaignQueryService {
         return campaignRepository.existsById(campaignId);
     }
 
-    private Optional<TargetCampaign> toTargetCampaign(Campaign campaign) {
+    /**
+     * 요청한 캠페인이 지금 이 차량의 대상인지 다시 확인하고 배포할 파일을 돌려준다. 체크인과 같은 규칙으로 판정하되, 더 높은 버전의
+     * 캠페인이 있어도 요청한 캠페인만 본다. (MANIFEST-REQ-001 / MANIFEST-POL-001)
+     *
+     * <p>판정 순서는 캠페인 없음 → 비활성·기간 밖 → 대상 아님이다.
+     *
+     * @param campaignId 차량이 요청한 캠페인 ID
+     * @param vehicle 판정할 차량. 현재 버전은 마지막 체크인 때 기록한 값
+     * @param now 판정 시각
+     * @return 캠페인이 배포하는 파일
+     * @throws BusinessException 캠페인이 없으면 CAMPAIGN_NOT_FOUND, 비활성이거나 적용 기간 밖이면 CAMPAIGN_INACTIVE, 대상 조건이
+     *     맞지 않거나 이미 목표 버전이면 NOT_UPDATE_TARGET
+     */
+    // HW 버전·지역을 지연 로딩하므로 조회부터 판정까지 한 트랜잭션으로 묶는다
+    @Transactional(readOnly = true)
+    public ArtifactSummary getTargetArtifact(Long campaignId, TargetVehicle vehicle, Instant now) {
+        Campaign campaign = getActiveCampaign(campaignId, now);
+        if (!campaign.targets(vehicle, now)) {
+            throw new BusinessException(CampaignErrorCode.NOT_UPDATE_TARGET);
+        }
         ArtifactSummary artifact = artifactQueryService.getById(campaign.artifactId());
+        if (!isDeliverable(campaign, artifact, vehicle)) {
+            throw new BusinessException(CampaignErrorCode.NOT_UPDATE_TARGET);
+        }
+        return artifact;
+    }
+
+    private Campaign getActiveCampaign(Long campaignId, Instant now) {
+        Campaign campaign = campaignRepository
+                .findById(campaignId)
+                .orElseThrow(() -> new BusinessException(CampaignErrorCode.CAMPAIGN_NOT_FOUND));
+        if (!campaign.isActiveAt(now)) {
+            throw new BusinessException(CampaignErrorCode.CAMPAIGN_INACTIVE);
+        }
+        return campaign;
+    }
+
+    // 체크인과 같게, 목표 버전을 읽을 수 없거나 이미 설치한 버전이면 배포하지 않는다
+    private boolean isDeliverable(Campaign campaign, ArtifactSummary artifact, TargetVehicle vehicle) {
+        return toTargetCampaign(campaign, artifact)
+                .filter(target -> !target.isInstalledOn(vehicle.currentVersion()))
+                .isPresent();
+    }
+
+    private Optional<TargetCampaign> toTargetCampaign(Campaign campaign) {
+        return toTargetCampaign(campaign, artifactQueryService.getById(campaign.artifactId()));
+    }
+
+    private Optional<TargetCampaign> toTargetCampaign(Campaign campaign, ArtifactSummary artifact) {
         return DottedVersion.parse(artifact.version()).map(version -> new TargetCampaign(campaign.id(), version));
     }
 }

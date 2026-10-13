@@ -169,5 +169,10 @@ class CampaignRegistrationServiceTest {
         public boolean existsById(Long campaignId) {
             return campaignId >= 1 && campaignId <= saved.size();
         }
+
+        @Override
+        public Optional<Campaign> findById(Long campaignId) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

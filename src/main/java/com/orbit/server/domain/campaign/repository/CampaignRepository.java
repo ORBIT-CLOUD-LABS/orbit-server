@@ -2,6 +2,7 @@ package com.orbit.server.domain.campaign.repository;
 
 import com.orbit.server.domain.campaign.entity.Campaign;
 import java.util.List;
+import java.util.Optional;
 
 /** 등록한 캠페인 저장소. */
 public interface CampaignRepository {
@@ -15,6 +16,14 @@ public interface CampaignRepository {
      * @return 이 차종의 활성 캠페인. 없으면 빈 목록
      */
     List<Campaign> findAllActiveByModel(String model);
+
+    /**
+     * 캠페인을 조회한다. 매니페스트 발급에서 요청한 캠페인을 판정할 때 쓴다.
+     *
+     * @param campaignId 캠페인 ID
+     * @return 이 ID 의 캠페인. 없으면 빈 값. 활성 여부는 보지 않는다
+     */
+    Optional<Campaign> findById(Long campaignId);
 
     /**
      * @param campaignId 캠페인 ID
