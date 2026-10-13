@@ -1,7 +1,9 @@
 package com.orbit.server.domain.monitoring.repository;
 
+import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.within;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
@@ -155,6 +157,30 @@ class VehicleStatusJpaQueryTest {
         assertThat(snapshot.vehicles())
                 .singleElement()
                 .satisfies(status -> assertThat(snapshot.asOf()).isAfterOrEqualTo(status.updatedAt()));
+    }
+
+    @Test
+    @DisplayName("MONITORING-POL-001: 기준 시각은 JVM 시간대와 상관없이 DB 시각과 같은 순간이다")
+    void asOfIsSameInstantAsDbTime() {
+        insertVehicle("vehicle-001");
+
+        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+
+        assertThat(snapshot.vehicles())
+                .singleElement()
+                .satisfies(status -> assertThat(snapshot.asOf()).isCloseTo(status.updatedAt(), within(1, MINUTES)));
+    }
+
+    @Test
+    @DisplayName("MONITORING-POL-001: 변경분의 기준 시각은 JVM 시간대와 상관없이 DB 시각과 같은 순간이다")
+    void changesAsOfIsSameInstantAsDbTime() {
+        insertVehicle("vehicle-001");
+
+        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+
+        assertThat(changes.vehicles())
+                .singleElement()
+                .satisfies(status -> assertThat(changes.asOf()).isCloseTo(status.updatedAt(), within(1, MINUTES)));
     }
 
     @Test
