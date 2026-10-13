@@ -26,8 +26,9 @@ public class VehicleStatusBroadcaster {
      * @param properties 겹침 시간 설정
      * @param clock 첫 커서를 정할 시계
      */
-    // 첫 커서는 DB 가 아닌 앱 시각으로 정한다. 시작 전 변경은 대시보드가 스냅샷으로 받으므로 필요 없고,
-    // 두 시계의 차이는 겹침 시간이 덮는다. 다음 커서부터는 DB 시각을 쓴다
+    // 첫 커서는 생성자에서 DB 를 부르지 않도록 앱 시각으로 정한다. 시작 전 변경은 대시보드가 스냅샷으로 받으므로 필요 없다.
+    // 앱 시계가 DB 보다 앞서 첫 조회가 시작 후 변경을 건너뛰어도, 다음 조회는 첫 조회의 DB 시각에서 겹침 시간만큼 앞당겨 읽는다.
+    // 첫 조회는 시작 직후 돌아 그 구간이 시작 시각보다 앞서므로 시작 후 변경을 다시 잡는다
     public VehicleStatusBroadcaster(
             VehicleStatusQuery vehicleStatusQuery,
             VehicleStatusSubscribers subscribers,
