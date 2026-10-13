@@ -163,5 +163,11 @@ class CampaignRegistrationServiceTest {
             ReflectionTestUtils.setField(campaign, "id", (long) saved.size());
             return campaign;
         }
+
+        // ID 는 저장 순번이다
+        @Override
+        public boolean existsById(Long campaignId) {
+            return campaignId >= 1 && campaignId <= saved.size();
+        }
     }
 }
