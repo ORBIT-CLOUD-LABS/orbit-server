@@ -18,8 +18,10 @@ import org.springframework.data.repository.Repository;
  */
 interface VehicleStatusJpaQuery extends Repository<VehicleStatusView, String>, VehicleStatusQuery {
 
-    // 기준 시각을 차량보다 먼저 읽는다. 그 사이 바뀐 차량은 스냅샷에 이미 반영돼 있으므로,
-    // 기준 시각 이후 변경분을 다시 받아도 중복될 뿐 빠지지 않는다
+    // 기준 시각을 차량보다 먼저 읽어, 스냅샷에 담긴 커밋된 변경이 기준 시각보다 늦지 않게 한다.
+    // 기준 시각은 변경분 조회의 안전한 커서가 아니다. updated_at 은 커밋이 아니라 UPDATE 실행 시각이라,
+    // 조회 때 커밋 전이던 체크인은 기준 시각보다 이른 updated_at 으로 늦게 커밋될 수 있다.
+    // 누락 방지는 SSE 변경분 조회가 커서보다 앞선 구간을 겹쳐 다시 읽어 맡는다 (#17)
     @Override
     default VehicleStatusSnapshot findSnapshot() {
         Instant asOf = currentTime().toInstant(ZoneOffset.UTC);
