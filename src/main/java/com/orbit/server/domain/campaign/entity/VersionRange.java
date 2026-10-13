@@ -34,4 +34,39 @@ public record VersionRange(
     public static VersionRange unbounded() {
         return new VersionRange(null, null);
     }
+
+    /**
+     * 현재 버전이 범위 안인지 숫자 자리로 비교해 판정한다. 양 끝을 포함한다. (VEHICLE-POL-001)
+     *
+     * <p>비교해야 하는 버전 중 숫자 자리로 읽을 수 없는 것이 있으면 범위를 판정할 수 없으므로 대상에서 뺀다.
+     *
+     * @param currentVersion 차량의 현재 버전
+     * @return 범위 안이면 true. 제한이 없는 쪽은 비교하지 않는다
+     */
+    boolean contains(String currentVersion) {
+        if (min == null && max == null) {
+            return true;
+        }
+        return DottedVersion.parse(currentVersion)
+                .map(current -> isAtLeastMin(current) && isAtMostMax(current))
+                .orElse(false);
+    }
+
+    private boolean isAtLeastMin(DottedVersion current) {
+        if (min == null) {
+            return true;
+        }
+        return DottedVersion.parse(min)
+                .map(bound -> current.compareTo(bound) >= 0)
+                .orElse(false);
+    }
+
+    private boolean isAtMostMax(DottedVersion current) {
+        if (max == null) {
+            return true;
+        }
+        return DottedVersion.parse(max)
+                .map(bound -> current.compareTo(bound) <= 0)
+                .orElse(false);
+    }
 }

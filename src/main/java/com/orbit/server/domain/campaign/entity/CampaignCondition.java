@@ -2,6 +2,7 @@ package com.orbit.server.domain.campaign.entity;
 
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
+import java.time.Instant;
 import java.util.Objects;
 
 /**
@@ -42,6 +43,19 @@ public class CampaignCondition {
      */
     boolean hasSameTargetAs(CampaignCondition other) {
         return target.equals(other.target) && currentVersionRange().equals(other.currentVersionRange());
+    }
+
+    /**
+     * 차량이 대상 조건과 적용 기간을 모두 만족하는지 판정한다. (VEHICLE-POL-001)
+     *
+     * @param vehicle 판정할 차량
+     * @param now 판정 시각
+     * @return 차종·HW·지역·현재 버전 범위·적용 기간을 모두 만족하면 true
+     */
+    boolean matches(TargetVehicle vehicle, Instant now) {
+        return target.includes(vehicle)
+                && currentVersionRange().contains(vehicle.currentVersion())
+                && period.contains(now);
     }
 
     // Hibernate 는 컬럼이 모두 NULL 인 embeddable 을 null 로 채우므로, 필드를 직접 쓰지 않고 이 메서드로 읽는다

@@ -37,4 +37,21 @@ public class VehicleStateService {
                         state -> state.changeVersion(version),
                         () -> vehicleStateRepository.save(new VehicleState(vehicleId, version)));
     }
+
+    /**
+     * 체크인한 차량의 현재 버전과 마지막 체크인 시각을 덮어쓴다. (VEHICLE-REQ-001)
+     *
+     * @param vehicleId 차량 ID
+     * @param currentVersion 차량이 보낸 현재 버전
+     * @throws InvalidValueException 버전이 비어 있거나 50자를 넘는 경우
+     * @throws IllegalStateException 차량의 상태가 없는 경우
+     */
+    // 등록할 때 상태를 함께 만들므로 체크인한 차량에 상태가 없다면 데이터가 어긋난 것이라 서버 오류로 본다
+    @Transactional
+    public void recordCheckIn(Long vehicleId, String currentVersion) {
+        int updated = vehicleStateRepository.recordCheckIn(vehicleId, new SoftwareVersion(currentVersion));
+        if (updated == 0) {
+            throw new IllegalStateException("체크인한 차량의 상태가 없습니다: " + vehicleId);
+        }
+    }
 }
