@@ -54,4 +54,18 @@ public class VehicleStateService {
             throw new IllegalStateException("체크인한 차량의 상태가 없습니다: " + vehicleId);
         }
     }
+
+    /**
+     * 마지막 체크인 때 기록한 차량의 현재 버전을 조회한다. 매니페스트 발급에서 대상을 다시 판정할 때 쓴다. (MANIFEST-POL-001)
+     *
+     * @param vehicleId 차량 ID
+     * @return 차량의 현재 버전
+     * @throws IllegalStateException 차량의 상태가 없는 경우
+     */
+    // 등록할 때 상태를 함께 만들므로 인증을 통과한 차량에 상태가 없다면 데이터가 어긋난 것이라 서버 오류로 본다
+    public SoftwareVersion getCurrentVersion(Long vehicleId) {
+        return vehicleStateRepository
+                .findCurrentVersionById(vehicleId)
+                .orElseThrow(() -> new IllegalStateException("차량의 상태가 없습니다: " + vehicleId));
+    }
 }

@@ -2,6 +2,7 @@ package com.orbit.server.domain.update.repository;
 
 import com.orbit.server.domain.update.entity.SoftwareVersion;
 import com.orbit.server.domain.update.entity.VehicleState;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +15,11 @@ import org.springframework.data.repository.query.Param;
  * 메서드는 밖에서 호출할 수 없다.
  */
 interface VehicleStateJpaRepository extends JpaRepository<VehicleState, Long>, VehicleStateRepository {
+
+    // 판정에는 버전만 필요하므로 엔티티를 읽지 않고 버전 값만 조회한다
+    @Override
+    @Query("select s.currentVersion from VehicleState s where s.vehicleId = :vehicleId")
+    Optional<SoftwareVersion> findCurrentVersionById(@Param("vehicleId") Long vehicleId);
 
     @Override
     default int recordCheckIn(Long vehicleId, SoftwareVersion currentVersion) {
