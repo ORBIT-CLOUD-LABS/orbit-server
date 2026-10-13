@@ -123,10 +123,12 @@ class SecurityConfigTest {
     }
 
     @Test
-    @DisplayName("관리자 토큰이 있어도 규칙에 없는 경로는 거부한다")
+    @DisplayName("관리자 토큰이 있어도 규칙에 없는 경로는 403 ACCESS_DENIED 로 거부한다")
     void rejectsUnknownPathEvenForAdmin() throws Exception {
         mockMvc.perform(get(UNKNOWN_URL).header(HttpHeaders.AUTHORIZATION, bearer(ADMIN_TOKEN)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.ACCESS_DENIED.getCode()))
+                .andExpect(jsonPath("$.message").value(CommonErrorCode.ACCESS_DENIED.getMessage()));
     }
 
     private static String bearer(String token) {

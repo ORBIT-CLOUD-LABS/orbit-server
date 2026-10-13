@@ -43,8 +43,9 @@ class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(
                         new AdminTokenAuthenticationFilter(adminProperties), AnonymousAuthenticationFilter.class)
-                .exceptionHandling(handling ->
-                        handling.authenticationEntryPoint(new ErrorResponseAuthenticationEntryPoint(exceptionResolver)))
+                .exceptionHandling(handling -> handling.authenticationEntryPoint(
+                                new ErrorResponseAuthenticationEntryPoint(exceptionResolver))
+                        .accessDeniedHandler(new ErrorResponseAccessDeniedHandler(exceptionResolver)))
                 .authorizeHttpRequests(requests -> requests
                         // 이미 인가를 통과한 요청의 오류 응답을 만드는 내부 재요청이므로 다시 막지 않는다
                         .dispatcherTypeMatchers(DispatcherType.ERROR)
