@@ -97,6 +97,17 @@ public class Campaign {
     }
 
     /**
+     * 지금 배포 중인 캠페인인지 판정한다. 매니페스트를 발급하기 전에 요청한 캠페인이 비활성이거나 기간 밖인지 확인하는 데 쓴다.
+     * (MANIFEST-POL-001)
+     *
+     * @param now 판정 시각
+     * @return 활성 상태이고 적용 기간 안이면 true
+     */
+    public boolean isActiveAt(Instant now) {
+        return status == CampaignStatus.ACTIVE && condition.isInPeriod(now);
+    }
+
+    /**
      * 같은 파일을 같은 대상 조건으로 배포하는 캠페인인지 판정한다. 적용 기간은 비교하지 않는다. (CAMPAIGN-POL-001)
      *
      * <p>조건이 일부만 겹치는 경우는 중복으로 보지 않는다. 한 차량이 여러 캠페인에 걸릴 때의 처리는 체크인 대상 판정에서 정한다.

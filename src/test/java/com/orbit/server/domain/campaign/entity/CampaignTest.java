@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class CampaignTest {
 
@@ -93,6 +94,33 @@ class CampaignTest {
     void notTargetWhenOutOfPeriod() {
         assertThat(campaign.targets(vehicleOf("hw-1", "1.0.5"), START.minusMillis(1)))
                 .isFalse();
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 활성이고 적용 기간 안이면 배포 중이다")
+    void activeWhenActiveStatusAndInPeriod() {
+        assertThat(campaign.isActiveAt(START)).isTrue();
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 비활성이면 적용 기간 안이어도 배포 중이 아니다")
+    void notActiveWhenInactiveStatus() {
+        // 비활성화 API 가 아직 없으므로 테스트에서만 상태를 바꾼다
+        ReflectionTestUtils.setField(campaign, "status", CampaignStatus.INACTIVE);
+
+        assertThat(campaign.isActiveAt(START)).isFalse();
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 적용 기간 시작 전이면 배포 중이 아니다")
+    void notActiveBeforeStart() {
+        assertThat(campaign.isActiveAt(START.minusMillis(1))).isFalse();
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 적용 기간 종료 시각부터는 배포 중이 아니다")
+    void notActiveFromEnd() {
+        assertThat(campaign.isActiveAt(PERIOD.endAt())).isFalse();
     }
 
     private static TargetVehicle vehicleOf(String hwVersion, String currentVersion) {
