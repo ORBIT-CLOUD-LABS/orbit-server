@@ -14,7 +14,6 @@ import com.orbit.server.domain.campaign.entity.CampaignPeriod;
 import com.orbit.server.domain.campaign.entity.CampaignTarget;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
-import com.orbit.server.domain.update.entity.UpdateStatus;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
 import com.orbit.server.domain.vehicle.service.RegisterVehicleCommand;
@@ -118,7 +117,7 @@ class CheckInServiceTest {
     void recordsLastUpdateWithState() {
         Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(campaignId, UpdateStatus.SUCCEEDED, null, null, NOW);
+                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, null, NOW.toString());
 
         CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(report)));
 
@@ -141,7 +140,7 @@ class CheckInServiceTest {
     @DisplayName("UPDATE-REQ-001: 없는 캠페인의 결과가 와도 체크인은 처리한다")
     void checksInWithResultOfMissingCampaign() {
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(Long.MAX_VALUE, UpdateStatus.SUCCEEDED, null, null, NOW);
+                new ReportUpdateResultCommand(Long.MAX_VALUE, "SUCCEEDED", null, null, NOW.toString());
 
         CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(report)));
 
@@ -154,7 +153,7 @@ class CheckInServiceTest {
     void rejectsMalformedLastUpdate() {
         Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(campaignId, UpdateStatus.FAILED, null, null, NOW);
+                new ReportUpdateResultCommand(campaignId, "FAILED", null, null, NOW.toString());
 
         assertThatThrownBy(() -> service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0", Optional.of(report))))
                 .isInstanceOf(InvalidValueException.class);

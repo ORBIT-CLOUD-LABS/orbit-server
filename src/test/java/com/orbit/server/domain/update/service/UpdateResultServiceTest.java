@@ -124,7 +124,8 @@ class UpdateResultServiceTest {
     }
 
     private static ReportUpdateResultCommand reportOf(Long campaignId, UpdateStatus result, FailureReason reason) {
-        return new ReportUpdateResultCommand(campaignId, result, reason, null, FINISHED_AT);
+        String reasonName = reason == null ? null : reason.name();
+        return new ReportUpdateResultCommand(campaignId, result.name(), reasonName, null, FINISHED_AT.toString());
     }
 
     // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다

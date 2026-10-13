@@ -5,6 +5,7 @@ import com.orbit.server.domain.update.entity.UpdateStatus;
 import com.orbit.server.domain.update.service.ReportUpdateResultCommand;
 import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * 체크인에 담아 보내는 업데이트 결과. 차량은 체크인이 성공할 때까지 같은 결과를 다시 보낸다. (UPDATE-REQ-001)
@@ -28,6 +29,11 @@ public record LastUpdateRequest(
      * @return 업데이트 결과 기록 요청
      */
     public ReportUpdateResultCommand toCommand() {
-        return new ReportUpdateResultCommand(campaignId, result, failureReason, failureDetail, finishedAt);
+        return new ReportUpdateResultCommand(
+                campaignId,
+                result.name(),
+                Optional.ofNullable(failureReason).map(FailureReason::name).orElse(null),
+                failureDetail,
+                finishedAt.toString());
     }
 }
