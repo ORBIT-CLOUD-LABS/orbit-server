@@ -49,6 +49,31 @@ class DashboardStreamPropertiesTest {
     }
 
     @Test
+    @DisplayName("MONITORING-POL-001: 겹침 시간이 하한보다 짧으면 앱을 띄우지 않는다")
+    void failsWithOverlapShorterThanMinimum() {
+        Duration shorter = Duration.ofSeconds(DashboardStreamProperties.MIN_OVERLAP_SECONDS)
+                .minusMillis(1);
+
+        contextRunner
+                .withPropertyValues(
+                        POLL_INTERVAL + "1s", KEEP_ALIVE_INTERVAL + "15s", OVERLAP + shorter.toMillis() + "ms")
+                .run(context -> assertThat(context).hasFailed());
+    }
+
+    @Test
+    @DisplayName("MONITORING-POL-001: 겹침 시간이 하한과 같으면 읽는다")
+    void bindsOverlapEqualToMinimum() {
+        Duration minimum = Duration.ofSeconds(DashboardStreamProperties.MIN_OVERLAP_SECONDS);
+
+        contextRunner
+                .withPropertyValues(
+                        POLL_INTERVAL + "1s", KEEP_ALIVE_INTERVAL + "15s", OVERLAP + minimum.toMillis() + "ms")
+                .run(context -> assertThat(
+                                context.getBean(DashboardStreamProperties.class).overlap())
+                        .isEqualTo(minimum));
+    }
+
+    @Test
     @DisplayName("MONITORING-REQ-001: 간격을 설정하지 않으면 앱을 띄우지 않는다")
     void failsWithoutDurations() {
         contextRunner.run(context -> assertThat(context).hasFailed());

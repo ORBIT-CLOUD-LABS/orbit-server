@@ -86,14 +86,15 @@ class CheckInLateCommitTest {
     }
 
     @Test
-    @DisplayName("MONITORING-POL-001: 체크인 트랜잭션 타임아웃은 겹침 시간보다 짧다")
+    @DisplayName("MONITORING-POL-001: 체크인 트랜잭션 타임아웃은 설정할 수 있는 가장 짧은 겹침 시간보다 짧다")
     void checkInTimeoutIsShorterThanOverlap() throws NoSuchMethodException {
         TransactionDefinition checkIn = new AnnotationTransactionAttributeSource()
                 .getTransactionAttribute(
                         CheckInService.class.getMethod("checkIn", CheckInCommand.class), CheckInService.class);
 
         assertThat(checkIn.getTimeout()).isPositive();
-        assertThat(Duration.ofSeconds(checkIn.getTimeout())).isLessThan(streamProperties.overlap());
+        assertThat(Duration.ofSeconds(checkIn.getTimeout()))
+                .isLessThan(Duration.ofSeconds(DashboardStreamProperties.MIN_OVERLAP_SECONDS));
     }
 
     // 체크인을 바깥 트랜잭션에 묶어 커밋을 미루고, 그동안 다른 연결로 변경분을 조회한다
