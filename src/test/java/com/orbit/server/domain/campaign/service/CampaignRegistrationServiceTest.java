@@ -22,6 +22,7 @@ import com.orbit.server.global.error.InvalidValueException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -125,6 +126,12 @@ class CampaignRegistrationServiceTest {
         @Override
         public Optional<ArtifactSummary> findById(Long id) {
             return Optional.of(artifact).filter(summary -> summary.artifactId().equals(id));
+        }
+
+        // 캠페인 등록은 파일 한 건만 조회한다
+        @Override
+        public List<ArtifactSummary> findAllByIds(Collection<Long> ids) {
+            throw new UnsupportedOperationException();
         }
     }
 

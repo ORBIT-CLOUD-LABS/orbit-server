@@ -10,6 +10,7 @@ import com.orbit.server.domain.artifact.repository.ArtifactRepository;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,6 +103,13 @@ class ArtifactQueryServiceTest {
             return summaries.stream()
                     .filter(summary -> summary.artifactId().equals(id))
                     .findFirst();
+        }
+
+        @Override
+        public List<ArtifactSummary> findAllByIds(Collection<Long> ids) {
+            return summaries.stream()
+                    .filter(summary -> ids.contains(summary.artifactId()))
+                    .toList();
         }
     }
 
