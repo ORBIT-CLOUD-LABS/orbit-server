@@ -39,6 +39,32 @@ class VehicleStatusSubscribersTest {
     }
 
     @Test
+    @DisplayName("MONITORING-REQ-001: 따라잡을 변경분은 지정한 연결에만 vehicles 이벤트로 보낸다")
+    void sendsVehiclesEventToOneSubscriber() {
+        RecordingEmitter target = subscribe();
+        RecordingEmitter other = subscribe();
+
+        subscribers.sendTo(target, CHANGES);
+
+        assertThat(target.texts)
+                .singleElement()
+                .satisfies(text -> assertThat(text).contains("event:vehicles\n", "id:2026-10-01T12:00:00.123Z\n"));
+        assertThat(target.data).containsExactly(List.of(VEHICLE));
+        assertThat(other.texts).isEmpty();
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: 뺀 구독자에게는 보내지 않는다")
+    void removesSubscriber() {
+        RecordingEmitter emitter = subscribe();
+
+        subscribers.remove(emitter);
+        subscribers.broadcast(CHANGES);
+
+        assertThat(emitter.texts).isEmpty();
+    }
+
+    @Test
     @DisplayName("MONITORING-REQ-001: 모든 구독자에게 keep-alive 주석을 보낸다")
     void sendsKeepAliveCommentToAllSubscribers() {
         RecordingEmitter first = subscribe();

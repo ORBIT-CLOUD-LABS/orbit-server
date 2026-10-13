@@ -37,6 +37,25 @@ public class VehicleStatusSubscribers {
     }
 
     /**
+     * 연결을 구독자에서 뺀다. 연결이 시작되기 전에 실패해 종료 콜백이 오지 않는 경우에 쓴다.
+     *
+     * @param emitter 뺄 연결
+     */
+    public void remove(SseEmitter emitter) {
+        emitters.remove(emitter);
+    }
+
+    /**
+     * 변경분을 한 연결에만 {@code event: vehicles} 로 보낸다. 재연결한 대시보드가 놓친 변경분을 따라잡을 때 쓴다.
+     *
+     * @param emitter 받을 연결
+     * @param changes 보낼 변경분
+     */
+    public void sendTo(SseEmitter emitter, VehicleStatusChanges changes) {
+        send(emitter, vehiclesEvent(changes));
+    }
+
+    /**
      * 변경분을 모든 구독자에게 {@code event: vehicles} 로 보낸다. 이벤트 id 는 변경분의 기준 시각이라 재연결 때 {@code Last-Event-ID}
      * 로 돌아온다.
      *
