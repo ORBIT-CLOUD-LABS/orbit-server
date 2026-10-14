@@ -3,6 +3,7 @@ package com.orbit.server.domain.artifact.service;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.repository.ArtifactRepository;
 import com.orbit.server.global.error.BusinessException;
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,16 @@ public class ArtifactQueryService {
         return artifactSummaryQuery
                 .findById(artifactId)
                 .orElseThrow(() -> new BusinessException(ArtifactErrorCode.ARTIFACT_NOT_FOUND));
+    }
+
+    /**
+     * 여러 파일을 한 번에 조회한다. 캠페인 컨텍스트가 캠페인 목록에 목표 버전을 채울 때 캠페인마다 따로 조회하지 않도록 쓴다.
+     *
+     * @param artifactIds Artifact ID. 비어 있으면 빈 목록
+     * @return 이 ID 들의 Origin 파일. 순서는 정하지 않으며 없는 ID 는 빠진다
+     */
+    public List<ArtifactSummary> findAllByIds(Collection<Long> artifactIds) {
+        return artifactSummaryQuery.findAllByIds(artifactIds);
     }
 
     /**

@@ -10,6 +10,7 @@ import com.orbit.server.domain.artifact.repository.ArtifactRepository;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +64,13 @@ class ArtifactQueryServiceTest {
                 .isEqualTo(ArtifactErrorCode.ARTIFACT_NOT_FOUND);
     }
 
+    // 보조 API(제안)라 요구사항 ID 가 없다
+    @Test
+    @DisplayName("캠페인 목록: 여러 ID 의 파일을 한 번에 조회하고 없는 ID 는 뺀다")
+    void findsAllByIds() {
+        assertThat(service.findAllByIds(List.of(1L, 3L))).containsExactly(MODEL_A);
+    }
+
     @Test
     @DisplayName("CAMPAIGN-POL-001: 파일 행을 잠근 뒤 조회한다")
     void locksAndGetsById() {
@@ -102,6 +110,13 @@ class ArtifactQueryServiceTest {
             return summaries.stream()
                     .filter(summary -> summary.artifactId().equals(id))
                     .findFirst();
+        }
+
+        @Override
+        public List<ArtifactSummary> findAllByIds(Collection<Long> ids) {
+            return summaries.stream()
+                    .filter(summary -> ids.contains(summary.artifactId()))
+                    .toList();
         }
     }
 
