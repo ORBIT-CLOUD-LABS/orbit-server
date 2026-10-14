@@ -37,3 +37,6 @@ bin/
 
 ### VS Code ###
 .vscode/
+
+### Env ###
+.env
