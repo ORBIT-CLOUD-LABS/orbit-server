@@ -12,6 +12,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -39,8 +40,11 @@ public class VehicleRegistrationService {
      * @throws InvalidValueException 현재 버전이 비어 있거나 50자를 넘는 경우
      * @throws DataIntegrityViolationException 같은 차량의 최초 등록이 동시에 들어온 경우
      */
-    // 차량 잠금을 토큰 발급·커밋까지 유지하고, 중간에 실패하면 차량·상태·토큰을 함께 되돌리기 위해 한 트랜잭션으로 묶는다
-    @Transactional
+    // 차량 잠금을 토큰 발급·커밋까지 유지하고, 중간에 실패하면 차량·상태·토큰을 함께 되돌리기 위해 한 트랜잭션으로 묶는다.
+    // MySQL 기본(REPEATABLE READ)에서는 없는 차량을 잠글 때 식별자 인덱스의 gap 을 잠가, 이웃한 식별자의 최초 등록끼리
+    // 서로의 INSERT 를 막아 데드락이 난다. READ COMMITTED 는 gap 을 잠그지 않아 서로 다른 차량은 막지 않고,
+    // 같은 차량끼리는 행 잠금과 UNIQUE 제약으로 여전히 직렬화된다
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public VehicleRegistrationResult register(RegisterVehicleCommand command) {
         Optional<Vehicle> registered = vehicleRepository.lockByExternalId(command.externalId());
         Vehicle vehicle = registered
