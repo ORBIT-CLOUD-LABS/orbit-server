@@ -121,6 +121,12 @@ class SecurityConfigTest {
         mockMvc.perform(get(url)).andExpect(status().isOk());
     }
 
+    @Test
+    @DisplayName("prometheus 메트릭은 인증 없이 응답한다")
+    void allowsPrometheusMetricsWithoutToken() throws Exception {
+        mockMvc.perform(get("/actuator/prometheus")).andExpect(status().isOk());
+    }
+
     // 관리자 인증 대상이면 AUTHENTICATION_REQUIRED 가 나므로, 차량 토큰 인터셉터의 오류 코드로 필터를 통과했는지 확인한다
     @Test
     @DisplayName("차량 API 는 관리자 인증 대상이 아니고 차량 토큰 인증을 거친다")

@@ -26,6 +26,8 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 class SecurityConfig {
 
     static final String HEALTH_PATHS = "/actuator/health/**";
+    // Prometheus 가 스크랩하는 경로. health 와 같은 신뢰 수준으로 두고, 접근은 모니터링 VM 네트워크 경계에서 제한한다.
+    static final String METRICS_PATH = "/actuator/prometheus";
     static final String VEHICLE_PATHS = "/api/v1/vehicles/**";
     static final String ADMIN_PATHS = "/api/v1/admin/**";
     static final String DASHBOARD_PATHS = "/api/v1/dashboard/**";
@@ -51,7 +53,7 @@ class SecurityConfig {
                         // 내부 재요청이므로 다시 막지 않는다. 관리자 토큰 필터는 ASYNC dispatch 를 건너뛰어 막으면 401 이 된다
                         .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC)
                         .permitAll()
-                        .requestMatchers(HEALTH_PATHS)
+                        .requestMatchers(HEALTH_PATHS, METRICS_PATH)
                         .permitAll()
                         // 차량 API 는 등록 키·차량 토큰 인터셉터가 인증하므로 관리자 인증 대상에서 뺀다
                         .requestMatchers(VEHICLE_PATHS)
