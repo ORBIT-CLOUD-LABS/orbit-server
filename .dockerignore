@@ -5,4 +5,5 @@
 .vscode
 .gradle
 **/build
+.env
 *.md

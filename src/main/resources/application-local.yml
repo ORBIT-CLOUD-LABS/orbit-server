@@ -1,4 +1,7 @@
 spring:
+  config:
+    # Spring 은 .env 를 자동으로 읽지 않으므로 properties 형식으로 불러온다. 파일이 없으면 무시한다
+    import: optional:file:.env[.properties]
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/vehicle_db}
 
