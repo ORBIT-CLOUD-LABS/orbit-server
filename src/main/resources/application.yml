@@ -61,7 +61,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        # prometheus 는 클러스터 안 수집기가 API 와 같은 포트(8080)로 긁어 간다. 인증 없이 열리므로 그 밖의 엔드포인트는 노출하지 않는다
+        include: health,prometheus
   endpoint:
     health:
       probes:
