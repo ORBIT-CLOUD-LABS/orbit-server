@@ -15,6 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Verify required CI blocks pending and failed checks
+        run: |
+          sleep 90
+          exit 1
+
       - name: Checkout
         uses: actions/checkout@v4
 
