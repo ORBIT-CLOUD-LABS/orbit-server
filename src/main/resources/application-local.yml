@@ -5,13 +5,10 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/vehicle_db}
 
-# 로컬 SeaweedFS(S3 기본 포트 8333)를 가정한 기본값. 띄우지 않으면 업로드만 502 로 실패하고 앱은 실행된다
 orbit:
+  # 로컬에는 NFS 가 없으므로 홈 디렉터리 아래에 쓴다. 저장소 안에 두지 않아 실수로 커밋되거나 gradle clean 으로 지워지지 않는다
   origin:
-    endpoint: ${ORIGIN_ENDPOINT:http://localhost:8333}
-    bucket: ${ORIGIN_BUCKET:orbit-firmware}
-    access-key: ${ORIGIN_ACCESS_KEY:local-access-key}
-    secret-key: ${ORIGIN_SECRET_KEY:local-secret-key}
+    root-path: ${ORIGIN_ROOT_PATH:${user.home}/.orbit/origin}
   enrollment:
     key: ${ENROLLMENT_KEY:local-enrollment-key}
   admin:

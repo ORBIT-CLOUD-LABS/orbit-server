@@ -1,10 +1,7 @@
-# 컨텍스트 테스트는 S3 클라이언트를 만들기만 하고 Origin 에 접속하지 않으므로 더미 값을 쓴다
+# 컨텍스트 테스트는 Origin 구현을 만들기만 하고 파일을 쓰지 않으므로 더미 경로를 쓴다. 쓰기는 FileSystemOriginStorageTest 가 확인한다
 orbit:
   origin:
-    endpoint: http://localhost:8333
-    bucket: test-bucket
-    access-key: test-access-key
-    secret-key: test-secret-key
+    root-path: build/test-origin
   enrollment:
     key: test-enrollment-key
   admin:

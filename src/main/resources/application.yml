@@ -30,12 +30,9 @@ spring:
 
 orbit:
   origin:
-    endpoint: ${ORIGIN_ENDPOINT}
-    # S3 호환 서버(SeaweedFS)는 리전을 검사하지 않으므로 SDK 기본값으로 둔다
-    region: ${ORIGIN_REGION:us-east-1}
-    bucket: ${ORIGIN_BUCKET}
-    access-key: ${ORIGIN_ACCESS_KEY}
-    secret-key: ${ORIGIN_SECRET_KEY}
+    # 원본 저장소(NFS)를 쓰기로 마운트한 경로. 파일은 이 아래 Origin 경로(/firmware/...)에 쓴다.
+    # 환경 변수가 없으면 플레이스홀더 원문이 그대로 경로가 되므로, 빈 기본값을 줘서 @NotNull 검증으로 앱이 뜨지 않게 한다
+    root-path: ${ORIGIN_ROOT_PATH:}
   enrollment:
     # 환경 변수가 없으면 플레이스홀더 원문(${ENROLLMENT_KEY})이 그대로 키가 되므로,
     # 빈 기본값을 줘서 @NotBlank 검증으로 앱이 뜨지 않게 한다
