@@ -56,9 +56,40 @@ class FileSystemOriginStorageTest {
     void writesFileReadableByOthers() throws IOException {
         originStorage.upload(FILE, new ByteArrayResource(CONTENT));
 
-        Path written = root.resolve("firmware/model-a/1.0.0/firmware.bin");
-        assertThat(PosixFilePermissions.toString(Files.getPosixFilePermissions(written)))
+        assertThat(permissionsOf(root.resolve("firmware/model-a/1.0.0/firmware.bin")))
                 .isEqualTo("rw-r--r--");
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    @DisplayName("ORIGIN-POL-001: 서버와 다른 사용자인 Origin 이 파일까지 찾아갈 수 있도록 새로 만든 디렉터리의 탐색을 허용한다")
+    void createsDirectoriesTraversableByOthers() throws IOException {
+        originStorage.upload(FILE, new ByteArrayResource(CONTENT));
+
+        assertThat(permissionsOf(root.resolve("firmware"))).isEqualTo("rwxr-xr-x");
+        assertThat(permissionsOf(root.resolve("firmware/model-a"))).isEqualTo("rwxr-xr-x");
+        assertThat(permissionsOf(root.resolve("firmware/model-a/1.0.0"))).isEqualTo("rwxr-xr-x");
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    @DisplayName("ORIGIN-POL-001: 이미 있는 디렉터리는 인프라가 정한 권한이므로 바꾸지 않는다")
+    void keepsPermissionsOfExistingDirectories() throws IOException {
+        Path firmware = Files.createDirectory(root.resolve("firmware"));
+        Files.setPosixFilePermissions(firmware, PosixFilePermissions.fromString("rwx--x--x"));
+
+        originStorage.upload(FILE, new ByteArrayResource(CONTENT));
+
+        assertThat(permissionsOf(firmware)).isEqualTo("rwx--x--x");
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 디렉터리가 있어야 할 자리에 파일이 있으면 업로드 실패로 알린다")
+    void throwsUploadFailureWhenFileBlocksDirectory() throws IOException {
+        Files.createFile(root.resolve("firmware"));
+
+        assertThatThrownBy(() -> originStorage.upload(FILE, new ByteArrayResource(CONTENT)))
+                .isInstanceOf(OriginUploadException.class);
     }
 
     @Test
@@ -149,6 +180,10 @@ class FileSystemOriginStorageTest {
 
         assertThatCode(() -> originStorage.delete(FILE)).doesNotThrowAnyException();
         assertThatCode(() -> originStorage.delete(escaping)).doesNotThrowAnyException();
+    }
+
+    private static String permissionsOf(Path path) throws IOException {
+        return PosixFilePermissions.toString(Files.getPosixFilePermissions(path));
     }
 
     private static List<String> filesIn(Path directory) throws IOException {

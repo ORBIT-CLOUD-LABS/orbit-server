@@ -6,10 +6,10 @@ import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.service.OriginStorage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
@@ -33,6 +33,8 @@ class FileSystemOriginStorage implements OriginStorage {
     // 임시 파일은 소유자만 읽을 수 있게(600) 만들어지고 하드링크로 연결한 최종 파일도 같은 권한을 가지므로,
     // 서버와 다른 사용자로 실행되는 Origin Nginx 가 읽을 수 있게 다른 사용자 읽기를 허용한다
     private static final Set<PosixFilePermission> READABLE_BY_ORIGIN = PosixFilePermissions.fromString("rw-r--r--");
+    // 다른 사용자가 파일 경로를 따라 내려가려면 상위 디렉터리마다 실행(탐색) 권한이 있어야 한다
+    private static final Set<PosixFilePermission> TRAVERSABLE_BY_ORIGIN = PosixFilePermissions.fromString("rwxr-xr-x");
 
     private final Path root;
 
@@ -47,9 +49,6 @@ class FileSystemOriginStorage implements OriginStorage {
     public void upload(ArtifactFile file, InputStreamSource content) {
         try {
             store(file, content);
-        } catch (FileAlreadyExistsException e) {
-            log.info("Origin 에 같은 경로의 파일이 있어 업로드하지 않았습니다: path={}", file.path());
-            throw new OriginFileExistsException(e);
         } catch (IOException e) {
             throw uploadFailed(file, e);
         }
@@ -69,27 +68,66 @@ class FileSystemOriginStorage implements OriginStorage {
     // rename 은 기존 파일을 말없이 덮어쓰므로, 같은 경로에 파일이 있으면 실패하는 하드링크로 동시 등록 중 늦은 요청을 막는다
     private void store(ArtifactFile file, InputStreamSource content) throws IOException {
         Path target = resolve(file);
-        Path directory = Files.createDirectories(target.getParent());
+        Path directory = createDirectories(target.getParent());
         Path temp = Files.createTempFile(directory, TEMP_PREFIX, TEMP_SUFFIX);
         try {
-            // 생성 시 권한을 지정하면 umask 가 적용되므로, 만든 뒤 바꿔 실행 환경의 umask 와 관계없이 맞춘다
-            Files.setPosixFilePermissions(temp, READABLE_BY_ORIGIN);
             writeVerified(temp, file, content);
-            Files.createLink(target, temp);
+            // 생성 시 권한을 지정하면 umask 가 적용되므로, 다 쓴 뒤 바꿔 실행 환경의 umask 와 관계없이 맞춘다
+            Files.setPosixFilePermissions(temp, READABLE_BY_ORIGIN);
+            link(target, temp, file);
         } finally {
             deleteTemp(temp);
+        }
+    }
+
+    // 디렉터리를 만들 때도 같은 예외가 날 수 있으므로, 같은 버전이 있다는 뜻으로 바꾸는 것은 최종 경로를 연결할 때로 한정한다
+    private void link(Path target, Path temp, ArtifactFile file) throws IOException {
+        try {
+            Files.createLink(target, temp);
+        } catch (FileAlreadyExistsException e) {
+            log.info("Origin 에 같은 경로의 파일이 있어 업로드하지 않았습니다: path={}", file.path());
+            throw new OriginFileExistsException(e);
         }
     }
 
     // 해시 계산 때와 쓸 때 읽은 바이트가 다르면(읽기 사이 변경) DB 해시와 Origin 파일이 어긋나므로, 쓴 바이트로 다시 확인한다
     private void writeVerified(Path temp, ArtifactFile file, InputStreamSource content) throws IOException {
         MessageDigest digest = newDigest();
-        try (InputStream in = new DigestInputStream(content.getInputStream(), digest)) {
-            Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+        // Files.copy 는 대상을 지우고 다시 만들므로, createTempFile 이 만든 파일에 그대로 쓴다
+        try (InputStream in = new DigestInputStream(content.getInputStream(), digest);
+                OutputStream out = Files.newOutputStream(temp)) {
+            in.transferTo(out);
         }
         String written = HexFormat.of().formatHex(digest.digest());
         if (!file.matchesSha256(written)) {
             throw new IOException("Origin 에 쓴 파일의 SHA-256 이 계산한 값과 다릅니다: written=" + written);
+        }
+    }
+
+    // createDirectories 는 umask 가 적용된 권한으로 만들어 Origin Nginx 가 파일까지 찾아가지 못할 수 있으므로, 한 단계씩 만들며 권한을 맞춘다.
+    // 루트는 마운트 지점이고 이미 있는 디렉터리는 인프라가 정한 권한이라 바꾸지 않는다. 로컬처럼 루트가 없으면 기본 권한으로 만든다
+    private Path createDirectories(Path directory) throws IOException {
+        Path current = Files.createDirectories(root);
+        for (Path segment : root.relativize(directory)) {
+            current = current.resolve(segment);
+            createTraversable(current);
+        }
+        return directory;
+    }
+
+    private void createTraversable(Path directory) throws IOException {
+        try {
+            Files.createDirectory(directory);
+            Files.setPosixFilePermissions(directory, TRAVERSABLE_BY_ORIGIN);
+        } catch (FileAlreadyExistsException e) {
+            requireDirectory(directory, e);
+        }
+    }
+
+    // 이미 있는 디렉터리는 그대로 쓴다(동시 등록 중 다른 요청이 먼저 만든 경우 포함). 같은 이름의 파일이 막고 있으면 쓸 수 없다
+    private void requireDirectory(Path directory, FileAlreadyExistsException e) throws IOException {
+        if (!Files.isDirectory(directory)) {
+            throw e;
         }
     }
 
