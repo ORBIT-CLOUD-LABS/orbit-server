@@ -1,0 +1,88 @@
+name: CI result comment
+
+on:
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
+
+permissions: {}
+
+# Serialize comment updates, including delayed events and re-runs of the same CI.
+concurrency:
+  group: phase1-ci-result-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  comment:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      # No checkout, artifacts, caches, or PR code in this privileged job.
+      - name: Publish CI result
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const repo = context.repo;
+            const marker = '<!-- orbit:phase1-ci-result -->';
+            if (run.event !== 'pull_request' || run.status !== 'completed') return;
+
+            // A delayed completion event can arrive after a newer attempt has started.
+            const { data: currentRun } = await github.rest.actions.getWorkflowRun({
+              ...repo, run_id: run.id,
+            });
+            if (currentRun.run_attempt !== run.run_attempt || currentRun.status !== 'completed') return;
+
+            // The event's pull_requests array can be empty for fork PRs.
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              ...repo, state: 'open', base: 'phase1', per_page: 100,
+            });
+            for (const candidate of pulls) {
+              if (candidate.head.repo?.id !== run.head_repository?.id ||
+                  candidate.head.ref !== run.head_branch || candidate.head.sha !== run.head_sha) continue;
+
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                ...repo, issue_number: candidate.number, per_page: 100,
+              });
+              const previous = comments.find(comment =>
+                comment.user?.login === 'github-actions[bot]' &&
+                comment.user?.type === 'Bot' && comment.body?.startsWith(marker));
+              const version = previous?.body.match(/<!-- run:(\d+) attempt:(\d+) -->/);
+              if (version && (Number(version[1]) > run.id ||
+                  (Number(version[1]) === run.id && Number(version[2]) >= run.run_attempt))) continue;
+
+              // Recheck after reading comments in case the PR advanced or was retargeted.
+              const { data: pull } = await github.rest.pulls.get({
+                ...repo, pull_number: candidate.number,
+              });
+              if (pull.state !== 'open' || pull.base.ref !== 'phase1' ||
+                  pull.head.sha !== run.head_sha || pull.head.repo?.id !== run.head_repository?.id ||
+                  pull.head.ref !== run.head_branch) continue;
+
+              const statuses = {
+                success: '✅ 성공', failure: '❌ 실패', cancelled: '⚪ 취소',
+                timed_out: '❌ 시간 초과', action_required: '⚠️ 조치 필요',
+                neutral: '⚪ 중립', skipped: '⚪ 건너뜀', stale: '⚪ 만료',
+                startup_failure: '❌ 시작 실패',
+              };
+              const status = statuses[run.conclusion] ?? '⚠️ 알 수 없는 결과';
+              const runUrl = `${context.serverUrl}/${repo.owner}/${repo.repo}/actions/runs/${run.id}/attempts/${run.run_attempt}`;
+              const body = [
+                marker,
+                `<!-- run:${run.id} attempt:${run.run_attempt} -->`,
+                '### CI 검사 결과',
+                '',
+                `- 상태: ${status}`,
+                `- 검사한 PR 커밋 SHA: \`${run.head_sha}\``,
+                `- 실행 기록: [CI #${run.run_number} · 시도 ${run.run_attempt}](${runUrl})`,
+              ].join('\n');
+
+              if (previous) {
+                await github.rest.issues.updateComment({ ...repo, comment_id: previous.id, body });
+                continue;
+              }
+              await github.rest.issues.createComment({ ...repo, issue_number: pull.number, body });
+            }
