@@ -1,0 +1,59 @@
+name: GitOps Update Checks
+
+on:
+  pull_request:
+    branches: [phase1]
+    paths:
+      - '.github/workflows/docker-publish.yml'
+      - '.github/workflows/gitops-update-check.yml'
+      - '.github/scripts/update_gitops_image.py'
+      - '.github/tests/**'
+      - '.github/requirements-gitops.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  updater-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install updater dependency
+        run: python -m pip install -r .github/requirements-gitops.txt
+      - name: Test image update, retries and failure boundaries
+        run: python -m unittest discover -s .github/tests -v
+
+  app-access:
+    needs: updater-tests
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # This job never checks out or executes PR code and never writes GitOps.
+      - name: Create GitOps installation token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        id: gitops-token
+        with:
+          client-id: ${{ vars.GITOPS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.GITOPS_APP_PRIVATE_KEY }}
+          owner: ORBIT-CLOUD-LABS
+          repositories: orbit-gitops
+          permission-contents: write
+      - name: Verify App identity and GitOps access without a write
+        env:
+          GH_TOKEN: ${{ steps.gitops-token.outputs.token }}
+          APP_SLUG: ${{ steps.gitops-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          test "$APP_SLUG" = orbit-cloud-gitops-bot || { echo '::error::Unexpected App identity'; exit 1; }
+          repository=$(gh api installation/repositories --jq 'if .total_count == 1 then .repositories[0].full_name else "" end')
+          test "$repository" = ORBIT-CLOUD-LABS/orbit-gitops || { echo '::error::Unexpected installation repository scope'; exit 1; }
+          revision=$(gh api repos/ORBIT-CLOUD-LABS/orbit-gitops/git/ref/heads/main --jq '.object.sha')
+          [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
+          printf 'App token requested with contents:write: issued; scope: orbit-gitops only; main readable. No push performed.\n' >> "$GITHUB_STEP_SUMMARY"
