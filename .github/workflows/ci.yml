@@ -1,5 +1,7 @@
 name: CI
 
+# Verification-only branch for required CI checks (#69); do not merge.
+
 on:
   push:
     branches: [ develop, phase1 ]
@@ -15,11 +17,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Verify required CI blocks pending and failed checks
-        run: |
-          sleep 90
-          exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
 
