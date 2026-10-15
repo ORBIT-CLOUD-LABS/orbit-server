@@ -1,8 +1,10 @@
 package com.orbit.server.global.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,6 +45,7 @@ class SecurityConfigTest {
     private static final String SNAPSHOT_URL = "/api/v1/dashboard/vehicles";
     private static final String CHECK_IN_URL = "/api/v1/vehicles/vehicle-001/check-in";
     private static final String UNKNOWN_URL = "/api/v1/unknown";
+    private static final String PROMETHEUS_URL = "/actuator/prometheus";
 
     @Autowired
     private MockMvc mockMvc;
@@ -119,6 +122,25 @@ class SecurityConfigTest {
     @DisplayName("health 는 인증 없이 응답한다")
     void allowsHealthWithoutToken(String url) throws Exception {
         mockMvc.perform(get(url)).andExpect(status().isOk());
+    }
+
+    // 수집기는 토큰 없이 주기적으로 긁어 가므로 health 와 같은 수준으로 열고, 접근은 네트워크 경계에서 막는다
+    @Test
+    @DisplayName("Prometheus 메트릭은 인증 없이 Prometheus 형식으로 응답한다")
+    void allowsPrometheusWithoutToken() throws Exception {
+        mockMvc.perform(get(PROMETHEUS_URL))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("jvm_memory_used_bytes")));
+    }
+
+    // 메트릭만 열고, 설정값·환경 변수를 보여 주는 다른 actuator 엔드포인트는 계속 막혀 있어야 한다
+    @ParameterizedTest
+    @ValueSource(strings = {"/actuator", "/actuator/env", "/actuator/metrics"})
+    @DisplayName("Prometheus 외의 actuator 엔드포인트는 인증 없이 열지 않는다")
+    void rejectsOtherActuatorEndpointsWithoutToken(String url) throws Exception {
+        mockMvc.perform(get(url))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.AUTHENTICATION_REQUIRED.getCode()));
     }
 
     // 관리자 인증 대상이면 AUTHENTICATION_REQUIRED 가 나므로, 차량 토큰 인터셉터의 오류 코드로 필터를 통과했는지 확인한다
