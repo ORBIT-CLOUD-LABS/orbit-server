@@ -31,7 +31,7 @@ GitOps #7의 이슈에 명시된 `workloads/orbit-server/deployment.yaml`을 계
 - App 설치 토큰은 orbit-gitops만, contents:write로 발급하고 job 종료 시 기본 폐기를 유지한다. App Action은 확인한 v3 commit으로 고정한다.
 - GitOps checkout만 해당 토큰을 사용한다. 서버 checkout은 발행 source SHA를 읽고 인증을 영구 저장하지 않는다.
 - GitOps protect-main의 App 직접 push 예외를 사용한다. 일반 사람의 PR 승인 1건 규칙과 main-integrity의 예외 없는 삭제·force push 금지를 유지한다.
-- PR의 app-access job은 PR 코드를 checkout/실행하지 않는다. 토큰 발급·App slug·저장소가 보고하는 push 권한·main 읽기를 확인한다. 실제 main push·bypass 동작 검증과 구분한다. fork PR에서는 실행하지 않는다.
+- PR의 app-access job은 PR 코드를 checkout/실행하지 않는다. 토큰 발급·App slug·contents:write를 요청한 토큰 발급·설치 저장소 한 개의 범위·main 읽기를 확인한다. 실제 main push·bypass 동작 검증과 구분한다. fork PR에서는 실행하지 않는다.
 
 ## 중복·경합·실패
 

@@ -51,8 +51,9 @@ jobs:
           APP_SLUG: ${{ steps.gitops-token.outputs.app-slug }}
         run: |
           set -euo pipefail
-          test "$APP_SLUG" = orbit-cloud-gitops-bot
-          test "$(gh api repos/ORBIT-CLOUD-LABS/orbit-gitops --jq '.permissions.push')" = true
+          test "$APP_SLUG" = orbit-cloud-gitops-bot || { echo '::error::Unexpected App identity'; exit 1; }
+          repository=$(gh api installation/repositories --jq 'if .total_count == 1 then .repositories[0].full_name else "" end')
+          test "$repository" = ORBIT-CLOUD-LABS/orbit-gitops || { echo '::error::Unexpected installation repository scope'; exit 1; }
           revision=$(gh api repos/ORBIT-CLOUD-LABS/orbit-gitops/git/ref/heads/main --jq '.object.sha')
           [[ "$revision" =~ ^[0-9a-f]{40}$ ]]
-          printf 'App installation token: issued; GitOps contents write granted; main readable. No push performed.\n' >> "$GITHUB_STEP_SUMMARY"
+          printf 'App token requested with contents:write: issued; scope: orbit-gitops only; main readable. No push performed.\n' >> "$GITHUB_STEP_SUMMARY"
