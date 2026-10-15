@@ -1,0 +1,2 @@
+# Only the deployment updater and its tests use this dependency.
+PyYAML==6.0.3

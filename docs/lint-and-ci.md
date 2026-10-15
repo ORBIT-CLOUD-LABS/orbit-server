@@ -68,3 +68,7 @@ IDE 포맷터는 편의용이다. 최종 판정은 `spotlessCheck` 이다.
 5. `develop` 대상 PR 과 push CI 에서는 코멘트를 게시하지 않는지 확인한다.
 
 실제 토큰 권한·이벤트 전달·코멘트 게시는 위 절차로 확인한다.
+
+## Phase1 이미지 발행·GitOps 갱신 (#70)
+
+관련 PR의 updater 검사는 GitOps Update Checks에서 수행한다. 기존 Java CI·결과 코멘트와 구분한다. 실제 이미지 발행은 phase1 머지 후 Docker Publish에서 수행하며, 발행 성공 후에만 GitOps 서버 image를 갱신한다. 인증·변경 계약·실패·복구·검증 기준은 [gitops-image-update.md](gitops-image-update.md)를 따른다.

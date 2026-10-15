@@ -18,6 +18,7 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 | 설계·함수·예외·SOLID 판단 | [docs/clean-code.md](docs/clean-code.md) |
 | 원칙 적용 예시가 필요할 때 | [docs/clean-code-examples.md](docs/clean-code-examples.md) |
 | 포맷·네이밍·주석 | [docs/code-style.md](docs/code-style.md) |
+| Phase1 이미지 발행·GitOps 자동 갱신 | [docs/gitops-image-update.md](docs/gitops-image-update.md) |
 | Issue·Branch·커밋·PR·리뷰 (Org 공통 CONTRIBUTING) | [docs/git-conventions.md](docs/git-conventions.md) |
 
 문서끼리 충돌하면 `java-checklist.md` > `clean-code.md` 순으로 따른다.
