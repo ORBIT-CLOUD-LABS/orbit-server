@@ -16,12 +16,19 @@
 
    ```bash
    # 파일 목록
-   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs/requirements --jq '.[].name'
+   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs --jq '.[].name'
    # 파일 내용
-   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs/requirements/<파일명> -H 'Accept: application/vnd.github.raw'
+   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs/<파일명> -H 'Accept: application/vnd.github.raw'
    ```
 
 3. 둘 다 안 되면 추측해서 구현하지 말고 사용자에게 요구사항을 요청한다.
+
+## Phase1
+
+Phase1 작업은 orbit `docs/phase1.md` 를 먼저 읽는다. 배포 구성(원본 저장소, CDN, namespace, 포트 등)과 다른 저장소와 함께 쓰는 값이 이 문서에 있다.
+
+- `phase1.md` 와 다른 문서(`flow.md`, `api.md`, `infrastructure-plan.md`)가 다르면 `phase1.md` 를 따른다.
+- `phase1.md` 의 값이 **미확정**이면 그 값을 확정된 것처럼 코드에 고정하지 말고 사용자에게 확인한다.
 
 ## 규칙
 
