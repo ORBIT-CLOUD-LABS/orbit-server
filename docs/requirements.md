@@ -16,9 +16,9 @@
 
    ```bash
    # 파일 목록
-   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs/requirements --jq '.[].name'
+   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs --jq '.[].name'
    # 파일 내용
-   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs/requirements/<파일명> -H 'Accept: application/vnd.github.raw'
+   gh api repos/ORBIT-CLOUD-LABS/orbit/contents/docs/<파일명> -H 'Accept: application/vnd.github.raw'
    ```
 
 3. 둘 다 안 되면 추측해서 구현하지 말고 사용자에게 요구사항을 요청한다.
@@ -27,5 +27,4 @@
 
 - 기능을 구현하기 전에 관련 요구사항을 먼저 읽는다.
 - 요구사항 문서는 읽기만 한다. orbit 레포를 수정하지 않는다.
-- PR Summary 와 테스트 이름에 요구사항 ID 를 적는다. (예: `REQ-ORDER-003`)
 - 요구사항이 모호하거나 코드와 다르면 임의로 해석하지 말고 질문한다.
