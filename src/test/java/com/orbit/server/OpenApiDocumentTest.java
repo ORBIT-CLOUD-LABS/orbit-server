@@ -53,7 +53,10 @@ class OpenApiDocumentTest {
             value = {
                 "$.paths['/api/v1/admin/artifacts'].post | 관리자 · 업데이트 파일",
                 "$.paths['/api/v1/admin/campaigns'].post | 관리자 · 캠페인",
-                "$.paths['/api/v1/dashboard/vehicles'].get | 대시보드 · 차량 상태"
+                "$.paths['/api/v1/dashboard/vehicles'].get | 대시보드 · 차량 상태",
+                "$.paths['/api/v1/vehicles/register'].post | 차량 · 등록",
+                "$.paths['/api/v1/vehicles/{vehicleId}/check-in'].post | 차량 · 업데이트",
+                "$.paths['/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest'].get | 차량 · 업데이트"
             })
     @DisplayName("API 를 클래스 이름이 아닌 업무 단위 Tag 로 묶는다")
     void groupsOperationsByTag(String operation, String tag) throws Exception {
