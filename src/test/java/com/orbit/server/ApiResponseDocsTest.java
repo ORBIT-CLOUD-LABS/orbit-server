@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,18 @@ class ApiResponseDocsTest {
                 .andExpect(jsonPath(responses + "['200']").doesNotExist());
     }
 
+    @Test
+    @DisplayName("차량 등록은 처음 등록 201 과 재등록 200 을 모두 표시한다")
+    void showsCreatedAndOkForVehicleRegistration() throws Exception {
+        String responses = "$.paths['/api/v1/vehicles/register'].post.responses";
+        String schema = "#/components/schemas/VehicleRegistrationResponse";
+        mockMvc.perform(get(API_DOCS_URL))
+                .andExpect(jsonPath(responses + "['201'].content['application/json'].schema.$ref")
+                        .value(schema))
+                .andExpect(jsonPath(responses + "['200'].content['application/json'].schema.$ref")
+                        .value(schema));
+    }
+
     @ParameterizedTest
     @CsvSource(
             delimiter = '|',
@@ -49,7 +62,12 @@ class ApiResponseDocsTest {
                 "/api/v1/admin/artifacts | post | 502 | ORIGIN_UPLOAD_FAILED",
                 "/api/v1/admin/artifacts/{artifactId} | get | 404 | ARTIFACT_NOT_FOUND",
                 "/api/v1/admin/campaigns | post | 404 | ARTIFACT_NOT_FOUND",
-                "/api/v1/admin/campaigns | post | 409 | ACTIVE_CAMPAIGN_EXISTS"
+                "/api/v1/admin/campaigns | post | 409 | ACTIVE_CAMPAIGN_EXISTS",
+                "/api/v1/vehicles/{vehicleId}/check-in | post | 403 | VEHICLE_MISMATCH",
+                "/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest | get | 403 | VEHICLE_MISMATCH",
+                "/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest | get | 404 | CAMPAIGN_NOT_FOUND",
+                "/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest | get | 409 | NOT_UPDATE_TARGET",
+                "/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest | get | 410 | CAMPAIGN_INACTIVE"
             })
     @DisplayName("API 별 오류 코드를 HTTP 상태별 응답으로 표시한다")
     void showsApiErrorCodes(String path, String method, String status, String codes) throws Exception {

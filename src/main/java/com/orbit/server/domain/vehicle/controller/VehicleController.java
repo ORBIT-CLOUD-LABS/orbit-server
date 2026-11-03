@@ -4,6 +4,7 @@ import com.orbit.server.domain.vehicle.dto.request.RegisterVehicleRequest;
 import com.orbit.server.domain.vehicle.dto.response.VehicleRegistrationResponse;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationResult;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationService;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,6 +31,8 @@ public class VehicleController {
      * @return 처음 등록이면 201, 재등록이면 200 과 새 토큰
      */
     @PostMapping("/register")
+    @ApiResponse(responseCode = "201", description = "처음 등록", useReturnTypeSchema = true)
+    @ApiResponse(responseCode = "200", description = "재등록. 기존 토큰은 폐기된다", useReturnTypeSchema = true)
     public ResponseEntity<VehicleRegistrationResponse> register(@Valid @RequestBody RegisterVehicleRequest request) {
         VehicleRegistrationResult result = vehicleRegistrationService.register(request.toCommand());
         HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;

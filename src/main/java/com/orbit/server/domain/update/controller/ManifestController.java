@@ -1,7 +1,10 @@
 package com.orbit.server.domain.update.controller;
 
+import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.update.dto.response.ManifestResponse;
 import com.orbit.server.domain.update.service.ManifestService;
+import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.error.ApiErrorCodes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +29,12 @@ public class ManifestController {
      * @return 캠페인 ID, 목표 버전, 파일 크기·해시, 다운로드 URL
      */
     @GetMapping("/{vehicleId}/campaigns/{campaignId}/manifest")
+    @ApiErrorCodes(
+            type = VehicleErrorCode.class,
+            codes = {"VEHICLE_MISMATCH"})
+    @ApiErrorCodes(
+            type = CampaignErrorCode.class,
+            codes = {"CAMPAIGN_NOT_FOUND", "NOT_UPDATE_TARGET", "CAMPAIGN_INACTIVE"})
     public ManifestResponse getManifest(@PathVariable String vehicleId, @PathVariable Long campaignId) {
         return ManifestResponse.from(manifestService.issue(vehicleId, campaignId));
     }
