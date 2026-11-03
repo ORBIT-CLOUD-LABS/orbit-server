@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -43,6 +45,20 @@ class OpenApiDocumentTest {
         mockMvc.perform(get(API_DOCS_URL))
                 .andExpect(
                         jsonPath(ARTIFACT_DETAIL + ".parameters[0].description").value("Artifact ID"));
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+            delimiter = '|',
+            value = {
+                "$.paths['/api/v1/admin/artifacts'].post | 관리자 · 업데이트 파일",
+                "$.paths['/api/v1/admin/campaigns'].post | 관리자 · 캠페인",
+                "$.paths['/api/v1/dashboard/vehicles'].get | 대시보드 · 차량 상태"
+            })
+    @DisplayName("API 를 클래스 이름이 아닌 업무 단위 Tag 로 묶는다")
+    void groupsOperationsByTag(String operation, String tag) throws Exception {
+        mockMvc.perform(get(API_DOCS_URL))
+                .andExpect(jsonPath(operation + ".tags[0]").value(tag));
     }
 
     @Test
