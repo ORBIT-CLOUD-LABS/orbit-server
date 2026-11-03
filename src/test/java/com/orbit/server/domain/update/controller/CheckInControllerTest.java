@@ -296,7 +296,7 @@ class CheckInControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        return JsonPath.read(response, "$.vehicleToken");
+        return JsonPath.read(response, "$.data.vehicleToken");
     }
 
     // 실제 시계로 판정하므로 지금을 포함하는 기간으로 등록한다

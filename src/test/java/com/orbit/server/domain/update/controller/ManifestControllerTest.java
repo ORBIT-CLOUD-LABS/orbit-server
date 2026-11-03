@@ -189,7 +189,7 @@ class ManifestControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        return JsonPath.read(response, "$.vehicleToken");
+        return JsonPath.read(response, "$.data.vehicleToken");
     }
 
     private Long registerCampaign(String targetVersion, String hwVersion, CampaignPeriod period) {

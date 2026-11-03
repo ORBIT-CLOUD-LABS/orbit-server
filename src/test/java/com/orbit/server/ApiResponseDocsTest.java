@@ -44,7 +44,7 @@ class ApiResponseDocsTest {
     @DisplayName("차량 등록은 처음 등록 201 과 재등록 200 을 모두 표시한다")
     void showsCreatedAndOkForVehicleRegistration() throws Exception {
         String responses = "$.paths['/api/v1/vehicles/register'].post.responses";
-        String schema = "#/components/schemas/VehicleRegistrationResponse";
+        String schema = "#/components/schemas/ApiResponseVehicleRegistrationResponse";
         mockMvc.perform(get(API_DOCS_URL))
                 .andExpect(jsonPath(responses + "['201'].content['application/json'].schema.$ref")
                         .value(schema))

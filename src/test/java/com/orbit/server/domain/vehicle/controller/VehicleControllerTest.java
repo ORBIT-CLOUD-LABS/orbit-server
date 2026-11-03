@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.jayway.jsonpath.JsonPath;
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.vehicle.entity.VehicleToken;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.security.AuthErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -51,9 +52,11 @@ class VehicleControllerTest {
     void registersNewVehicle() throws Exception {
         register(ENROLLMENT_KEY, BODY)
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.vehicleId").value(VEHICLE_ID))
-                .andExpect(jsonPath("$.vehicleToken").isNotEmpty())
-                .andExpect(jsonPath("$.issuedAt").isNotEmpty());
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.CREATED.getCode()))
+                .andExpect(jsonPath("$.data.vehicleId").value(VEHICLE_ID))
+                .andExpect(jsonPath("$.data.vehicleToken").isNotEmpty())
+                .andExpect(jsonPath("$.data.issuedAt").isNotEmpty());
     }
 
     @Test
@@ -71,7 +74,9 @@ class VehicleControllerTest {
     void reregistersAndRevokesPreviousToken() throws Exception {
         String previous = tokenOf(register(ENROLLMENT_KEY, BODY));
 
-        String current = tokenOf(register(ENROLLMENT_KEY, BODY).andExpect(status().isOk()));
+        String current = tokenOf(register(ENROLLMENT_KEY, BODY)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode())));
 
         assertThat(current).isNotEqualTo(previous);
         assertThat(activeTokenHash()).isEqualTo(new VehicleToken(current).hash().value());
@@ -107,7 +112,7 @@ class VehicleControllerTest {
     }
 
     private String tokenOf(ResultActions result) throws Exception {
-        return JsonPath.read(result.andReturn().getResponse().getContentAsString(), "$.vehicleToken");
+        return JsonPath.read(result.andReturn().getResponse().getContentAsString(), "$.data.vehicleToken");
     }
 
     private String activeTokenHash() {
