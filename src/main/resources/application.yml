@@ -60,6 +60,15 @@ orbit:
     # 매니페스트 다운로드 URL 은 이 주소 뒤에 Origin 경로(/firmware/...)를 붙여 만든다
     base-url: ${CDN_BASE_URL}
 
+# API 문서(Swagger UI)는 인증 없이 열리므로 기본은 끄고, 필요한 프로필에서만 켠다
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+  # 응답 본문은 모두 JSON 이다. 지정하지 않으면 문서에 */* 로 나온다 (SSE 는 produces 로 따로 정한다)
+  default-produces-media-type: application/json
+
 management:
   endpoints:
     web:

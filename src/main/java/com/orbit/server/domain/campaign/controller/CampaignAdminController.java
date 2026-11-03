@@ -1,12 +1,18 @@
 package com.orbit.server.domain.campaign.controller;
 
+import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.campaign.dto.request.RegisterCampaignRequest;
 import com.orbit.server.domain.campaign.dto.response.CampaignListResponse;
 import com.orbit.server.domain.campaign.dto.response.CampaignRegistrationResponse;
 import com.orbit.server.domain.campaign.entity.CampaignStatus;
+import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignListService;
 import com.orbit.server.domain.campaign.service.CampaignRegistrationService;
+import com.orbit.server.global.config.ApiTags;
+import com.orbit.server.global.error.ApiErrorCodes;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 관리자용 캠페인 API. */
+@Tag(name = ApiTags.ADMIN_CAMPAIGN)
 @RestController
 @RequestMapping("/api/v1/admin/campaigns")
 @RequiredArgsConstructor
@@ -34,6 +41,13 @@ public class CampaignAdminController {
      * @return 201 과 등록한 캠페인 ID
      */
     @PostMapping
+    @ApiResponse(responseCode = "201", description = "등록 성공", useReturnTypeSchema = true)
+    @ApiErrorCodes(
+            type = CampaignErrorCode.class,
+            codes = {"ACTIVE_CAMPAIGN_EXISTS"})
+    @ApiErrorCodes(
+            type = ArtifactErrorCode.class,
+            codes = {"ARTIFACT_NOT_FOUND"})
     public ResponseEntity<CampaignRegistrationResponse> register(@Valid @RequestBody RegisterCampaignRequest request) {
         Long campaignId = campaignRegistrationService.register(request.toCommand());
         return ResponseEntity.status(HttpStatus.CREATED).body(new CampaignRegistrationResponse(campaignId));

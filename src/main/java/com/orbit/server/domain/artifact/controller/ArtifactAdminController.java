@@ -4,9 +4,15 @@ import com.orbit.server.domain.artifact.dto.request.RegisterArtifactRequest;
 import com.orbit.server.domain.artifact.dto.response.ArtifactDetailResponse;
 import com.orbit.server.domain.artifact.dto.response.ArtifactListResponse;
 import com.orbit.server.domain.artifact.dto.response.ArtifactRegistrationResponse;
+import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
 import com.orbit.server.domain.artifact.service.ArtifactRegistrationResult;
 import com.orbit.server.domain.artifact.service.ArtifactRegistrationService;
+import com.orbit.server.global.config.ApiTags;
+import com.orbit.server.global.error.ApiErrorCodes;
+import com.orbit.server.global.error.CommonErrorCode;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 관리자용 Origin 파일 API. */
+@Tag(name = ApiTags.ADMIN_ARTIFACT)
 @RestController
 @RequestMapping("/api/v1/admin/artifacts")
 @RequiredArgsConstructor
@@ -36,6 +43,13 @@ public class ArtifactAdminController {
      * @return 201 과 등록한 Artifact 의 ID·크기·해시·경로
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiResponse(responseCode = "201", description = "등록 성공", useReturnTypeSchema = true)
+    @ApiErrorCodes(
+            type = ArtifactErrorCode.class,
+            codes = {"ARTIFACT_VERSION_EXISTS", "HASH_MISMATCH", "ORIGIN_UPLOAD_FAILED"})
+    @ApiErrorCodes(
+            type = CommonErrorCode.class,
+            codes = {"CONTENT_TOO_LARGE"})
     public ResponseEntity<ArtifactRegistrationResponse> register(
             @Valid @ModelAttribute RegisterArtifactRequest request) {
         ArtifactRegistrationResult result = artifactRegistrationService.register(request.toCommand());
@@ -60,6 +74,9 @@ public class ArtifactAdminController {
      * @return 200 과 Origin 파일 정보. 없으면 404 ARTIFACT_NOT_FOUND
      */
     @GetMapping("/{artifactId}")
+    @ApiErrorCodes(
+            type = ArtifactErrorCode.class,
+            codes = {"ARTIFACT_NOT_FOUND"})
     public ArtifactDetailResponse getById(@PathVariable Long artifactId) {
         return ArtifactDetailResponse.from(artifactQueryService.getById(artifactId));
     }

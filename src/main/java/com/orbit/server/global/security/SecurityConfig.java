@@ -29,6 +29,7 @@ class SecurityConfig {
     static final String VEHICLE_PATHS = "/api/v1/vehicles/**";
     static final String ADMIN_PATHS = "/api/v1/admin/**";
     static final String DASHBOARD_PATHS = "/api/v1/dashboard/**";
+    static final String[] API_DOCS_PATHS = {"/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"};
 
     @Bean
     SecurityFilterChain securityFilterChain(
@@ -52,6 +53,9 @@ class SecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC)
                         .permitAll()
                         .requestMatchers(HEALTH_PATHS)
+                        .permitAll()
+                        // API 문서 노출 여부는 springdoc 설정으로 정한다. 꺼져 있으면 경로가 없어 404 가 된다
+                        .requestMatchers(API_DOCS_PATHS)
                         .permitAll()
                         // 차량 API 는 등록 키·차량 토큰 인터셉터가 인증하므로 관리자 인증 대상에서 뺀다
                         .requestMatchers(VEHICLE_PATHS)

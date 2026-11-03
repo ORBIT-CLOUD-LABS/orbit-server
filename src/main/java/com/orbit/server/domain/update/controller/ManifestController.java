@@ -1,7 +1,12 @@
 package com.orbit.server.domain.update.controller;
 
+import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.update.dto.response.ManifestResponse;
 import com.orbit.server.domain.update.service.ManifestService;
+import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.config.ApiTags;
+import com.orbit.server.global.error.ApiErrorCodes;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 체크인에서 업데이트 대상으로 판정받은 차량이 호출하는 매니페스트 API. */
+@Tag(name = ApiTags.VEHICLE_UPDATE)
 @RestController
 @RequestMapping("/api/v1/vehicles")
 @RequiredArgsConstructor
@@ -26,6 +32,12 @@ public class ManifestController {
      * @return 캠페인 ID, 목표 버전, 파일 크기·해시, 다운로드 URL
      */
     @GetMapping("/{vehicleId}/campaigns/{campaignId}/manifest")
+    @ApiErrorCodes(
+            type = VehicleErrorCode.class,
+            codes = {"VEHICLE_MISMATCH"})
+    @ApiErrorCodes(
+            type = CampaignErrorCode.class,
+            codes = {"CAMPAIGN_NOT_FOUND", "NOT_UPDATE_TARGET", "CAMPAIGN_INACTIVE"})
     public ManifestResponse getManifest(@PathVariable String vehicleId, @PathVariable Long campaignId) {
         return ManifestResponse.from(manifestService.issue(vehicleId, campaignId));
     }

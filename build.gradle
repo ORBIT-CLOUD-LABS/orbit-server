@@ -32,6 +32,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation platform('software.amazon.awssdk:bom:2.55.14')
 	implementation 'software.amazon.awssdk:s3'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0'
+	// 컨트롤러 Javadoc 을 API 문서 설명으로 쓴다. 설명을 어노테이션에 한 번 더 적지 않기 위해서다
+	implementation 'com.github.therapi:therapi-runtime-javadoc:0.16.0'
+	annotationProcessor 'com.github.therapi:therapi-runtime-javadoc-scribe:0.16.0'
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
