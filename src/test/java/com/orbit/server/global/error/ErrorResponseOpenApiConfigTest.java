@@ -29,10 +29,13 @@ class ErrorResponseOpenApiConfigTest {
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("오류 응답 스키마를 code, message 문자열로 등록한다")
+    @DisplayName("오류 응답 스키마를 공통 응답 형식(isSuccess, code, message, data, error)으로 등록한다")
     void registersErrorResponseSchema() throws Exception {
         String schema = "$.components.schemas." + ErrorApiResponses.SCHEMA_NAME;
         mockMvc.perform(get(API_DOCS_URL))
+                .andExpect(jsonPath(schema + ".properties.isSuccess.type").value("boolean"))
+                .andExpect(jsonPath(schema + ".properties.data").exists())
+                .andExpect(jsonPath(schema + ".properties.error").exists())
                 .andExpect(jsonPath(schema + ".properties.code.type").value("string"))
                 .andExpect(jsonPath(schema + ".properties.message.type").value("string"));
     }
@@ -51,6 +54,7 @@ class ErrorResponseOpenApiConfigTest {
                 "$.paths['%s'].%s.responses['500'].content['application/json'].examples.INTERNAL_SERVER_ERROR.value"
                         .formatted(path, method);
         mockMvc.perform(get(API_DOCS_URL))
+                .andExpect(jsonPath(example + ".isSuccess").value(false))
                 .andExpect(jsonPath(example + ".code").value(CommonErrorCode.INTERNAL_SERVER_ERROR.getCode()))
                 .andExpect(jsonPath(example + ".message").value(CommonErrorCode.INTERNAL_SERVER_ERROR.getMessage()));
     }

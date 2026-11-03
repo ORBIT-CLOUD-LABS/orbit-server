@@ -18,7 +18,7 @@ import java.util.Optional;
  */
 public final class ErrorApiResponses {
 
-    /** API 문서에 등록하는 {@link ErrorResponse} 스키마 이름. */
+    /** API 문서에 등록하는 오류 응답({@link com.orbit.server.global.common.ApiResponse#failure}) 스키마 이름. */
     public static final String SCHEMA_NAME = "ErrorResponse";
 
     private static final String SCHEMA_REF = "#/components/schemas/" + SCHEMA_NAME;
@@ -90,7 +90,10 @@ public final class ErrorApiResponses {
         return String.join(CODE_SEPARATOR, mediaType.getExamples().keySet());
     }
 
+    // io.swagger 의 ApiResponse(문서 모델)와 이름이 같아 공통 응답 타입은 전체 이름으로 쓴다
     private static Example example(ErrorCode errorCode) {
-        return new Example().summary(errorCode.getMessage()).value(ErrorResponse.of(errorCode));
+        return new Example()
+                .summary(errorCode.getMessage())
+                .value(com.orbit.server.global.common.ApiResponse.failure(errorCode));
     }
 }
