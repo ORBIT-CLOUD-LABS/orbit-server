@@ -66,6 +66,8 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+  # 응답 본문은 모두 JSON 이다. 지정하지 않으면 문서에 */* 로 나온다 (SSE 는 produces 로 따로 정한다)
+  default-produces-media-type: application/json
 
 management:
   endpoints:
