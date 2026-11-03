@@ -3,6 +3,7 @@ package com.orbit.server.domain.monitoring.controller;
 import com.orbit.server.domain.monitoring.dto.response.VehicleStatusSnapshotResponse;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
 import com.orbit.server.domain.monitoring.service.VehicleStatusStreamService;
+import com.orbit.server.global.config.ApiTags;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Instant;
 import java.util.Optional;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /** 대시보드용 차량 상태 API. 관리자 토큰 인증은 SecurityConfig 가 경로 단위로 적용한다. */
-@Tag(name = "대시보드 · 차량 상태", description = "차량 상태 스냅샷 조회와 변경분 SSE 스트림")
+@Tag(name = ApiTags.DASHBOARD_VEHICLE)
 @RestController
 @RequestMapping("/api/v1/dashboard/vehicles")
 @RequiredArgsConstructor

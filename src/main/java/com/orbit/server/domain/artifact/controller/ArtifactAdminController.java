@@ -8,6 +8,7 @@ import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
 import com.orbit.server.domain.artifact.service.ArtifactRegistrationResult;
 import com.orbit.server.domain.artifact.service.ArtifactRegistrationService;
+import com.orbit.server.global.config.ApiTags;
 import com.orbit.server.global.error.ApiErrorCodes;
 import com.orbit.server.global.error.CommonErrorCode;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 관리자용 Origin 파일 API. */
-@Tag(name = "관리자 · 업데이트 파일", description = "Origin 에 올린 업데이트 파일(Artifact) 등록·조회")
+@Tag(name = ApiTags.ADMIN_ARTIFACT)
 @RestController
 @RequestMapping("/api/v1/admin/artifacts")
 @RequiredArgsConstructor

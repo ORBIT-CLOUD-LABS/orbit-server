@@ -40,10 +40,10 @@ class ApiTagsOpenApiConfigTest {
     }
 
     @Test
-    @DisplayName("Tag 설명은 정의한 값으로 표시한다")
+    @DisplayName("컨트롤러에 설명을 적지 않아도 Tag 설명은 정의한 값으로 표시한다")
     void showsDefinedDescription() throws Exception {
         mockMvc.perform(get(API_DOCS_URL))
-                .andExpect(jsonPath("$.tags[?(@.name == '%s')].description", ApiTags.VEHICLE_UPDATE)
-                        .value(contains("체크인으로 업데이트 대상을 확인하고 매니페스트로 다운로드 정보를 받는다")));
+                .andExpect(jsonPath("$.tags[?(@.name == '%s')].description", ApiTags.ADMIN_ARTIFACT)
+                        .value(contains("Origin 에 올린 업데이트 파일(Artifact) 등록·조회")));
     }
 }

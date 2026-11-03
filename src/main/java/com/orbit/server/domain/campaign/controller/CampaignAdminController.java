@@ -9,6 +9,7 @@ import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignListService;
 import com.orbit.server.domain.campaign.service.CampaignRegistrationService;
+import com.orbit.server.global.config.ApiTags;
 import com.orbit.server.global.error.ApiErrorCodes;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 관리자용 캠페인 API. */
-@Tag(name = "관리자 · 캠페인", description = "업데이트 캠페인 등록·조회")
+@Tag(name = ApiTags.ADMIN_CAMPAIGN)
 @RestController
 @RequestMapping("/api/v1/admin/campaigns")
 @RequiredArgsConstructor
