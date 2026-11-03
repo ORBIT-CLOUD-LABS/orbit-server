@@ -15,6 +15,7 @@ import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
 import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
 import com.orbit.server.domain.monitoring.service.VehicleStatusStreamService;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
 import java.time.Instant;
@@ -68,16 +69,18 @@ class DashboardVehicleControllerTest {
 
         mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.asOf").value(AS_OF))
-                .andExpect(jsonPath("$.vehicles.length()").value(1))
-                .andExpect(jsonPath("$.vehicles[0].vehicleId").value("vehicle-001"))
-                .andExpect(jsonPath("$.vehicles[0].model").value("model-a"))
-                .andExpect(jsonPath("$.vehicles[0].currentVersion").value("1.0.0"))
-                .andExpect(jsonPath("$.vehicles[0].lastSeenAt").value(LAST_SEEN_AT))
-                .andExpect(jsonPath("$.vehicles[0].updatedAt").value(UPDATED_AT))
-                .andExpect(jsonPath("$.vehicles[0].campaignId").value(1))
-                .andExpect(jsonPath("$.vehicles[0].lastResult").value("FAILED"))
-                .andExpect(jsonPath("$.vehicles[0].failureReason").value("HASH_MISMATCH"));
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.asOf").value(AS_OF))
+                .andExpect(jsonPath("$.data.vehicles.length()").value(1))
+                .andExpect(jsonPath("$.data.vehicles[0].vehicleId").value("vehicle-001"))
+                .andExpect(jsonPath("$.data.vehicles[0].model").value("model-a"))
+                .andExpect(jsonPath("$.data.vehicles[0].currentVersion").value("1.0.0"))
+                .andExpect(jsonPath("$.data.vehicles[0].lastSeenAt").value(LAST_SEEN_AT))
+                .andExpect(jsonPath("$.data.vehicles[0].updatedAt").value(UPDATED_AT))
+                .andExpect(jsonPath("$.data.vehicles[0].campaignId").value(1))
+                .andExpect(jsonPath("$.data.vehicles[0].lastResult").value("FAILED"))
+                .andExpect(jsonPath("$.data.vehicles[0].failureReason").value("HASH_MISMATCH"));
     }
 
     @Test
@@ -90,10 +93,10 @@ class DashboardVehicleControllerTest {
 
         mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.vehicles[0].lastSeenAt").value(nullValue()))
-                .andExpect(jsonPath("$.vehicles[0].campaignId").value(nullValue()))
-                .andExpect(jsonPath("$.vehicles[0].lastResult").value(nullValue()))
-                .andExpect(jsonPath("$.vehicles[0].failureReason").value(nullValue()));
+                .andExpect(jsonPath("$.data.vehicles[0].lastSeenAt").value(nullValue()))
+                .andExpect(jsonPath("$.data.vehicles[0].campaignId").value(nullValue()))
+                .andExpect(jsonPath("$.data.vehicles[0].lastResult").value(nullValue()))
+                .andExpect(jsonPath("$.data.vehicles[0].failureReason").value(nullValue()));
     }
 
     @Test
@@ -104,8 +107,8 @@ class DashboardVehicleControllerTest {
 
         mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.asOf").value(AS_OF))
-                .andExpect(jsonPath("$.vehicles").isEmpty());
+                .andExpect(jsonPath("$.data.asOf").value(AS_OF))
+                .andExpect(jsonPath("$.data.vehicles").isEmpty());
     }
 
     @Test
