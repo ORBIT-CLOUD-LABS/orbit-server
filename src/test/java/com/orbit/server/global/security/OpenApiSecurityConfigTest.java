@@ -70,4 +70,21 @@ class OpenApiSecurityConfigTest {
                 .andExpect(jsonPath("$.paths['%s'].%s.security[0].%s", path, method, scheme)
                         .exists());
     }
+
+    @ParameterizedTest
+    @CsvSource({
+        "/api/v1/admin/artifacts, post, AUTHENTICATION_REQUIRED",
+        "/api/v1/dashboard/vehicles, get, AUTHENTICATION_REQUIRED",
+        "/api/v1/vehicles/register, post, INVALID_ENROLLMENT_KEY",
+        "/api/v1/vehicles/{vehicleId}/check-in, post, UNAUTHORIZED",
+        "/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest, get, UNAUTHORIZED"
+    })
+    @DisplayName("401 응답에 인증 방식별 실제 실패 코드를 표시한다")
+    void showsAuthErrorByScheme(String path, String method, String code) throws Exception {
+        String response = "$.paths['%s'].%s.responses['401']".formatted(path, method);
+        mockMvc.perform(get(API_DOCS_URL))
+                .andExpect(jsonPath(response + ".description").value(code))
+                .andExpect(jsonPath(response + ".content['application/json'].examples.%s.value.code", code)
+                        .value(code));
+    }
 }
