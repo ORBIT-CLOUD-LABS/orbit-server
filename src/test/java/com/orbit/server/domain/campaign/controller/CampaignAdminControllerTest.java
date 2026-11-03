@@ -24,6 +24,7 @@ import com.orbit.server.domain.campaign.service.CampaignListService;
 import com.orbit.server.domain.campaign.service.CampaignRegistrationService;
 import com.orbit.server.domain.campaign.service.CampaignSummary;
 import com.orbit.server.domain.campaign.service.RegisterCampaignCommand;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
@@ -83,15 +84,17 @@ class CampaignAdminControllerTest {
 
         mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.campaigns.length()").value(1))
-                .andExpect(jsonPath("$.campaigns[0].campaignId").value(1))
-                .andExpect(jsonPath("$.campaigns[0].name").value("campaign"))
-                .andExpect(jsonPath("$.campaigns[0].model").value("model-a"))
-                .andExpect(jsonPath("$.campaigns[0].targetVersion").value("1.0.1"))
-                .andExpect(jsonPath("$.campaigns[0].status").value("ACTIVE"))
-                .andExpect(jsonPath("$.campaigns[0].startAt").value(START_AT))
-                .andExpect(jsonPath("$.campaigns[0].endAt").value(END_AT))
-                .andExpect(jsonPath("$.campaigns[0].createdAt").value(CREATED_AT));
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.campaigns.length()").value(1))
+                .andExpect(jsonPath("$.data.campaigns[0].campaignId").value(1))
+                .andExpect(jsonPath("$.data.campaigns[0].name").value("campaign"))
+                .andExpect(jsonPath("$.data.campaigns[0].model").value("model-a"))
+                .andExpect(jsonPath("$.data.campaigns[0].targetVersion").value("1.0.1"))
+                .andExpect(jsonPath("$.data.campaigns[0].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.campaigns[0].startAt").value(START_AT))
+                .andExpect(jsonPath("$.data.campaigns[0].endAt").value(END_AT))
+                .andExpect(jsonPath("$.data.campaigns[0].createdAt").value(CREATED_AT));
     }
 
     @ParameterizedTest
@@ -111,7 +114,7 @@ class CampaignAdminControllerTest {
 
         mockMvc.perform(request)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.campaigns").isEmpty());
+                .andExpect(jsonPath("$.data.campaigns").isEmpty());
 
         verify(campaignListService).findAll(new CampaignFilter(status, model));
     }
@@ -133,7 +136,9 @@ class CampaignAdminControllerTest {
 
         perform(body(START_AT, END_AT))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.campaignId").value(1));
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.CREATED.getCode()))
+                .andExpect(jsonPath("$.data.campaignId").value(1));
 
         ArgumentCaptor<RegisterCampaignCommand> captor = ArgumentCaptor.forClass(RegisterCampaignCommand.class);
         verify(campaignRegistrationService).register(captor.capture());

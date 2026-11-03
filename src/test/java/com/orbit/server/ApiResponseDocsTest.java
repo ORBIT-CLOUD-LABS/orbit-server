@@ -28,8 +28,8 @@ class ApiResponseDocsTest {
 
     @ParameterizedTest
     @CsvSource({
-        "/api/v1/admin/artifacts, post, ArtifactRegistrationResponse",
-        "/api/v1/admin/campaigns, post, CampaignRegistrationResponse"
+        "/api/v1/admin/artifacts, post, ApiResponseArtifactRegistrationResponse",
+        "/api/v1/admin/campaigns, post, ApiResponseCampaignRegistrationResponse"
     })
     @DisplayName("등록 API 는 성공 응답을 200 이 아닌 201 로 표시한다")
     void showsCreatedForRegistration(String path, String method, String schema) throws Exception {
