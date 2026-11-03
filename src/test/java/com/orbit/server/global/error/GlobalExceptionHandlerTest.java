@@ -33,6 +33,17 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("오류는 공통 응답 형식으로 응답한다: isSuccess 는 false, data·error 는 null")
+    void respondsInCommonFormat() throws Exception {
+        mockMvc.perform(get("/invalid-value"))
+                .andExpect(jsonPath("$.isSuccess").value(false))
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()))
+                .andExpect(jsonPath("$.message").value(CommonErrorCode.INVALID_INPUT.getMessage()))
+                .andExpect(jsonPath("$.data").isEmpty())
+                .andExpect(jsonPath("$.error").isEmpty());
+    }
+
+    @Test
     @DisplayName("IllegalArgumentException 은 서버 오류가 가려지지 않도록 500 으로 응답한다")
     void respondsInternalServerErrorForIllegalArgument() throws Exception {
         mockMvc.perform(get("/illegal-argument"))

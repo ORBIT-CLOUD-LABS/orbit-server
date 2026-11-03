@@ -30,7 +30,7 @@ class ErrorApiResponsesTest {
                         .getExamples()
                         .get("INVALID_INPUT")
                         .getValue())
-                .isEqualTo(ErrorResponse.of(CommonErrorCode.INVALID_INPUT));
+                .isEqualTo(com.orbit.server.global.common.ApiResponse.failure(CommonErrorCode.INVALID_INPUT));
     }
 
     @Test

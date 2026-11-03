@@ -4,12 +4,12 @@ import com.orbit.server.domain.vehicle.dto.request.RegisterVehicleRequest;
 import com.orbit.server.domain.vehicle.dto.response.VehicleRegistrationResponse;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationResult;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationService;
+import com.orbit.server.global.common.ApiResponse;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.config.ApiTags;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,11 +34,20 @@ public class VehicleController {
      * @return 처음 등록이면 201, 재등록이면 200 과 새 토큰
      */
     @PostMapping("/register")
-    @ApiResponse(responseCode = "201", description = "처음 등록", useReturnTypeSchema = true)
-    @ApiResponse(responseCode = "200", description = "재등록. 기존 토큰은 폐기된다", useReturnTypeSchema = true)
-    public ResponseEntity<VehicleRegistrationResponse> register(@Valid @RequestBody RegisterVehicleRequest request) {
+    // 공통 응답 타입 ApiResponse 와 이름이 같아 Swagger 어노테이션은 전체 이름으로 쓴다
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "201",
+            description = "처음 등록",
+            useReturnTypeSchema = true)
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "재등록. 기존 토큰은 폐기된다",
+            useReturnTypeSchema = true)
+    public ResponseEntity<ApiResponse<VehicleRegistrationResponse>> register(
+            @Valid @RequestBody RegisterVehicleRequest request) {
         VehicleRegistrationResult result = vehicleRegistrationService.register(request.toCommand());
-        HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
-        return ResponseEntity.status(status).body(VehicleRegistrationResponse.from(result));
+        SuccessCode successCode = result.created() ? SuccessCode.CREATED : SuccessCode.OK;
+        return ResponseEntity.status(successCode.getStatus())
+                .body(ApiResponse.success(successCode, VehicleRegistrationResponse.from(result)));
     }
 }

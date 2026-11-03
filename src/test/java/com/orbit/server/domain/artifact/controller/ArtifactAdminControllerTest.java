@@ -19,6 +19,7 @@ import com.orbit.server.domain.artifact.service.ArtifactRegistrationResult;
 import com.orbit.server.domain.artifact.service.ArtifactRegistrationService;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
 import com.orbit.server.domain.artifact.service.RegisterArtifactCommand;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
@@ -65,14 +66,14 @@ class ArtifactAdminControllerTest {
 
         mockMvc.perform(get(URL).param("model", "model-a"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.artifacts.length()").value(1))
-                .andExpect(jsonPath("$.artifacts[0].artifactId").value(1))
-                .andExpect(jsonPath("$.artifacts[0].model").value("model-a"))
-                .andExpect(jsonPath("$.artifacts[0].version").value("1.0.0"))
-                .andExpect(jsonPath("$.artifacts[0].fileSize").value(1))
-                .andExpect(jsonPath("$.artifacts[0].sha256").value(SHA256))
-                .andExpect(jsonPath("$.artifacts[0].path").value(PATH))
-                .andExpect(jsonPath("$.artifacts[0].createdAt").value(CREATED_AT));
+                .andExpect(jsonPath("$.data.artifacts.length()").value(1))
+                .andExpect(jsonPath("$.data.artifacts[0].artifactId").value(1))
+                .andExpect(jsonPath("$.data.artifacts[0].model").value("model-a"))
+                .andExpect(jsonPath("$.data.artifacts[0].version").value("1.0.0"))
+                .andExpect(jsonPath("$.data.artifacts[0].fileSize").value(1))
+                .andExpect(jsonPath("$.data.artifacts[0].sha256").value(SHA256))
+                .andExpect(jsonPath("$.data.artifacts[0].path").value(PATH))
+                .andExpect(jsonPath("$.data.artifacts[0].createdAt").value(CREATED_AT));
     }
 
     @Test
@@ -82,7 +83,7 @@ class ArtifactAdminControllerTest {
 
         mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.artifacts").isEmpty());
+                .andExpect(jsonPath("$.data.artifacts").isEmpty());
         verify(artifactQueryService).findAll(null);
     }
 
@@ -95,13 +96,15 @@ class ArtifactAdminControllerTest {
 
         mockMvc.perform(get(URL + "/{artifactId}", 1L))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.artifactId").value(1))
-                .andExpect(jsonPath("$.model").value("model-a"))
-                .andExpect(jsonPath("$.version").value("1.0.0"))
-                .andExpect(jsonPath("$.fileSize").value(1))
-                .andExpect(jsonPath("$.sha256").value(SHA256))
-                .andExpect(jsonPath("$.path").value(PATH))
-                .andExpect(jsonPath("$.createdAt").value(CREATED_AT));
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.artifactId").value(1))
+                .andExpect(jsonPath("$.data.model").value("model-a"))
+                .andExpect(jsonPath("$.data.version").value("1.0.0"))
+                .andExpect(jsonPath("$.data.fileSize").value(1))
+                .andExpect(jsonPath("$.data.sha256").value(SHA256))
+                .andExpect(jsonPath("$.data.path").value(PATH))
+                .andExpect(jsonPath("$.data.createdAt").value(CREATED_AT));
     }
 
     @Test
@@ -131,10 +134,12 @@ class ArtifactAdminControllerTest {
 
         mockMvc.perform(validRequest().param("sha256", SHA256))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.artifactId").value(1))
-                .andExpect(jsonPath("$.fileSize").value(1))
-                .andExpect(jsonPath("$.sha256").value(SHA256))
-                .andExpect(jsonPath("$.path").value(PATH));
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.CREATED.getCode()))
+                .andExpect(jsonPath("$.data.artifactId").value(1))
+                .andExpect(jsonPath("$.data.fileSize").value(1))
+                .andExpect(jsonPath("$.data.sha256").value(SHA256))
+                .andExpect(jsonPath("$.data.path").value(PATH));
 
         ArgumentCaptor<RegisterArtifactCommand> command = ArgumentCaptor.forClass(RegisterArtifactCommand.class);
         verify(artifactRegistrationService).register(command.capture());

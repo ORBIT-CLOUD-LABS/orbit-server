@@ -1,5 +1,9 @@
 package com.orbit.server;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
@@ -22,14 +26,16 @@ import org.springframework.test.web.servlet.MockMvc;
 class ApiResponseDocsTest {
 
     private static final String API_DOCS_URL = "/v3/api-docs";
+    // springdoc 은 ApiResponse<CheckInResponse> 를 ApiResponseCheckInResponse 스키마로 등록한다
+    private static final String API_RESPONSE_SCHEMA_PREFIX = "#/components/schemas/ApiResponse";
 
     @Autowired
     private MockMvc mockMvc;
 
     @ParameterizedTest
     @CsvSource({
-        "/api/v1/admin/artifacts, post, ArtifactRegistrationResponse",
-        "/api/v1/admin/campaigns, post, CampaignRegistrationResponse"
+        "/api/v1/admin/artifacts, post, ApiResponseArtifactRegistrationResponse",
+        "/api/v1/admin/campaigns, post, ApiResponseCampaignRegistrationResponse"
     })
     @DisplayName("등록 API 는 성공 응답을 200 이 아닌 201 로 표시한다")
     void showsCreatedForRegistration(String path, String method, String schema) throws Exception {
@@ -44,7 +50,7 @@ class ApiResponseDocsTest {
     @DisplayName("차량 등록은 처음 등록 201 과 재등록 200 을 모두 표시한다")
     void showsCreatedAndOkForVehicleRegistration() throws Exception {
         String responses = "$.paths['/api/v1/vehicles/register'].post.responses";
-        String schema = "#/components/schemas/VehicleRegistrationResponse";
+        String schema = "#/components/schemas/ApiResponseVehicleRegistrationResponse";
         mockMvc.perform(get(API_DOCS_URL))
                 .andExpect(jsonPath(responses + "['201'].content['application/json'].schema.$ref")
                         .value(schema))
@@ -74,5 +80,17 @@ class ApiResponseDocsTest {
         mockMvc.perform(get(API_DOCS_URL))
                 .andExpect(jsonPath("$.paths['%s'].%s.responses['%s'].description", path, method, status)
                         .value(codes));
+    }
+
+    // 성공 응답을 ApiResponse 로 감싸는 일은 컨트롤러마다 직접 하므로, 빠뜨린 API 가 있으면 여기서 실패시킨다.
+    // SSE 처럼 JSON 이 아닌 응답은 application/json 내용이 없어 검사 대상에서 빠진다
+    @Test
+    @DisplayName("JSON 성공 응답(200, 201)은 모두 공통 응답 형식 ApiResponse 스키마를 쓴다")
+    void wrapsEveryJsonSuccessResponse() throws Exception {
+        String schemas = "$.paths.*.*.responses['200','201'].content['application/json'].schema";
+        mockMvc.perform(get(API_DOCS_URL))
+                .andExpect(jsonPath(schemas).isNotEmpty())
+                .andExpect(jsonPath(schemas)
+                        .value(everyItem(hasEntry(equalTo("$ref"), startsWith(API_RESPONSE_SCHEMA_PREFIX)))));
     }
 }

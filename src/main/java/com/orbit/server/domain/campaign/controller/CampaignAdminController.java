@@ -9,13 +9,13 @@ import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignListService;
 import com.orbit.server.domain.campaign.service.CampaignRegistrationService;
+import com.orbit.server.global.common.ApiResponse;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.config.ApiTags;
 import com.orbit.server.global.error.ApiErrorCodes;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,16 +41,22 @@ public class CampaignAdminController {
      * @return 201 과 등록한 캠페인 ID
      */
     @PostMapping
-    @ApiResponse(responseCode = "201", description = "등록 성공", useReturnTypeSchema = true)
+    // 공통 응답 타입 ApiResponse 와 이름이 같아 Swagger 어노테이션은 전체 이름으로 쓴다
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "201",
+            description = "등록 성공",
+            useReturnTypeSchema = true)
     @ApiErrorCodes(
             type = CampaignErrorCode.class,
             codes = {"ACTIVE_CAMPAIGN_EXISTS"})
     @ApiErrorCodes(
             type = ArtifactErrorCode.class,
             codes = {"ARTIFACT_NOT_FOUND"})
-    public ResponseEntity<CampaignRegistrationResponse> register(@Valid @RequestBody RegisterCampaignRequest request) {
+    public ResponseEntity<ApiResponse<CampaignRegistrationResponse>> register(
+            @Valid @RequestBody RegisterCampaignRequest request) {
         Long campaignId = campaignRegistrationService.register(request.toCommand());
-        return ResponseEntity.status(HttpStatus.CREATED).body(new CampaignRegistrationResponse(campaignId));
+        return ResponseEntity.status(SuccessCode.CREATED.getStatus())
+                .body(ApiResponse.success(SuccessCode.CREATED, new CampaignRegistrationResponse(campaignId)));
     }
 
     /**
@@ -61,8 +67,9 @@ public class CampaignAdminController {
      * @return 200 과 최근 등록한 순서의 캠페인 목록
      */
     @GetMapping
-    public CampaignListResponse findAll(
+    public ApiResponse<CampaignListResponse> findAll(
             @RequestParam(required = false) CampaignStatus status, @RequestParam(required = false) String model) {
-        return CampaignListResponse.from(campaignListService.findAll(new CampaignFilter(status, model)));
+        return ApiResponse.success(
+                CampaignListResponse.from(campaignListService.findAll(new CampaignFilter(status, model))));
     }
 }

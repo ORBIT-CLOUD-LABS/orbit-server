@@ -3,6 +3,7 @@ package com.orbit.server.domain.monitoring.controller;
 import com.orbit.server.domain.monitoring.dto.response.VehicleStatusSnapshotResponse;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
 import com.orbit.server.domain.monitoring.service.VehicleStatusStreamService;
+import com.orbit.server.global.common.ApiResponse;
 import com.orbit.server.global.config.ApiTags;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Instant;
@@ -34,8 +35,8 @@ public class DashboardVehicleController {
      * @return 200 과 기준 시각, vehicleId 오름차순의 전체 차량 상태
      */
     @GetMapping
-    public VehicleStatusSnapshotResponse getSnapshot() {
-        return VehicleStatusSnapshotResponse.from(vehicleStatusQueryService.getSnapshot());
+    public ApiResponse<VehicleStatusSnapshotResponse> getSnapshot() {
+        return ApiResponse.success(VehicleStatusSnapshotResponse.from(vehicleStatusQueryService.getSnapshot()));
     }
 
     /**
@@ -46,6 +47,8 @@ public class DashboardVehicleController {
      * 담아 연결한다.
      *
      * @param lastEventId 재연결 때 마지막으로 받은 이벤트 id. 처음 연결이면 없다
+     * <p>이벤트가 이어지는 스트림이라 응답 한 건을 감싸는 공통 응답 형식({@code ApiResponse})을 쓰지 않는다.
+     *
      * @return 200 과 {@code text/event-stream}. 재연결이면 놓친 변경분을 먼저 보낸다
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

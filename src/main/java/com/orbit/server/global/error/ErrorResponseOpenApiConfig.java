@@ -1,5 +1,6 @@
 package com.orbit.server.global.error;
 
+import com.orbit.server.global.common.ApiResponse;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -33,7 +34,7 @@ class ErrorResponseOpenApiConfig {
 
     private static void registerSchema(OpenAPI openApi) {
         Schema<?> schema =
-                ModelConverters.getInstance().resolveAsResolvedSchema(new AnnotatedType(ErrorResponse.class)).schema;
+                ModelConverters.getInstance().resolveAsResolvedSchema(new AnnotatedType(ApiResponse.class)).schema;
         openApi.getComponents().addSchemas(ErrorApiResponses.SCHEMA_NAME, schema);
     }
 

@@ -18,6 +18,7 @@ import com.orbit.server.domain.campaign.entity.CampaignTarget;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.security.AuthErrorCode;
 import jakarta.persistence.EntityManager;
@@ -77,9 +78,11 @@ class CheckInControllerTest {
 
         checkIn(VEHICLE_ID, token, "1.0.0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.updateTarget").value(true))
-                .andExpect(jsonPath("$.campaignId").value(campaignId))
-                .andExpect(jsonPath("$.nextCheckInSeconds").value(30));
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.updateTarget").value(true))
+                .andExpect(jsonPath("$.data.campaignId").value(campaignId))
+                .andExpect(jsonPath("$.data.nextCheckInSeconds").value(30));
     }
 
     @Test
@@ -88,7 +91,8 @@ class CheckInControllerTest {
         registerCampaign("1.0.9", "hw-1");
         Long higher = registerCampaign("1.0.10", "hw-1");
 
-        checkIn(VEHICLE_ID, token, "1.0.0").andExpect(jsonPath("$.campaignId").value(higher));
+        checkIn(VEHICLE_ID, token, "1.0.0")
+                .andExpect(jsonPath("$.data.campaignId").value(higher));
     }
 
     @Test
@@ -96,9 +100,9 @@ class CheckInControllerTest {
     void respondsNotTargetWithoutCampaign() throws Exception {
         checkIn(VEHICLE_ID, token, "1.0.0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.updateTarget").value(false))
-                .andExpect(jsonPath("$.campaignId").doesNotExist())
-                .andExpect(jsonPath("$.nextCheckInSeconds").value(30));
+                .andExpect(jsonPath("$.data.updateTarget").value(false))
+                .andExpect(jsonPath("$.data.campaignId").doesNotExist())
+                .andExpect(jsonPath("$.data.nextCheckInSeconds").value(30));
     }
 
     @Test
@@ -106,7 +110,8 @@ class CheckInControllerTest {
     void respondsNotTargetWhenConditionMismatches() throws Exception {
         registerCampaign("1.0.1", "hw-2");
 
-        checkIn(VEHICLE_ID, token, "1.0.0").andExpect(jsonPath("$.updateTarget").value(false));
+        checkIn(VEHICLE_ID, token, "1.0.0")
+                .andExpect(jsonPath("$.data.updateTarget").value(false));
     }
 
     @Test
@@ -114,7 +119,8 @@ class CheckInControllerTest {
     void respondsNotTargetWhenAlreadyOnTargetVersion() throws Exception {
         registerCampaign("1.0.1", "hw-1");
 
-        checkIn(VEHICLE_ID, token, "1.0.1").andExpect(jsonPath("$.updateTarget").value(false));
+        checkIn(VEHICLE_ID, token, "1.0.1")
+                .andExpect(jsonPath("$.data.updateTarget").value(false));
     }
 
     @Test
@@ -166,7 +172,7 @@ class CheckInControllerTest {
 
         checkInWithLastUpdate("1.0.1", lastUpdateOf(campaignId, "SUCCEEDED", null))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.updateTarget").value(false));
+                .andExpect(jsonPath("$.data.updateTarget").value(false));
 
         assertThat(updateResults()).containsExactly(campaignId + ":SUCCEEDED:null");
     }
@@ -219,7 +225,7 @@ class CheckInControllerTest {
 
         checkInWithLastUpdate("1.0.0", lastUpdateFormat.formatted(campaignId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.updateTarget").value(true));
+                .andExpect(jsonPath("$.data.updateTarget").value(true));
 
         assertThat(updateResults()).isEmpty();
     }
@@ -296,7 +302,7 @@ class CheckInControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        return JsonPath.read(response, "$.vehicleToken");
+        return JsonPath.read(response, "$.data.vehicleToken");
     }
 
     // 실제 시계로 판정하므로 지금을 포함하는 기간으로 등록한다
