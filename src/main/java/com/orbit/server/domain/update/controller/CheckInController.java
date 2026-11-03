@@ -4,6 +4,7 @@ import com.orbit.server.domain.update.dto.request.CheckInRequest;
 import com.orbit.server.domain.update.dto.response.CheckInResponse;
 import com.orbit.server.domain.update.service.CheckInService;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.common.ApiResponse;
 import com.orbit.server.global.config.ApiTags;
 import com.orbit.server.global.error.ApiErrorCodes;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,7 +38,8 @@ public class CheckInController {
     @ApiErrorCodes(
             type = VehicleErrorCode.class,
             codes = {"VEHICLE_MISMATCH"})
-    public CheckInResponse checkIn(@PathVariable String vehicleId, @Valid @RequestBody CheckInRequest request) {
-        return CheckInResponse.from(checkInService.checkIn(request.toCommand(vehicleId)));
+    public ApiResponse<CheckInResponse> checkIn(
+            @PathVariable String vehicleId, @Valid @RequestBody CheckInRequest request) {
+        return ApiResponse.success(CheckInResponse.from(checkInService.checkIn(request.toCommand(vehicleId))));
     }
 }

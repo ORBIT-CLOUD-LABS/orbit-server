@@ -4,6 +4,7 @@ import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.update.dto.response.ManifestResponse;
 import com.orbit.server.domain.update.service.ManifestService;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.common.ApiResponse;
 import com.orbit.server.global.config.ApiTags;
 import com.orbit.server.global.error.ApiErrorCodes;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +39,7 @@ public class ManifestController {
     @ApiErrorCodes(
             type = CampaignErrorCode.class,
             codes = {"CAMPAIGN_NOT_FOUND", "NOT_UPDATE_TARGET", "CAMPAIGN_INACTIVE"})
-    public ManifestResponse getManifest(@PathVariable String vehicleId, @PathVariable Long campaignId) {
-        return ManifestResponse.from(manifestService.issue(vehicleId, campaignId));
+    public ApiResponse<ManifestResponse> getManifest(@PathVariable String vehicleId, @PathVariable Long campaignId) {
+        return ApiResponse.success(ManifestResponse.from(manifestService.issue(vehicleId, campaignId)));
     }
 }

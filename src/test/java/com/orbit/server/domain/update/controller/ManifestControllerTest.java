@@ -19,6 +19,7 @@ import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.security.AuthErrorCode;
 import jakarta.persistence.EntityManager;
@@ -77,10 +78,12 @@ class ManifestControllerTest {
 
         requestManifest(VEHICLE_ID, campaignId, token)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.campaignId").value(campaignId))
-                .andExpect(jsonPath("$.targetVersion").value("1.0.1"))
-                .andExpect(jsonPath("$.fileSize").value(FILE_SIZE))
-                .andExpect(jsonPath("$.sha256").value(SHA256));
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.campaignId").value(campaignId))
+                .andExpect(jsonPath("$.data.targetVersion").value("1.0.1"))
+                .andExpect(jsonPath("$.data.fileSize").value(FILE_SIZE))
+                .andExpect(jsonPath("$.data.sha256").value(SHA256));
     }
 
     @Test
@@ -90,8 +93,8 @@ class ManifestControllerTest {
 
         // application-test.yml 의 orbit.cdn.base-url
         requestManifest(VEHICLE_ID, campaignId, token)
-                .andExpect(jsonPath("$.downloadUrl").value("http://cdn.test/firmware/model-a/1.0.1/firmware.bin"))
-                .andExpect(jsonPath("$.urlExpiresAt").doesNotExist());
+                .andExpect(jsonPath("$.data.downloadUrl").value("http://cdn.test/firmware/model-a/1.0.1/firmware.bin"))
+                .andExpect(jsonPath("$.data.urlExpiresAt").doesNotExist());
     }
 
     @Test
