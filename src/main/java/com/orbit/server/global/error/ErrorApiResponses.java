@@ -8,7 +8,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * 오류 코드로 API 문서의 오류 응답을 만든다.
@@ -29,7 +29,10 @@ public final class ErrorApiResponses {
     private ErrorApiResponses() {}
 
     /**
-     * 같은 HTTP 상태의 오류 코드들을 하나의 응답으로 묶어 operation 에 추가한다. 이미 같은 상태의 응답이 있으면 덮어쓰지 않는다.
+     * 같은 HTTP 상태의 오류 코드들을 하나의 응답으로 묶어 operation 에 추가한다.
+     *
+     * <p>같은 상태의 오류 응답이 이미 있으면 예시를 합친다. API 별 오류와 공통 오류(예: 400 INVALID_INPUT)를 붙이는 순서와 관계없이 둘 다 남기기
+     * 위해서다.
      *
      * @param operation 응답을 추가할 API
      * @param errorCodes 같은 HTTP 상태를 갖는 오류 코드
@@ -37,7 +40,7 @@ public final class ErrorApiResponses {
      */
     public static void addTo(Operation operation, ErrorCode... errorCodes) {
         String status = statusOf(errorCodes);
-        responsesOf(operation).putIfAbsent(status, response(errorCodes));
+        responsesOf(operation).merge(status, response(errorCodes), ErrorApiResponses::merge);
     }
 
     private static String statusOf(ErrorCode... errorCodes) {
@@ -60,12 +63,31 @@ public final class ErrorApiResponses {
         MediaType mediaType = new MediaType().schema(new Schema<>().$ref(SCHEMA_REF));
         Arrays.stream(errorCodes).forEach(errorCode -> mediaType.addExamples(errorCode.getCode(), example(errorCode)));
         return new ApiResponse()
-                .description(description(errorCodes))
+                .description(description(mediaType))
                 .content(new Content().addMediaType(CONTENT_TYPE, mediaType));
     }
 
-    private static String description(ErrorCode... errorCodes) {
-        return Arrays.stream(errorCodes).map(ErrorCode::getCode).collect(Collectors.joining(CODE_SEPARATOR));
+    // 기존 응답이 이 클래스가 만든 오류 응답이 아니면(예시가 없으면) 새 오류 응답으로 바꾼다
+    private static ApiResponse merge(ApiResponse existing, ApiResponse added) {
+        return errorMediaTypeOf(existing)
+                .map(mediaType ->
+                        addExamples(existing, mediaType, errorMediaTypeOf(added).orElseThrow()))
+                .orElse(added);
+    }
+
+    private static ApiResponse addExamples(ApiResponse existing, MediaType target, MediaType source) {
+        source.getExamples().forEach(target.getExamples()::putIfAbsent);
+        return existing.description(description(target));
+    }
+
+    private static Optional<MediaType> errorMediaTypeOf(ApiResponse response) {
+        return Optional.ofNullable(response.getContent())
+                .map(content -> content.get(CONTENT_TYPE))
+                .filter(mediaType -> mediaType.getExamples() != null);
+    }
+
+    private static String description(MediaType mediaType) {
+        return String.join(CODE_SEPARATOR, mediaType.getExamples().keySet());
     }
 
     private static Example example(ErrorCode errorCode) {
