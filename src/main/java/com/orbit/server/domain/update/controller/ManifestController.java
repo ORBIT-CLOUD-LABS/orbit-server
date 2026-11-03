@@ -4,6 +4,7 @@ import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.update.dto.response.ManifestResponse;
 import com.orbit.server.domain.update.service.ManifestService;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.config.ApiTags;
 import com.orbit.server.global.error.ApiErrorCodes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 체크인에서 업데이트 대상으로 판정받은 차량이 호출하는 매니페스트 API. */
-@Tag(name = UpdateApiTag.NAME, description = UpdateApiTag.DESCRIPTION)
+@Tag(name = ApiTags.VEHICLE_UPDATE)
 @RestController
 @RequestMapping("/api/v1/vehicles")
 @RequiredArgsConstructor

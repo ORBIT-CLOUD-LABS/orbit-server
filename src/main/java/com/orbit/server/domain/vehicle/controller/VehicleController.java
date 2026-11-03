@@ -4,6 +4,7 @@ import com.orbit.server.domain.vehicle.dto.request.RegisterVehicleRequest;
 import com.orbit.server.domain.vehicle.dto.response.VehicleRegistrationResponse;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationResult;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationService;
+import com.orbit.server.global.config.ApiTags;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 차량이 호출하는 API. */
-@Tag(name = "차량 · 등록", description = "차량 등록과 차량별 토큰 발급")
+@Tag(name = ApiTags.VEHICLE_REGISTRATION)
 @RestController
 @RequestMapping("/api/v1/vehicles")
 @RequiredArgsConstructor

@@ -4,6 +4,7 @@ import com.orbit.server.domain.update.dto.request.CheckInRequest;
 import com.orbit.server.domain.update.dto.response.CheckInResponse;
 import com.orbit.server.domain.update.service.CheckInService;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.global.config.ApiTags;
 import com.orbit.server.global.error.ApiErrorCodes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** 차량이 주기적으로 호출하는 체크인 API. */
-@Tag(name = UpdateApiTag.NAME, description = UpdateApiTag.DESCRIPTION)
+@Tag(name = ApiTags.VEHICLE_UPDATE)
 @RestController
 @RequestMapping("/api/v1/vehicles")
 @RequiredArgsConstructor
