@@ -121,6 +121,16 @@ class SecurityConfigTest {
         mockMvc.perform(get(url)).andExpect(status().isOk());
     }
 
+    // test 프로필은 springdoc 을 켜지 않으므로, 인증을 통과해 MVC 까지 가서 404 가 나는지로 확인한다
+    @ParameterizedTest
+    @ValueSource(strings = {"/v3/api-docs", "/swagger-ui/index.html", "/swagger-ui.html"})
+    @DisplayName("API 문서 경로는 인증 대상이 아니고, springdoc 이 꺼져 있으면 404 로 응답한다")
+    void hidesApiDocsWhenDisabled(String url) throws Exception {
+        mockMvc.perform(get(url))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.RESOURCE_NOT_FOUND.getCode()));
+    }
+
     // 관리자 인증 대상이면 AUTHENTICATION_REQUIRED 가 나므로, 차량 토큰 인터셉터의 오류 코드로 필터를 통과했는지 확인한다
     @Test
     @DisplayName("차량 API 는 관리자 인증 대상이 아니고 차량 토큰 인증을 거친다")

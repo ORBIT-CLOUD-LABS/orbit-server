@@ -20,6 +20,12 @@ orbit:
   cdn:
     base-url: ${CDN_BASE_URL:http://localhost:8080}
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 logging:
   level:
     com.orbit.server: DEBUG
