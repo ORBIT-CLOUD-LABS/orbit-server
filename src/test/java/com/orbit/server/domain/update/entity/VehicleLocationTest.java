@@ -1,0 +1,42 @@
+package com.orbit.server.domain.update.entity;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.orbit.server.global.error.InvalidValueException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+class VehicleLocationTest {
+
+    private static final double SEOUL_LATITUDE = 37.5665;
+    private static final double SEOUL_LONGITUDE = 126.9780;
+
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 위도 -90~90, 경도 -180~180 의 경계값으로 생성한다")
+    void createsAtBoundaries() {
+        assertThatCode(() -> {
+                    new VehicleLocation(-90, -180);
+                    new VehicleLocation(90, 180);
+                })
+                .doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {-90.0001, 90.0001, Double.NaN})
+    @DisplayName("VEHICLE-REQ-001: 위도가 -90~90 을 벗어나면 거부한다")
+    void rejectsLatitudeOutOfRange(double latitude) {
+        assertThatThrownBy(() -> new VehicleLocation(latitude, SEOUL_LONGITUDE))
+                .isInstanceOf(InvalidValueException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {-180.0001, 180.0001, Double.NaN})
+    @DisplayName("VEHICLE-REQ-001: 경도가 -180~180 을 벗어나면 거부한다")
+    void rejectsLongitudeOutOfRange(double longitude) {
+        assertThatThrownBy(() -> new VehicleLocation(SEOUL_LATITUDE, longitude))
+                .isInstanceOf(InvalidValueException.class);
+    }
+}
