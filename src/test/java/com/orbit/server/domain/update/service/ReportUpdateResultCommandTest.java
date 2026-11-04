@@ -37,6 +37,16 @@ class ReportUpdateResultCommandTest {
                 .isEqualTo(new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_INSTANT));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"SIGNATURE_INVALID", "DOWNGRADE_REJECTED"})
+    @DisplayName("UPDATE-REQ-001: 펌웨어 서명 검증 실패·다운그레이드 거부도 실패 사유로 받는다")
+    void acceptsPhase2FailureReasons(String reason) {
+        UpdateFailure failure = new UpdateFailure(FailureReason.valueOf(reason), null);
+
+        assertThat(reportOf("FAILED", reason, null).toOutcome())
+                .isEqualTo(new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_INSTANT));
+    }
+
     @Test
     @DisplayName("UPDATE-POL-001: 성공 보고에 실패 상세가 있으면 저장할 곳이 없으므로 거부한다")
     void rejectsSucceededWithDetail() {

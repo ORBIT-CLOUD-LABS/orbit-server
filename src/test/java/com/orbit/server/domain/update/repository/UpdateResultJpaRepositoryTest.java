@@ -26,6 +26,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -83,6 +85,18 @@ class UpdateResultJpaRepositoryTest {
         updateResultRepository.record(vehicleId, campaignId, FAILED);
 
         assertThat(results()).containsExactly("FAILED:HASH_MISMATCH:sha256 mismatch:2026-10-01 12:00:00");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"SIGNATURE_INVALID", "DOWNGRADE_REJECTED"})
+    @DisplayName("UPDATE-REQ-001: 펌웨어 서명 검증 실패·다운그레이드 거부 결과를 기록한다")
+    void recordsPhase2FailureReasons(String reason) {
+        UpdateFailure failure = new UpdateFailure(FailureReason.valueOf(reason), null);
+
+        updateResultRepository.record(
+                vehicleId, campaignId, new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_AT));
+
+        assertThat(results()).containsExactly("FAILED:" + reason + ":null:2026-10-01 12:00:00");
     }
 
     @Test
