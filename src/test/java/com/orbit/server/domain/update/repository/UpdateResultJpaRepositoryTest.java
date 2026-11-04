@@ -26,6 +26,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -39,9 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 class UpdateResultJpaRepositoryTest {
 
     private static final Instant FINISHED_AT = Instant.parse("2026-10-01T12:00:00Z");
-    private static final UpdateOutcome SUCCEEDED = new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT);
+    private static final UpdateOutcome SUCCEEDED = new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT, null);
     private static final UpdateOutcome FAILED = new UpdateOutcome(
-            UpdateStatus.FAILED, new UpdateFailure(FailureReason.HASH_MISMATCH, "sha256 mismatch"), FINISHED_AT);
+            UpdateStatus.FAILED, new UpdateFailure(FailureReason.HASH_MISMATCH, "sha256 mismatch"), FINISHED_AT, null);
 
     @Autowired
     private UpdateResultRepository updateResultRepository;
@@ -85,13 +87,47 @@ class UpdateResultJpaRepositoryTest {
         assertThat(results()).containsExactly("FAILED:HASH_MISMATCH:sha256 mismatch:2026-10-01 12:00:00");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"SIGNATURE_INVALID", "DOWNGRADE_REJECTED"})
+    @DisplayName("UPDATE-REQ-001: 펌웨어 서명 검증 실패·다운그레이드 거부 결과를 기록한다")
+    void recordsPhase2FailureReasons(String reason) {
+        UpdateFailure failure = new UpdateFailure(FailureReason.valueOf(reason), null);
+
+        updateResultRepository.record(
+                vehicleId, campaignId, new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_AT, null));
+
+        assertThat(results()).containsExactly("FAILED:" + reason + ":null:2026-10-01 12:00:00");
+    }
+
+    @Test
+    @DisplayName("UPDATE-REQ-001: 차량이 실제로 파일을 받은 Edge 를 함께 기록한다")
+    void recordsDownloadEdge() {
+        updateResultRepository.record(
+                vehicleId, campaignId, new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT, "edge-seoul"));
+
+        assertThat(downloadEdges()).containsExactly("edge-seoul");
+    }
+
+    @Test
+    @DisplayName("UPDATE-POL-001: 다시 보고하면 받은 Edge 도 마지막 보고로 덮어쓴다")
+    void overwritesDownloadEdge() {
+        updateResultRepository.record(
+                vehicleId, campaignId, new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT, "edge-seoul"));
+
+        updateResultRepository.record(vehicleId, campaignId, SUCCEEDED);
+
+        assertThat(downloadEdges()).containsExactly("null");
+    }
+
     @Test
     @DisplayName("UPDATE-POL-001: 같은 차량·캠페인의 결과는 마지막 보고로 덮어쓴다")
     void overwritesWithLatestReport() {
         updateResultRepository.record(vehicleId, campaignId, FAILED);
 
         updateResultRepository.record(
-                vehicleId, campaignId, new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT.plusSeconds(60)));
+                vehicleId,
+                campaignId,
+                new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT.plusSeconds(60), null));
 
         assertThat(results()).containsExactly("SUCCEEDED:null:null:2026-10-01 12:01:00");
     }
@@ -104,6 +140,15 @@ class UpdateResultJpaRepositoryTest {
         updateResultRepository.record(vehicleId, campaignId, FAILED);
 
         assertThat(results()).containsExactly("FAILED:HASH_MISMATCH:sha256 mismatch:2026-10-01 12:00:00");
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> downloadEdges() {
+        return em.createNativeQuery("SELECT IFNULL(edge_id, 'null') FROM update_result"
+                        + " WHERE vehicle_id = :vehicleId AND campaign_id = :campaignId")
+                .setParameter("vehicleId", vehicleId)
+                .setParameter("campaignId", campaignId)
+                .getResultList();
     }
 
     // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다. 세션 시간대는 UTC 로 고정돼 있다

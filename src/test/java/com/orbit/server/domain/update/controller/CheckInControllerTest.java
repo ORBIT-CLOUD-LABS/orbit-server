@@ -166,6 +166,40 @@ class CheckInControllerTest {
     }
 
     @Test
+    @DisplayName("VEHICLE-REQ-001: 위치를 보내면 기록하고 체크인에 응답한다")
+    void recordsLocation() throws Exception {
+        checkInWithLocation("""
+                        {"latitude": 37.5665, "longitude": 126.978}""").andExpect(status().isOk());
+
+        assertThat(locations()).containsExactly("37.566500:126.978000");
+    }
+
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 위치를 보내지 않아도(GPS 미수신) 체크인에 응답한다")
+    void checksInWithoutLocation() throws Exception {
+        checkIn(VEHICLE_ID, token, "1.0.0").andExpect(status().isOk());
+
+        assertThat(locations()).containsExactly("null:null");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"""
+                {"latitude": 90.1, "longitude": 126.978}""", """
+                {"latitude": -90.1, "longitude": 126.978}""", """
+                {"latitude": 37.5665, "longitude": 180.1}""", """
+                {"latitude": 37.5665, "longitude": -180.1}""", """
+                {"longitude": 126.978}""", """
+                {"latitude": 37.5665}"""})
+    @DisplayName("VEHICLE-REQ-001: 위치의 좌표가 없거나 범위를 벗어나면 400 INVALID_INPUT 으로 응답한다")
+    void rejectsInvalidLocation(String location) throws Exception {
+        checkInWithLocation(location)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+
+        assertThat(locations()).containsExactly("null:null");
+    }
+
+    @Test
     @DisplayName("UPDATE-REQ-001: 성공 보고를 기록하고 체크인에 응답한다")
     void recordsSucceededReport() throws Exception {
         Long campaignId = registerCampaign("1.0.1", "hw-1");
@@ -186,6 +220,41 @@ class CheckInControllerTest {
                 .andExpect(status().isOk());
 
         assertThat(updateResults()).containsExactly(campaignId + ":FAILED:HASH_MISMATCH");
+    }
+
+    @Test
+    @DisplayName("UPDATE-REQ-001: 보고에 담긴 다운로드 Edge 를 결과와 함께 기록한다")
+    void recordsDownloadEdge() throws Exception {
+        Long campaignId = registerCampaign("1.0.1", "hw-1");
+
+        checkInWithLastUpdate("1.0.1", """
+                        {"campaignId": %d, "result": "SUCCEEDED", "edgeId": "edge-daejeon", "finishedAt": "2026-10-01T12:00:00Z"}""".formatted(campaignId)).andExpect(status().isOk());
+
+        assertThat(downloadEdges()).containsExactly("edge-daejeon");
+    }
+
+    @Test
+    @DisplayName("UPDATE-REQ-001: 다운로드 전에 실패해 Edge 가 없는 보고도 기록한다")
+    void recordsReportWithoutDownloadEdge() throws Exception {
+        Long campaignId = registerCampaign("1.0.1", "hw-1");
+
+        checkInWithLastUpdate("1.0.0", lastUpdateOf(campaignId, "FAILED", "\"SIGNATURE_INVALID\""))
+                .andExpect(status().isOk());
+
+        assertThat(updateResults()).containsExactly(campaignId + ":FAILED:SIGNATURE_INVALID");
+        assertThat(downloadEdges()).containsExactly("null");
+    }
+
+    @Test
+    @DisplayName("UPDATE-POL-001: 다운로드 Edge 가 50자를 넘으면 결과는 버리고 체크인에 200 으로 응답한다")
+    void discardsReportWithTooLongDownloadEdge() throws Exception {
+        Long campaignId = registerCampaign("1.0.1", "hw-1");
+
+        checkInWithLastUpdate("1.0.1", """
+                        {"campaignId": %d, "result": "SUCCEEDED", "edgeId": "%s", "finishedAt": "2026-10-01T12:00:00Z"}""".formatted(campaignId, "e".repeat(51)))
+                .andExpect(status().isOk());
+
+        assertThat(updateResults()).isEmpty();
     }
 
     @Test
@@ -273,6 +342,36 @@ class CheckInControllerTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
+    }
+
+    private ResultActions checkInWithLocation(String location) throws Exception {
+        String body = """
+                {"currentVersion": "1.0.0", "location": %s}""".formatted(location);
+        return mockMvc.perform(post(URL, VEHICLE_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> downloadEdges() {
+        em.flush();
+        return em.createNativeQuery(
+                        "SELECT IFNULL(r.edge_id, 'null')"
+                                + " FROM update_result r JOIN vehicle v ON v.id = r.vehicle_id WHERE v.external_id = :vehicleId")
+                .setParameter("vehicleId", VEHICLE_ID)
+                .getResultList();
+    }
+
+    // 엔티티에 getter 를 두지 않으므로 기록한 위치를 DB 에서 직접 읽는다
+    @SuppressWarnings("unchecked")
+    private List<String> locations() {
+        em.flush();
+        return em.createNativeQuery(
+                        "SELECT CONCAT_WS(':', IFNULL(s.latitude, 'null'), IFNULL(s.longitude, 'null'))"
+                                + " FROM vehicle_state s JOIN vehicle v ON v.id = s.vehicle_id WHERE v.external_id = :vehicleId")
+                .setParameter("vehicleId", VEHICLE_ID)
+                .getResultList();
     }
 
     // failureReason 은 JSON 값 그대로 받는다 (null 또는 따옴표로 감싼 문자열)

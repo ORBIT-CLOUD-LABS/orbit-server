@@ -120,14 +120,14 @@ class UpdateResultServiceTest {
     void discardsSucceededWithDetail() {
         service.record(
                 vehicleId,
-                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, "detail", FINISHED_AT.toString()));
+                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, "detail", FINISHED_AT.toString(), null));
 
         assertThat(allResults()).isEmpty();
     }
 
     private static ReportUpdateResultCommand reportOf(Long campaignId, UpdateStatus result, FailureReason reason) {
         String reasonName = reason == null ? null : reason.name();
-        return new ReportUpdateResultCommand(campaignId, result.name(), reasonName, null, FINISHED_AT.toString());
+        return new ReportUpdateResultCommand(campaignId, result.name(), reasonName, null, FINISHED_AT.toString(), null);
     }
 
     // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다

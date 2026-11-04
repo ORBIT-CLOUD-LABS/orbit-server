@@ -1,6 +1,7 @@
 package com.orbit.server.domain.update.repository;
 
 import com.orbit.server.domain.update.entity.SoftwareVersion;
+import com.orbit.server.domain.update.entity.VehicleLocation;
 import com.orbit.server.domain.update.entity.VehicleState;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,4 +38,22 @@ interface VehicleStateJpaRepository extends JpaRepository<VehicleState, Long>, V
                     WHERE vehicle_id = :vehicleId
                     """, nativeQuery = true)
     int updateCheckIn(@Param("vehicleId") Long vehicleId, @Param("currentVersion") String currentVersion);
+
+    @Override
+    default int recordLocation(Long vehicleId, VehicleLocation location) {
+        return updateLocation(vehicleId, location.latitude(), location.longitude());
+    }
+
+    // 위치의 신선도(location-max-age)를 마지막 체크인 시각과 같은 시계로 판단하도록 NOW(3) 를 쓴다.
+    // 위도·경도·갱신 시각은 함께 있거나 함께 없어야 하므로(ck_vehicle_state_location) 한 문장으로 바꾼다
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+                    UPDATE vehicle_state
+                    SET latitude = :latitude, longitude = :longitude, location_updated_at = NOW(3)
+                    WHERE vehicle_id = :vehicleId
+                    """, nativeQuery = true)
+    int updateLocation(
+            @Param("vehicleId") Long vehicleId,
+            @Param("latitude") double latitude,
+            @Param("longitude") double longitude);
 }

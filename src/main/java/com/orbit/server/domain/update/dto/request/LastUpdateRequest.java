@@ -13,14 +13,16 @@ import com.orbit.server.domain.update.service.ReportUpdateResultCommand;
  * @param failureReason 실패 사유. 실패일 때만 보낸다
  * @param failureDetail 실패 상세. 실패 사유가 있을 때만 보낼 수 있다. 500자 이하
  * @param finishedAt 업데이트를 마친 시각 (ISO-8601)
+ * @param edgeId 실제로 파일을 받은 Edge. 매니페스트가 배정한 Edge 가 실패해 fallbackUrls 로 받았으면 그 Edge 다. 다운로드 전에
+ *     실패했으면 null. 50자 이하
  */
 public record LastUpdateRequest(
-        Long campaignId, String result, String failureReason, String failureDetail, String finishedAt) {
+        Long campaignId, String result, String failureReason, String failureDetail, String finishedAt, String edgeId) {
 
     /**
      * @return 업데이트 결과 기록 요청
      */
     public ReportUpdateResultCommand toCommand() {
-        return new ReportUpdateResultCommand(campaignId, result, failureReason, failureDetail, finishedAt);
+        return new ReportUpdateResultCommand(campaignId, result, failureReason, failureDetail, finishedAt, edgeId);
     }
 }

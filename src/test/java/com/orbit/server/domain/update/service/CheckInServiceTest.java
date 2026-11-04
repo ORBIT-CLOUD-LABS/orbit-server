@@ -14,6 +14,7 @@ import com.orbit.server.domain.campaign.entity.CampaignPeriod;
 import com.orbit.server.domain.campaign.entity.CampaignTarget;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.update.entity.VehicleLocation;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
 import com.orbit.server.domain.vehicle.service.RegisterVehicleCommand;
@@ -47,6 +48,8 @@ class CheckInServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-10-01T12:00:00Z");
     private static final String VEHICLE_ID = "vehicle-001";
+    private static final VehicleLocation SEOUL = new VehicleLocation(37.5665, 126.978);
+    private static final VehicleLocation BUSAN = new VehicleLocation(35.1796, 129.0756);
 
     @Autowired
     private CheckInService service;
@@ -106,6 +109,34 @@ class CheckInServiceTest {
     }
 
     @Test
+    @DisplayName("VEHICLE-REQ-001: 위치를 보내면 위치와 위치 갱신 시각을 기록한다")
+    void recordsLocation() {
+        service.checkIn(checkInWithLocation(SEOUL));
+
+        assertThat(locationOf()).containsExactly("37.566500:126.978000:true");
+    }
+
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 위치를 보내지 않으면(GPS 미수신) 이전 위치를 그대로 둔다")
+    void keepsPreviousLocationWithoutLocation() {
+        service.checkIn(checkInWithLocation(SEOUL));
+
+        service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1"));
+
+        assertThat(locationOf()).containsExactly("37.566500:126.978000:true");
+    }
+
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 새 위치를 보내면 이전 위치를 덮어쓴다")
+    void overwritesLocation() {
+        service.checkIn(checkInWithLocation(SEOUL));
+
+        service.checkIn(checkInWithLocation(BUSAN));
+
+        assertThat(locationOf()).containsExactly("35.179600:129.075600:true");
+    }
+
+    @Test
     @DisplayName("VEHICLE-REQ-001: 현재 버전이 비어 있으면 거부한다")
     void rejectsBlankVersion() {
         assertThatThrownBy(() -> service.checkIn(new CheckInCommand(VEHICLE_ID, " ")))
@@ -117,9 +148,10 @@ class CheckInServiceTest {
     void recordsLastUpdateWithState() {
         Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, null, NOW.toString());
+                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, null, NOW.toString(), null);
 
-        CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(report)));
+        CheckInResult result =
+                service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.empty(), Optional.of(report)));
 
         assertThat(updateResultsOf(campaignId)).containsExactly("SUCCEEDED");
         assertThat(stateOf()).containsExactly("1.0.1:true");
@@ -140,9 +172,10 @@ class CheckInServiceTest {
     @DisplayName("UPDATE-REQ-001: 없는 캠페인의 결과가 와도 체크인은 처리한다")
     void checksInWithResultOfMissingCampaign() {
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(Long.MAX_VALUE, "SUCCEEDED", null, null, NOW.toString());
+                new ReportUpdateResultCommand(Long.MAX_VALUE, "SUCCEEDED", null, null, NOW.toString(), null);
 
-        CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(report)));
+        CheckInResult result =
+                service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.empty(), Optional.of(report)));
 
         assertThat(result.nextCheckInSeconds()).isEqualTo(30);
         assertThat(stateOf()).containsExactly("1.0.1:true");
@@ -153,9 +186,10 @@ class CheckInServiceTest {
     void checksInWithMalformedLastUpdate() {
         Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(campaignId, "FAILED", null, null, NOW.toString());
+                new ReportUpdateResultCommand(campaignId, "FAILED", null, null, NOW.toString(), null);
 
-        CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0", Optional.of(report)));
+        CheckInResult result =
+                service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0", Optional.empty(), Optional.of(report)));
 
         assertThat(result.targetCampaignId()).contains(campaignId);
         assertThat(stateOf()).containsExactly("1.0.0:true");
@@ -187,6 +221,22 @@ class CheckInServiceTest {
 
     private static CampaignPeriod periodAround(Instant time) {
         return new CampaignPeriod(time.minus(Duration.ofHours(1)), time.plus(Duration.ofHours(1)));
+    }
+
+    private static CheckInCommand checkInWithLocation(VehicleLocation location) {
+        return new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(location), Optional.empty());
+    }
+
+    // 엔티티에 getter 를 두지 않으므로 저장된 위치를 DB 에서 직접 읽는다
+    @SuppressWarnings("unchecked")
+    private List<String> locationOf() {
+        em.flush();
+        return em.createNativeQuery(
+                        "SELECT CONCAT(s.latitude, ':', s.longitude, ':',"
+                                + " IF(s.location_updated_at IS NULL, 'false', 'true'))"
+                                + " FROM vehicle_state s JOIN vehicle v ON v.id = s.vehicle_id WHERE v.external_id = :vehicleId")
+                .setParameter("vehicleId", VEHICLE_ID)
+                .getResultList();
     }
 
     // 엔티티에 getter 를 두지 않으므로 저장된 상태를 DB 에서 직접 읽는다
