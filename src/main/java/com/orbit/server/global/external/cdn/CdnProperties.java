@@ -1,5 +1,9 @@
 package com.orbit.server.global.external.cdn;
 
+import com.orbit.server.domain.edge.entity.Coordinates;
+import com.orbit.server.domain.edge.entity.Edge;
+import com.orbit.server.domain.edge.entity.Edges;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -8,6 +12,7 @@ import java.time.Duration;
 import java.util.List;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -31,7 +36,19 @@ record CdnProperties(
         String defaultEdgeId,
         @NotNull @PositiveOrZero Integer fallbackCount,
         @NotNull @DurationMin(millis = 1) Duration locationMaxAge,
-        List<@Valid EdgeProperties> edges) {
+        // 목록이 빠지면 null 이 아니라 빈 목록으로 받아, 비어 있다는 같은 이유로 Edges 가 거부하게 한다
+        @DefaultValue List<@Valid EdgeProperties> edges) {
+
+    /**
+     * 설정한 Edge 목록을 도메인의 Edge 목록으로 바꾼다.
+     *
+     * @return 검증을 마친 Edge 목록
+     * @throws InvalidValueException 목록이 비었거나, id 가 겹치거나, 기본 Edge 가 없거나, Edge 값이 잘못된 경우
+     */
+    Edges toEdges() {
+        List<Edge> configured = edges.stream().map(EdgeProperties::toEdge).toList();
+        return new Edges(configured, defaultEdgeId);
+    }
 
     /**
      * Edge 하나의 설정. id·이름·주소 검증은 {@code Edge} 가 맡는다.
@@ -49,5 +66,10 @@ record CdnProperties(
             String name,
             URI baseUrl,
             @NotNull Double latitude,
-            @NotNull Double longitude) {}
+            @NotNull Double longitude) {
+
+        private Edge toEdge() {
+            return new Edge(id, name, baseUrl, new Coordinates(latitude, longitude));
+        }
+    }
 }

@@ -19,6 +19,24 @@ orbit:
   # 로컬에는 CDN 이 없으므로 매니페스트 응답 확인용 임시 주소. 실제로 받으려면 환경 변수로 바꾼다
   cdn:
     base-url: ${CDN_BASE_URL:http://localhost:8080}
+    # 로컬에는 Edge 가 없으므로 Edge 선택 확인용 임시 목록. 좌표는 flow.md 의 서울·대전·부산 Edge 와 같다
+    default-edge-id: edge-seoul
+    edges:
+      - id: edge-seoul
+        name: 서울
+        base-url: http://localhost:30081
+        latitude: 37.5665
+        longitude: 126.9780
+      - id: edge-daejeon
+        name: 대전
+        base-url: http://localhost:30082
+        latitude: 36.3504
+        longitude: 127.3845
+      - id: edge-busan
+        name: 부산
+        base-url: http://localhost:30083
+        latitude: 35.1796
+        longitude: 129.0756
 
 springdoc:
   api-docs:

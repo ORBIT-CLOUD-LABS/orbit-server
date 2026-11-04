@@ -11,3 +11,10 @@ orbit:
     token: test-admin-token
   cdn:
     base-url: http://cdn.test
+    default-edge-id: edge-seoul
+    edges:
+      - id: edge-seoul
+        name: 서울
+        base-url: http://cdn.test:30081
+        latitude: 37.5665
+        longitude: 126.9780
