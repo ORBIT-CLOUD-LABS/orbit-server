@@ -100,6 +100,26 @@ class UpdateResultJpaRepositoryTest {
     }
 
     @Test
+    @DisplayName("UPDATE-REQ-001: 차량이 실제로 파일을 받은 Edge 를 함께 기록한다")
+    void recordsDownloadEdge() {
+        updateResultRepository.record(
+                vehicleId, campaignId, new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT, "edge-seoul"));
+
+        assertThat(downloadEdges()).containsExactly("edge-seoul");
+    }
+
+    @Test
+    @DisplayName("UPDATE-POL-001: 다시 보고하면 받은 Edge 도 마지막 보고로 덮어쓴다")
+    void overwritesDownloadEdge() {
+        updateResultRepository.record(
+                vehicleId, campaignId, new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT, "edge-seoul"));
+
+        updateResultRepository.record(vehicleId, campaignId, SUCCEEDED);
+
+        assertThat(downloadEdges()).containsExactly("null");
+    }
+
+    @Test
     @DisplayName("UPDATE-POL-001: 같은 차량·캠페인의 결과는 마지막 보고로 덮어쓴다")
     void overwritesWithLatestReport() {
         updateResultRepository.record(vehicleId, campaignId, FAILED);
@@ -120,6 +140,15 @@ class UpdateResultJpaRepositoryTest {
         updateResultRepository.record(vehicleId, campaignId, FAILED);
 
         assertThat(results()).containsExactly("FAILED:HASH_MISMATCH:sha256 mismatch:2026-10-01 12:00:00");
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> downloadEdges() {
+        return em.createNativeQuery("SELECT IFNULL(edge_id, 'null') FROM update_result"
+                        + " WHERE vehicle_id = :vehicleId AND campaign_id = :campaignId")
+                .setParameter("vehicleId", vehicleId)
+                .setParameter("campaignId", campaignId)
+                .getResultList();
     }
 
     // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다. 세션 시간대는 UTC 로 고정돼 있다

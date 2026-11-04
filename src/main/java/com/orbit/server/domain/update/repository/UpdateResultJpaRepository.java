@@ -27,7 +27,8 @@ interface UpdateResultJpaRepository extends JpaRepository<UpdateResult, Long>, U
                 outcome.status().name(),
                 failure.map(found -> found.reason().name()).orElse(null),
                 failure.map(UpdateFailure::detail).orElse(null),
-                outcome.finishedAt());
+                outcome.finishedAt(),
+                outcome.downloadEdgeId());
     }
 
     // 조회 후 저장하면 같은 보고가 동시에 올 때 둘 다 INSERT 해 UNIQUE(vehicle_id, campaign_id) 에 걸리므로
@@ -35,13 +36,17 @@ interface UpdateResultJpaRepository extends JpaRepository<UpdateResult, Long>, U
     // 중복이 있으면 기존 행을 고친다.
     @Modifying(flushAutomatically = true)
     @Query(value = """
-                    INSERT INTO update_result (vehicle_id, campaign_id, result, failure_reason, failure_detail, finished_at)
-                    VALUES (:vehicleId, :campaignId, :result, :failureReason, :failureDetail, :finishedAt) AS reported
+                    INSERT INTO update_result
+                        (vehicle_id, campaign_id, result, failure_reason, failure_detail, finished_at, edge_id)
+                    VALUES
+                        (:vehicleId, :campaignId, :result, :failureReason, :failureDetail, :finishedAt, :edgeId)
+                        AS reported
                     ON DUPLICATE KEY UPDATE
                         result = reported.result,
                         failure_reason = reported.failure_reason,
                         failure_detail = reported.failure_detail,
-                        finished_at = reported.finished_at
+                        finished_at = reported.finished_at,
+                        edge_id = reported.edge_id
                     """, nativeQuery = true)
     void upsert(
             @Param("vehicleId") Long vehicleId,
@@ -49,5 +54,6 @@ interface UpdateResultJpaRepository extends JpaRepository<UpdateResult, Long>, U
             @Param("result") String result,
             @Param("failureReason") String failureReason,
             @Param("failureDetail") String failureDetail,
-            @Param("finishedAt") Instant finishedAt);
+            @Param("finishedAt") Instant finishedAt,
+            @Param("edgeId") String edgeId);
 }
