@@ -1,9 +1,15 @@
 package com.orbit.server;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.INTERFACES;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -46,15 +52,20 @@ class ArchitectureTest {
             .resideInAPackage("..domain..")
             .because("global 에는 기술 기반만 두고 비즈니스 규칙을 두지 않으므로 domain → global 방향만 허용한다");
 
-    // global/external 은 service 의 포트를 구현하므로 포트와 포트가 주고받는 entity·exception 까지만 안다
+    // 포트(service 의 interface)와 포트가 주고받는 타입(service 의 record, entity, exception)만 허용한다.
+    // 금지 목록이 아니라 허용 목록으로 둬야 유스케이스 서비스나 도메인 서비스를 직접 부르는 경로까지 막힌다
+    private static final DescribedPredicate<JavaClass> PORT_OR_PORT_TYPE = resideInAPackage("..domain..service..")
+            .and(INTERFACES.or(assignableTo(Record.class)))
+            .or(resideInAnyPackage("..domain..entity..", "..domain..exception.."))
+            .as("ports or types used by ports");
+
     @ArchTest
     static final ArchRule externalDependsOnlyOnPorts = noClasses()
             .that()
             .resideInAPackage("..global.external..")
             .should()
-            .dependOnClassesThat()
-            .resideInAnyPackage("..domain..controller..", "..domain..dto..", "..domain..repository..")
-            .because("외부 연동 구현은 service 의 포트를 구현할 뿐 다른 계층을 거치지 않는다");
+            .dependOnClassesThat(resideInAPackage("..domain..").and(not(PORT_OR_PORT_TYPE)))
+            .because("외부 연동 구현은 service 의 포트를 구현할 뿐 다른 계층이나 비즈니스 규칙을 거치지 않는다");
 
     // 기존 위반은 archunit_store 에 기록해 두고 새 위반만 막는다. 위반을 고치면 기록에서 자동으로 빠진다
     @ArchTest
