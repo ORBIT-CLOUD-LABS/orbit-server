@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 엔티티가 아직 매핑하지 않은 [Phase2] 위치·배정 Edge 컬럼의 제약을 SQL 로 검증한다. */
+/** [Phase2] 위치·배정 Edge 컬럼의 DB 제약을 엔티티 검증을 거치지 않고 SQL 로 검증한다. */
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)

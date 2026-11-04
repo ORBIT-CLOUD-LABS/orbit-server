@@ -3,6 +3,8 @@ package com.orbit.server.domain.update.entity;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * 차량이 체크인으로 알려 준 마지막 GPS 위치. 매니페스트가 차량과 가까운 Edge 를 고를 때 쓰고, 대상 판정에는 쓰지 않는다.
@@ -16,8 +18,12 @@ import jakarta.persistence.Embeddable;
  */
 @Embeddable
 public record VehicleLocation(
-        @Column(name = "latitude") double latitude,
-        @Column(name = "longitude") double longitude) {
+        // 컬럼은 소수점 6자리(약 0.1m)로 저장하는 DECIMAL(9, 6) 이다. 지정하지 않으면 double 을 FLOAT 로 보고 스키마 검증에 실패한다
+        @JdbcTypeCode(SqlTypes.DECIMAL) @Column(name = "latitude")
+        double latitude,
+
+        @JdbcTypeCode(SqlTypes.DECIMAL) @Column(name = "longitude")
+        double longitude) {
 
     private static final double MAX_LATITUDE = 90;
     private static final double MAX_LONGITUDE = 180;
