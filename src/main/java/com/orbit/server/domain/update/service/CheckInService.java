@@ -1,7 +1,7 @@
 package com.orbit.server.domain.update.service;
 
-import com.orbit.server.domain.campaign.entity.TargetVehicle;
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
+import com.orbit.server.domain.campaign.service.TargetVehicleCriteria;
 import com.orbit.server.domain.vehicle.service.VehicleProfile;
 import com.orbit.server.domain.vehicle.service.VehicleQueryService;
 import com.orbit.server.global.error.InvalidValueException;
@@ -48,8 +48,8 @@ public class CheckInService {
         VehicleProfile vehicle = vehicleQueryService.getProfile(command.vehicleId());
         vehicleStateService.recordCheckIn(vehicle.vehicleId(), command.currentVersion());
         command.lastUpdate().ifPresent(report -> updateResultService.record(vehicle.vehicleId(), report));
-        TargetVehicle target =
-                new TargetVehicle(vehicle.model(), vehicle.hwVersion(), vehicle.region(), command.currentVersion());
+        TargetVehicleCriteria target = new TargetVehicleCriteria(
+                vehicle.model(), vehicle.hwVersion(), vehicle.region(), command.currentVersion());
         Optional<Long> campaignId = campaignQueryService.findTargetCampaignId(target, clock.instant());
         return new CheckInResult(campaignId, checkInProperties.intervalSeconds());
     }

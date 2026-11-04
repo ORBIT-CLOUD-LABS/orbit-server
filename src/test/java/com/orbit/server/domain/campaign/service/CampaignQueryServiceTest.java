@@ -13,7 +13,6 @@ import com.orbit.server.domain.campaign.entity.CampaignCondition;
 import com.orbit.server.domain.campaign.entity.CampaignName;
 import com.orbit.server.domain.campaign.entity.CampaignPeriod;
 import com.orbit.server.domain.campaign.entity.CampaignTarget;
-import com.orbit.server.domain.campaign.entity.TargetVehicle;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
@@ -40,7 +39,7 @@ class CampaignQueryServiceTest {
     private static final Instant START = Instant.parse("2026-10-01T00:00:00Z");
     private static final Instant NOW = START.plus(Duration.ofHours(1));
     private static final CampaignPeriod PERIOD = new CampaignPeriod(START, START.plus(Duration.ofDays(1)));
-    private static final TargetVehicle VEHICLE = new TargetVehicle("model-a", "hw-1", "KR", "1.0.0");
+    private static final TargetVehicleCriteria VEHICLE = new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.0");
 
     @Autowired
     private CampaignQueryService service;
@@ -70,7 +69,7 @@ class CampaignQueryServiceTest {
     void findsNothingWhenConditionMismatches() {
         register("1.0.1", VersionRange.unbounded());
 
-        assertThat(findTarget(new TargetVehicle("model-a", "hw-9", "KR", "1.0.0")))
+        assertThat(findTarget(new TargetVehicleCriteria("model-a", "hw-9", "KR", "1.0.0")))
                 .isEmpty();
     }
 
@@ -79,7 +78,7 @@ class CampaignQueryServiceTest {
     void findsNothingWhenAlreadyOnTargetVersion() {
         register("1.0.1", VersionRange.unbounded());
 
-        assertThat(findTarget(new TargetVehicle("model-a", "hw-1", "KR", "1.0.1.0")))
+        assertThat(findTarget(new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.1.0")))
                 .isEmpty();
     }
 
@@ -183,7 +182,7 @@ class CampaignQueryServiceTest {
 
         assertRejected(
                 campaignId,
-                new TargetVehicle("model-a", "hw-9", "KR", "1.0.0"),
+                new TargetVehicleCriteria("model-a", "hw-9", "KR", "1.0.0"),
                 NOW,
                 CampaignErrorCode.CAMPAIGN_INACTIVE);
     }
@@ -195,7 +194,7 @@ class CampaignQueryServiceTest {
 
         assertRejected(
                 campaignId,
-                new TargetVehicle("model-a", "hw-9", "KR", "1.0.0"),
+                new TargetVehicleCriteria("model-a", "hw-9", "KR", "1.0.0"),
                 NOW,
                 CampaignErrorCode.NOT_UPDATE_TARGET);
     }
@@ -207,7 +206,7 @@ class CampaignQueryServiceTest {
 
         assertRejected(
                 campaignId,
-                new TargetVehicle("model-a", "hw-1", "KR", "1.0.1"),
+                new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.1"),
                 NOW,
                 CampaignErrorCode.NOT_UPDATE_TARGET);
     }
@@ -221,19 +220,20 @@ class CampaignQueryServiceTest {
     }
 
     // 지연 로딩하는 HW 버전·지역까지 DB 에서 다시 읽은 캠페인으로 판정하도록 영속성 컨텍스트를 비운다
-    private Optional<Long> findTarget(TargetVehicle vehicle) {
+    private Optional<Long> findTarget(TargetVehicleCriteria vehicle) {
         em.flush();
         em.clear();
         return service.findTargetCampaignId(vehicle, NOW);
     }
 
-    private ArtifactSummary getTargetArtifact(Long campaignId, TargetVehicle vehicle, Instant now) {
+    private ArtifactSummary getTargetArtifact(Long campaignId, TargetVehicleCriteria vehicle, Instant now) {
         em.flush();
         em.clear();
         return service.getTargetArtifact(campaignId, vehicle, now);
     }
 
-    private void assertRejected(Long campaignId, TargetVehicle vehicle, Instant now, CampaignErrorCode errorCode) {
+    private void assertRejected(
+            Long campaignId, TargetVehicleCriteria vehicle, Instant now, CampaignErrorCode errorCode) {
         assertThatThrownBy(() -> getTargetArtifact(campaignId, vehicle, now))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", errorCode);

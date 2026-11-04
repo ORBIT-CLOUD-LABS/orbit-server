@@ -1,8 +1,8 @@
 package com.orbit.server.domain.update.service;
 
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
-import com.orbit.server.domain.campaign.entity.TargetVehicle;
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
+import com.orbit.server.domain.campaign.service.TargetVehicleCriteria;
 import com.orbit.server.domain.update.entity.SoftwareVersion;
 import com.orbit.server.domain.vehicle.service.VehicleProfile;
 import com.orbit.server.domain.vehicle.service.VehicleQueryService;
@@ -44,8 +44,8 @@ public class ManifestService {
     public ManifestResult issue(String vehicleId, Long campaignId) {
         VehicleProfile vehicle = vehicleQueryService.getProfile(vehicleId);
         SoftwareVersion currentVersion = vehicleStateService.getCurrentVersion(vehicle.vehicleId());
-        TargetVehicle target =
-                new TargetVehicle(vehicle.model(), vehicle.hwVersion(), vehicle.region(), currentVersion.value());
+        TargetVehicleCriteria target = new TargetVehicleCriteria(
+                vehicle.model(), vehicle.hwVersion(), vehicle.region(), currentVersion.value());
         ArtifactSummary artifact = campaignQueryService.getTargetArtifact(campaignId, target, clock.instant());
         return ManifestResult.of(campaignId, artifact, downloadUrlIssuer.issue(artifact.path()));
     }

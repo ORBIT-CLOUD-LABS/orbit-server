@@ -34,13 +34,14 @@ public class CampaignQueryService {
      *
      * <p>목표 버전을 숫자 자리로 읽을 수 없는 캠페인은 순서를 정할 수 없으므로 고르지 않는다.
      *
-     * @param vehicle 판정할 차량
+     * @param criteria 판정할 차량
      * @param now 판정 시각
      * @return 대상 캠페인 ID. 대상이 아니면 빈 값
      */
     // HW 버전·지역을 지연 로딩하므로 조회부터 판정까지 한 트랜잭션으로 묶는다
     @Transactional(readOnly = true)
-    public Optional<Long> findTargetCampaignId(TargetVehicle vehicle, Instant now) {
+    public Optional<Long> findTargetCampaignId(TargetVehicleCriteria criteria, Instant now) {
+        TargetVehicle vehicle = criteria.toTargetVehicle();
         return campaignRepository.findAllActiveByModel(vehicle.model()).stream()
                 .filter(campaign -> campaign.targets(vehicle, now))
                 .flatMap(campaign -> toTargetCampaign(campaign).stream())
@@ -69,7 +70,7 @@ public class CampaignQueryService {
      * <p>판정 순서는 캠페인 없음 → 비활성·기간 밖 → 대상 아님이다.
      *
      * @param campaignId 차량이 요청한 캠페인 ID
-     * @param vehicle 판정할 차량. 현재 버전은 마지막 체크인 때 기록한 값
+     * @param criteria 판정할 차량. 현재 버전은 마지막 체크인 때 기록한 값
      * @param now 판정 시각
      * @return 캠페인이 배포하는 파일
      * @throws BusinessException 캠페인이 없으면 CAMPAIGN_NOT_FOUND, 비활성이거나 적용 기간 밖이면 CAMPAIGN_INACTIVE, 대상 조건이
@@ -77,7 +78,8 @@ public class CampaignQueryService {
      */
     // HW 버전·지역을 지연 로딩하므로 조회부터 판정까지 한 트랜잭션으로 묶는다
     @Transactional(readOnly = true)
-    public ArtifactSummary getTargetArtifact(Long campaignId, TargetVehicle vehicle, Instant now) {
+    public ArtifactSummary getTargetArtifact(Long campaignId, TargetVehicleCriteria criteria, Instant now) {
+        TargetVehicle vehicle = criteria.toTargetVehicle();
         Campaign campaign = getActiveCampaign(campaignId, now);
         if (!campaign.targets(vehicle, now)) {
             throw new BusinessException(CampaignErrorCode.NOT_UPDATE_TARGET);
