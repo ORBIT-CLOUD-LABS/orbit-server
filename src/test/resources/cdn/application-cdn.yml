@@ -1,0 +1,17 @@
+# 배포 환경에서 ConfigMap 으로 마운트할 Edge 설정 파일의 예. ExternalEdgeConfigTest 가 spring.config.import 로 읽는다
+orbit:
+  cdn:
+    default-edge-id: edge-daejeon
+    # application.yml 의 기본값(2)보다 이 파일의 값이 우선하는지 확인하려고 다른 값을 둔다
+    fallback-count: 1
+    edges:
+      - id: edge-seoul
+        name: 서울
+        base-url: http://192.168.100.102:30081
+        latitude: 37.5665
+        longitude: 126.9780
+      - id: edge-daejeon
+        name: 대전
+        base-url: http://192.168.100.102:30082
+        latitude: 36.3504
+        longitude: 127.3845

@@ -3,6 +3,7 @@ package com.orbit.server.global.external.cdn;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,7 +46,8 @@ class FixedCdnDownloadUrlIssuerTest {
                 .isEqualTo("http://cdn.test/firmware/%s/1.0.1/firmware.bin".formatted(encodedModel));
     }
 
+    // 고정 URL 은 CDN 주소만 쓰므로 Edge 관련 값은 비워 둔다
     private static FixedCdnDownloadUrlIssuer issuerOf(String baseUrl) {
-        return new FixedCdnDownloadUrlIssuer(new CdnProperties(URI.create(baseUrl)));
+        return new FixedCdnDownloadUrlIssuer(new CdnProperties(URI.create(baseUrl), null, null, null, List.of()));
     }
 }
