@@ -28,8 +28,7 @@ public class CheckInService {
     private static final int TRANSACTION_TIMEOUT_SECONDS = 3;
 
     private final VehicleQueryService vehicleQueryService;
-    private final VehicleStateService vehicleStateService;
-    private final UpdateResultService updateResultService;
+    private final CheckInRecorder checkInRecorder;
     private final CampaignQueryService campaignQueryService;
     private final CheckInProperties checkInProperties;
     private final Clock clock;
@@ -46,8 +45,7 @@ public class CheckInService {
     @Transactional(timeout = TRANSACTION_TIMEOUT_SECONDS)
     public CheckInResult checkIn(CheckInCommand command) {
         VehicleProfile vehicle = vehicleQueryService.getProfile(command.vehicleId());
-        vehicleStateService.recordCheckIn(vehicle.vehicleId(), command.currentVersion());
-        command.lastUpdate().ifPresent(report -> updateResultService.record(vehicle.vehicleId(), report));
+        checkInRecorder.record(vehicle.vehicleId(), command);
         TargetVehicleCriteria target = new TargetVehicleCriteria(
                 vehicle.model(), vehicle.hwVersion(), vehicle.region(), command.currentVersion());
         Optional<Long> campaignId = campaignQueryService.findTargetCampaignId(target, clock.instant());
