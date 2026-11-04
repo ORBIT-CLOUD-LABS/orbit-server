@@ -1,0 +1,4 @@
+#
+#Wed Nov 04 13:03:27 KST 2026
+classes\ that\ reside\ in\ a\ package\ 'com.orbit.server.domain.*..'\ should\ not\ reference\ entity\ or\ repository\ of\ other\ contexts,\ because\ \uB2E4\uB978\ \uCEE8\uD14D\uC2A4\uD2B8\uB294\ service\ \uB098\ \uC774\uBCA4\uD2B8\uB85C\uB9CC\ \uC811\uADFC\uD574\uC57C\ \uCEE8\uD14D\uC2A4\uD2B8\ \uC548\uC758\ \uBAA8\uB378\uC744\ \uBC14\uAFD4\uB3C4\ \uBC16\uC774\ \uAE68\uC9C0\uC9C0\ \uC54A\uB294\uB2E4=20286c26-c235-4130-907f-1df617c27547
+slices\ matching\ 'com.orbit.server.domain.(*)..'\ should\ be\ free\ of\ cycles,\ because\ \uCEE8\uD14D\uC2A4\uD2B8\uB07C\uB9AC\ \uC11C\uB85C\uB97C\ \uC54C\uBA74\ \uD55C\uCABD\ \uBCC0\uACBD\uC774\ \uB2E4\uB978\ \uCABD\uC73C\uB85C\ \uBC88\uC9C4\uB2E4.\ \uC5ED\uBC29\uD5A5\uC774\ \uD544\uC694\uD558\uBA74\ \uB3C4\uBA54\uC778\ \uC774\uBCA4\uD2B8\uB85C\ \uB04A\uB294\uB2E4=dd767569-86d4-43ee-96c1-f641f67521a3
