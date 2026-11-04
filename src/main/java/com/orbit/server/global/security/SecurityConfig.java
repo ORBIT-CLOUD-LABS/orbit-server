@@ -26,6 +26,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 class SecurityConfig {
 
     static final String HEALTH_PATHS = "/actuator/health/**";
+    static final String PROMETHEUS_PATH = "/actuator/prometheus";
     static final String VEHICLE_PATHS = "/api/v1/vehicles/**";
     static final String ADMIN_PATHS = "/api/v1/admin/**";
     static final String DASHBOARD_PATHS = "/api/v1/dashboard/**";
@@ -53,6 +54,9 @@ class SecurityConfig {
                         .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC)
                         .permitAll()
                         .requestMatchers(HEALTH_PATHS)
+                        .permitAll()
+                        // 수집기는 토큰 없이 주기적으로 긁어 가므로 health 와 같은 수준으로 열고, 접근은 네트워크 경계에서 막는다
+                        .requestMatchers(PROMETHEUS_PATH)
                         .permitAll()
                         // API 문서 노출 여부는 springdoc 설정으로 정한다. 꺼져 있으면 경로가 없어 404 가 된다
                         .requestMatchers(API_DOCS_PATHS)
