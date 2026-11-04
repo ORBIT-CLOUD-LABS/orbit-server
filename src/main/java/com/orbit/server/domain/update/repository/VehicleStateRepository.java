@@ -1,6 +1,7 @@
 package com.orbit.server.domain.update.repository;
 
 import com.orbit.server.domain.update.entity.SoftwareVersion;
+import com.orbit.server.domain.update.entity.VehicleLocation;
 import com.orbit.server.domain.update.entity.VehicleState;
 import java.util.Optional;
 
@@ -32,6 +33,16 @@ public interface VehicleStateRepository {
      * @return 덮어쓴 행 수. 상태가 없는 차량이면 0
      */
     int recordCheckIn(Long vehicleId, SoftwareVersion currentVersion);
+
+    /**
+     * 차량이 체크인으로 보낸 위치와 위치 갱신 시각을 덮어쓴다. 갱신 시각은 마지막 체크인 시각처럼 DB 시계로 기록한다.
+     * (VEHICLE-REQ-001)
+     *
+     * @param vehicleId 차량 ID
+     * @param location 차량이 보낸 위치
+     * @return 덮어쓴 행 수. 상태가 없는 차량이면 0
+     */
+    int recordLocation(Long vehicleId, VehicleLocation location);
 
     /**
      * 차량의 상태를 저장한다.
