@@ -19,7 +19,8 @@ class CheckInRecorder {
     private final UpdateResultService updateResultService;
 
     /**
-     * 현재 버전·마지막 체크인 시각을 기록하고, 보고한 업데이트 결과가 있으면 함께 기록한다.
+     * 현재 버전·마지막 체크인 시각을 기록하고, 보낸 위치와 보고한 업데이트 결과가 있으면 함께 기록한다. 위치가 없으면(GPS 미수신) 이전
+     * 위치를 그대로 둔다.
      *
      * @param vehicleId 체크인한 차량 ID
      * @param command 체크인 요청
@@ -29,6 +30,7 @@ class CheckInRecorder {
     @Transactional(propagation = Propagation.MANDATORY)
     void record(Long vehicleId, CheckInCommand command) {
         vehicleStateService.recordCheckIn(vehicleId, command.currentVersion());
+        command.location().ifPresent(location -> vehicleStateService.recordLocation(vehicleId, location));
         command.lastUpdate().ifPresent(report -> updateResultService.record(vehicleId, report));
     }
 }

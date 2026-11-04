@@ -19,6 +19,9 @@ public record CheckInRequest(@NotBlank String currentVersion, LastUpdateRequest 
      */
     public CheckInCommand toCommand(String vehicleId) {
         return new CheckInCommand(
-                vehicleId, currentVersion, Optional.ofNullable(lastUpdate).map(LastUpdateRequest::toCommand));
+                vehicleId,
+                currentVersion,
+                Optional.empty(),
+                Optional.ofNullable(lastUpdate).map(LastUpdateRequest::toCommand));
     }
 }

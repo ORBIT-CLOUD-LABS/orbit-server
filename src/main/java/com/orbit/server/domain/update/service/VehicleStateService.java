@@ -1,6 +1,7 @@
 package com.orbit.server.domain.update.service;
 
 import com.orbit.server.domain.update.entity.SoftwareVersion;
+import com.orbit.server.domain.update.entity.VehicleLocation;
 import com.orbit.server.domain.update.entity.VehicleState;
 import com.orbit.server.domain.update.repository.VehicleStateRepository;
 import com.orbit.server.global.error.InvalidValueException;
@@ -53,6 +54,19 @@ public class VehicleStateService {
         if (updated == 0) {
             throw new IllegalStateException("체크인한 차량의 상태가 없습니다: " + vehicleId);
         }
+    }
+
+    /**
+     * 체크인한 차량의 위치와 위치 갱신 시각을 덮어쓴다. 위치는 Edge 선택에만 쓰고 대상 판정에는 쓰지 않는다. (VEHICLE-REQ-001)
+     *
+     * <p>체크인 기록({@link #recordCheckIn})과 같은 트랜잭션에서 부르므로 상태가 있는지는 다시 확인하지 않는다.
+     *
+     * @param vehicleId 차량 ID
+     * @param location 차량이 보낸 위치
+     */
+    @Transactional
+    public void recordLocation(Long vehicleId, VehicleLocation location) {
+        vehicleStateRepository.recordLocation(vehicleId, location);
     }
 
     /**
