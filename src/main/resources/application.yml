@@ -65,6 +65,12 @@ orbit:
     location-max-age: ${CDN_LOCATION_MAX_AGE:10m}
     # default-edge-id 와 edges 는 기본값을 두지 않는다. 배포 환경마다 Edge 구성이 다르기 때문이다.
     # edges 는 중첩 리스트라 환경 변수가 아니라 외부 YAML 파일(spring.config.import)로 넣는다
+    health-check:
+      # 기본값은 협의안(10초, 연속 3회 실패). 장애 Edge 가 빠지기까지 최대 약 주기 × 실패 기준만큼 걸린다
+      interval: ${CDN_HEALTH_CHECK_INTERVAL:10s}
+      failure-threshold: ${CDN_HEALTH_CHECK_FAILURE_THRESHOLD:3}
+      # Edge 를 차례로 확인하므로 응답 없는 Edge 하나가 주기를 넘기지 않도록 주기보다 충분히 짧게 둔다
+      timeout: ${CDN_HEALTH_CHECK_TIMEOUT:2s}
 
 # API 문서(Swagger UI)는 인증 없이 열리므로 기본은 끄고, 필요한 프로필에서만 켠다
 springdoc:
@@ -79,7 +85,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        # prometheus 는 클러스터 안 수집기가 API 와 같은 포트(8080)로 긁어 간다. 인증 없이 열리므로 그 밖의 엔드포인트는 노출하지 않는다
+        include: health,prometheus
   endpoint:
     health:
       probes:
