@@ -25,7 +25,7 @@ class ReportUpdateResultCommandTest {
     @DisplayName("UPDATE-REQ-001: 성공 보고를 실패 정보 없는 결과로 바꾼다")
     void convertsSucceeded() {
         assertThat(reportOf("SUCCEEDED", null, null).toOutcome())
-                .isEqualTo(new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_INSTANT));
+                .isEqualTo(new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_INSTANT, null));
     }
 
     @Test
@@ -34,7 +34,7 @@ class ReportUpdateResultCommandTest {
         UpdateFailure failure = new UpdateFailure(FailureReason.HASH_MISMATCH, "sha256 mismatch");
 
         assertThat(reportOf("FAILED", "HASH_MISMATCH", "sha256 mismatch").toOutcome())
-                .isEqualTo(new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_INSTANT));
+                .isEqualTo(new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_INSTANT, null));
     }
 
     @ParameterizedTest
@@ -44,7 +44,7 @@ class ReportUpdateResultCommandTest {
         UpdateFailure failure = new UpdateFailure(FailureReason.valueOf(reason), null);
 
         assertThat(reportOf("FAILED", reason, null).toOutcome())
-                .isEqualTo(new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_INSTANT));
+                .isEqualTo(new UpdateOutcome(UpdateStatus.FAILED, failure, FINISHED_INSTANT, null));
     }
 
     @Test
@@ -66,7 +66,7 @@ class ReportUpdateResultCommandTest {
     @DisplayName("UPDATE-POL-001: 비어 있는 실패 사유·상세는 보내지 않은 것으로 본다")
     void treatsBlankFailureAsAbsent(String blank) {
         assertThat(reportOf("SUCCEEDED", blank, blank).toOutcome())
-                .isEqualTo(new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_INSTANT));
+                .isEqualTo(new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_INSTANT, null));
     }
 
     @Test

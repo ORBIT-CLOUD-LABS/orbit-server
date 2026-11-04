@@ -36,7 +36,7 @@ public record ReportUpdateResultCommand(
         if (campaignId == null) {
             throw new InvalidValueException("업데이트 결과의 캠페인 ID 는 비어 있을 수 없습니다.");
         }
-        return new UpdateOutcome(parse(UpdateStatus.class, result, "업데이트 결과"), toFailure(), parseFinishedAt());
+        return new UpdateOutcome(parse(UpdateStatus.class, result, "업데이트 결과"), toFailure(), parseFinishedAt(), null);
     }
 
     // 상세가 없을 때 null 대신 빈 문자열을 보내는 차량도 있을 수 있으므로 공백은 보내지 않은 것으로 본다
