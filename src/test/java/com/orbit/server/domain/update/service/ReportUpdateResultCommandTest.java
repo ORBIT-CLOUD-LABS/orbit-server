@@ -108,7 +108,8 @@ class ReportUpdateResultCommandTest {
     @Test
     @DisplayName("UPDATE-REQ-001: 캠페인 ID 가 없으면 거부한다")
     void rejectsMissingCampaignId() {
-        ReportUpdateResultCommand report = new ReportUpdateResultCommand(null, "SUCCEEDED", null, null, FINISHED_AT);
+        ReportUpdateResultCommand report =
+                new ReportUpdateResultCommand(null, "SUCCEEDED", null, null, FINISHED_AT, null);
 
         assertThatThrownBy(report::toOutcome).isInstanceOf(InvalidValueException.class);
     }
@@ -116,7 +117,7 @@ class ReportUpdateResultCommandTest {
     @Test
     @DisplayName("UPDATE-REQ-001: 완료 시각이 없으면 거부한다")
     void rejectsMissingFinishedAt() {
-        ReportUpdateResultCommand report = new ReportUpdateResultCommand(1L, "SUCCEEDED", null, null, null);
+        ReportUpdateResultCommand report = new ReportUpdateResultCommand(1L, "SUCCEEDED", null, null, null, null);
 
         assertThatThrownBy(report::toOutcome).isInstanceOf(InvalidValueException.class);
     }
@@ -124,14 +125,41 @@ class ReportUpdateResultCommandTest {
     @Test
     @DisplayName("UPDATE-REQ-001: 완료 시각이 ISO-8601 형식이 아니면 원인을 담아 거부한다")
     void rejectsMalformedFinishedAt() {
-        ReportUpdateResultCommand report = new ReportUpdateResultCommand(1L, "SUCCEEDED", null, null, "2026-10-01");
+        ReportUpdateResultCommand report =
+                new ReportUpdateResultCommand(1L, "SUCCEEDED", null, null, "2026-10-01", null);
 
         assertThatThrownBy(report::toOutcome)
                 .isInstanceOf(InvalidValueException.class)
                 .hasCauseInstanceOf(DateTimeParseException.class);
     }
 
+    @Test
+    @DisplayName("UPDATE-REQ-001: 차량이 파일을 받은 Edge 를 결과에 담는다")
+    void convertsDownloadEdge() {
+        assertThat(reportFrom("edge-seoul").toOutcome())
+                .isEqualTo(new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_INSTANT, "edge-seoul"));
+    }
+
+    // 실패 사유·상세처럼 null 대신 빈 문자열을 보내는 차량도 있을 수 있으므로 공백은 보내지 않은 것으로 본다
+    @ParameterizedTest
+    @ValueSource(strings = {"", "  "})
+    @DisplayName("UPDATE-REQ-001: 비어 있는 Edge 는 보내지 않은 것으로 본다")
+    void treatsBlankDownloadEdgeAsAbsent(String blank) {
+        assertThat(reportFrom(blank).toOutcome())
+                .isEqualTo(new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_INSTANT, null));
+    }
+
+    @Test
+    @DisplayName("UPDATE-POL-001: Edge 가 50자를 넘으면 거부한다")
+    void rejectsTooLongDownloadEdge() {
+        assertThatThrownBy(() -> reportFrom("e".repeat(51)).toOutcome()).isInstanceOf(InvalidValueException.class);
+    }
+
     private static ReportUpdateResultCommand reportOf(String result, String failureReason, String failureDetail) {
-        return new ReportUpdateResultCommand(1L, result, failureReason, failureDetail, FINISHED_AT);
+        return new ReportUpdateResultCommand(1L, result, failureReason, failureDetail, FINISHED_AT, null);
+    }
+
+    private static ReportUpdateResultCommand reportFrom(String edgeId) {
+        return new ReportUpdateResultCommand(1L, "SUCCEEDED", null, null, FINISHED_AT, edgeId);
     }
 }

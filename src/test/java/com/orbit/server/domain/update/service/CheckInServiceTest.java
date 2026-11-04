@@ -148,7 +148,7 @@ class CheckInServiceTest {
     void recordsLastUpdateWithState() {
         Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, null, NOW.toString());
+                new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, null, NOW.toString(), null);
 
         CheckInResult result =
                 service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.empty(), Optional.of(report)));
@@ -172,7 +172,7 @@ class CheckInServiceTest {
     @DisplayName("UPDATE-REQ-001: 없는 캠페인의 결과가 와도 체크인은 처리한다")
     void checksInWithResultOfMissingCampaign() {
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(Long.MAX_VALUE, "SUCCEEDED", null, null, NOW.toString());
+                new ReportUpdateResultCommand(Long.MAX_VALUE, "SUCCEEDED", null, null, NOW.toString(), null);
 
         CheckInResult result =
                 service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.empty(), Optional.of(report)));
@@ -186,7 +186,7 @@ class CheckInServiceTest {
     void checksInWithMalformedLastUpdate() {
         Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
         ReportUpdateResultCommand report =
-                new ReportUpdateResultCommand(campaignId, "FAILED", null, null, NOW.toString());
+                new ReportUpdateResultCommand(campaignId, "FAILED", null, null, NOW.toString(), null);
 
         CheckInResult result =
                 service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0", Optional.empty(), Optional.of(report)));

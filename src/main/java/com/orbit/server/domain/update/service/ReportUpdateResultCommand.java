@@ -20,9 +20,10 @@ import java.util.Arrays;
  * @param failureReason 실패 사유. 실패일 때만 있다
  * @param failureDetail 실패 상세. 실패 사유가 있을 때만 보낼 수 있다
  * @param finishedAt 차량이 업데이트를 마친 시각 (ISO-8601)
+ * @param edgeId 차량이 실제로 파일을 받은 Edge. 다운로드 전에 실패했거나 보내지 않았으면 null
  */
 public record ReportUpdateResultCommand(
-        Long campaignId, String result, String failureReason, String failureDetail, String finishedAt) {
+        Long campaignId, String result, String failureReason, String failureDetail, String finishedAt, String edgeId) {
 
     /**
      * 보고 전체를 검증하고 업데이트 결과로 바꾼다. 실패 여부와 실패 사유 유무가 맞는지는 {@link UpdateOutcome} 이 검증한다.
@@ -30,13 +31,23 @@ public record ReportUpdateResultCommand(
      *
      * @return 성공·실패와 실패 정보, 완료 시각
      * @throws InvalidValueException 캠페인 ID·결과·완료 시각이 없거나 형식이 틀린 경우, 정의하지 않은 결과·실패 사유인 경우, 실패
-     *     여부와 실패 사유 유무가 맞지 않는 경우, 실패 사유 없이 실패 상세가 있는 경우, 실패 상세가 500자를 넘는 경우
+     *     여부와 실패 사유 유무가 맞지 않는 경우, 실패 사유 없이 실패 상세가 있는 경우, 실패 상세가 500자를 넘는 경우, Edge 가 50자를
+     *     넘는 경우
      */
     public UpdateOutcome toOutcome() {
         if (campaignId == null) {
             throw new InvalidValueException("업데이트 결과의 캠페인 ID 는 비어 있을 수 없습니다.");
         }
-        return new UpdateOutcome(parse(UpdateStatus.class, result, "업데이트 결과"), toFailure(), parseFinishedAt(), null);
+        return new UpdateOutcome(
+                parse(UpdateStatus.class, result, "업데이트 결과"), toFailure(), parseFinishedAt(), toDownloadEdgeId());
+    }
+
+    // 실패 사유·상세와 같이 빈 문자열은 보내지 않은 것으로 본다
+    private String toDownloadEdgeId() {
+        if (isBlank(edgeId)) {
+            return null;
+        }
+        return edgeId;
     }
 
     // 상세가 없을 때 null 대신 빈 문자열을 보내는 차량도 있을 수 있으므로 공백은 보내지 않은 것으로 본다

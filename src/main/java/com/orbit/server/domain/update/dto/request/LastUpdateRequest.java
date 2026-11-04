@@ -21,6 +21,6 @@ public record LastUpdateRequest(
      * @return 업데이트 결과 기록 요청
      */
     public ReportUpdateResultCommand toCommand() {
-        return new ReportUpdateResultCommand(campaignId, result, failureReason, failureDetail, finishedAt);
+        return new ReportUpdateResultCommand(campaignId, result, failureReason, failureDetail, finishedAt, null);
     }
 }
