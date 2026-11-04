@@ -9,6 +9,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
+import com.orbit.server.domain.update.service.VehicleStateService;
+import com.orbit.server.domain.vehicle.service.VehicleRegistrationService;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -75,11 +77,16 @@ class ArchitectureTest {
             .should(notReferenceOtherContextsInternals())
             .because("다른 컨텍스트는 service 나 이벤트로만 접근해야 컨텍스트 안의 모델을 바꿔도 밖이 깨지지 않는다"));
 
+    // 순환은 FreezingArchRule 로 기록하지 않는다. 순환 위반 문장에 경로상의 모든 의존(생성자 시그니처 등)이 들어가서,
+    // 순환에 걸친 클래스를 고칠 때마다 같은 순환이 새 위반으로 잡히기 때문이다.
+    // 대신 알려진 역방향 의존만 클래스 단위로 허용한다.
+    // - vehicle → update: 차량 등록이 VehicleStateService 로 초기 상태를 만든다. 도메인 이벤트로 끊으면 이 허용을 지운다
     @ArchTest
-    static final ArchRule contextsAreFreeOfCycles = FreezingArchRule.freeze(slices().matching(DOMAIN_PACKAGE + "(*)..")
+    static final ArchRule contextsAreFreeOfCycles = slices().matching(DOMAIN_PACKAGE + "(*)..")
             .should()
             .beFreeOfCycles()
-            .because("컨텍스트끼리 서로를 알면 한쪽 변경이 다른 쪽으로 번진다. 역방향이 필요하면 도메인 이벤트로 끊는다"));
+            .ignoreDependency(VehicleRegistrationService.class, VehicleStateService.class)
+            .because("컨텍스트끼리 서로를 알면 한쪽 변경이 다른 쪽으로 번진다. 역방향이 필요하면 도메인 이벤트로 끊는다");
 
     private static ArchCondition<JavaClass> notReferenceOtherContextsInternals() {
         return new ArchCondition<>("not reference entity or repository of other contexts") {
