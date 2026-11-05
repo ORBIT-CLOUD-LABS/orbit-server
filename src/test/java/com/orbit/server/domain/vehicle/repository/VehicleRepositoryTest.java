@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class VehicleJpaRepositoryTest {
+class VehicleRepositoryTest {
 
     private static final VehicleExternalId EXTERNAL_ID = new VehicleExternalId("vehicle-001");
     private static final VehicleSpec SPEC = new VehicleSpec("model-a", "hw-1", "KR");
