@@ -2,10 +2,12 @@ package com.orbit.server.domain.campaign.controller;
 
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.campaign.dto.request.RegisterCampaignRequest;
+import com.orbit.server.domain.campaign.dto.response.CampaignDetailResponse;
 import com.orbit.server.domain.campaign.dto.response.CampaignListResponse;
 import com.orbit.server.domain.campaign.dto.response.CampaignRegistrationResponse;
 import com.orbit.server.domain.campaign.entity.CampaignStatus;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
+import com.orbit.server.domain.campaign.service.CampaignDetailService;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignListService;
 import com.orbit.server.domain.campaign.service.CampaignRegistrationService;
@@ -18,6 +20,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +36,7 @@ public class CampaignAdminController {
 
     private final CampaignRegistrationService campaignRegistrationService;
     private final CampaignListService campaignListService;
+    private final CampaignDetailService campaignDetailService;
 
     /**
      * 대상 조건·목표 버전·기간으로 캠페인을 등록한다. 등록 즉시 활성 상태가 된다. (CAMPAIGN-REQ-001 / CAMPAIGN-POL-001)
@@ -71,5 +75,19 @@ public class CampaignAdminController {
             @RequestParam(required = false) CampaignStatus status, @RequestParam(required = false) String model) {
         return ApiResponse.success(
                 CampaignListResponse.from(campaignListService.findAll(new CampaignFilter(status, model))));
+    }
+
+    /**
+     * 캠페인 한 건의 대상 조건·기간·상태와 배포하는 Artifact 를 조회한다. 비활성 캠페인도 조회한다.
+     *
+     * @param campaignId 캠페인 ID
+     * @return 200 과 캠페인 상세
+     */
+    @GetMapping("/{campaignId}")
+    @ApiErrorCodes(
+            type = CampaignErrorCode.class,
+            codes = {"CAMPAIGN_NOT_FOUND"})
+    public ApiResponse<CampaignDetailResponse> findById(@PathVariable Long campaignId) {
+        return ApiResponse.success(CampaignDetailResponse.from(campaignDetailService.getById(campaignId)));
     }
 }
