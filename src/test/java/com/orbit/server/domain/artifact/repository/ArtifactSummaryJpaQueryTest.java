@@ -7,7 +7,6 @@ import com.orbit.server.domain.artifact.entity.Artifact;
 import com.orbit.server.domain.artifact.entity.ArtifactFile;
 import com.orbit.server.domain.artifact.entity.ArtifactRelease;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
-import com.orbit.server.domain.artifact.service.ArtifactSummaryQuery;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,16 +28,13 @@ class ArtifactSummaryJpaQueryTest {
     @Autowired
     private ArtifactRepository artifactRepository;
 
-    @Autowired
-    private ArtifactSummaryQuery artifactSummaryQuery;
-
     @Test
     @DisplayName("ORIGIN-REQ-001: 전체 목록을 최근 등록한 순서로 조회한다")
     void findAllInLatestOrder() {
         Artifact first = save(new ArtifactRelease("model-a", "1.0.0"));
         Artifact second = save(new ArtifactRelease("model-b", "1.0.0"));
 
-        List<ArtifactSummary> summaries = artifactSummaryQuery.findAll();
+        List<ArtifactSummary> summaries = artifactRepository.findAllSummaries();
 
         assertThat(summaries).extracting(ArtifactSummary::artifactId).containsExactly(second.getId(), first.getId());
     }
@@ -50,7 +46,7 @@ class ArtifactSummaryJpaQueryTest {
         save(new ArtifactRelease("model-b", "1.0.0"));
         Artifact newer = save(new ArtifactRelease("model-a", "1.0.1"));
 
-        List<ArtifactSummary> summaries = artifactSummaryQuery.findAllByModel("model-a");
+        List<ArtifactSummary> summaries = artifactRepository.findSummariesByModel("model-a");
 
         assertThat(summaries).extracting(ArtifactSummary::artifactId).containsExactly(newer.getId(), older.getId());
     }
@@ -61,7 +57,7 @@ class ArtifactSummaryJpaQueryTest {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.0");
         Artifact artifact = save(release);
 
-        ArtifactSummary summary = artifactSummaryQuery.findAll().getFirst();
+        ArtifactSummary summary = artifactRepository.findAllSummaries().getFirst();
 
         assertThat(summary)
                 .usingRecursiveComparison()
@@ -76,7 +72,7 @@ class ArtifactSummaryJpaQueryTest {
     void emptyWhenNoArtifactOfModel() {
         save(new ArtifactRelease("model-a", "1.0.0"));
 
-        assertThat(artifactSummaryQuery.findAllByModel("model-b")).isEmpty();
+        assertThat(artifactRepository.findSummariesByModel("model-b")).isEmpty();
     }
 
     @Test
@@ -85,7 +81,7 @@ class ArtifactSummaryJpaQueryTest {
         save(new ArtifactRelease("model-a", "1.0.0"));
         Artifact target = save(new ArtifactRelease("model-a", "1.0.1"));
 
-        assertThat(artifactSummaryQuery.findById(target.getId()))
+        assertThat(artifactRepository.findSummaryById(target.getId()))
                 .map(ArtifactSummary::version)
                 .contains("1.0.1");
     }
@@ -95,7 +91,7 @@ class ArtifactSummaryJpaQueryTest {
     void emptyWhenNoArtifactOfId() {
         Artifact artifact = save(new ArtifactRelease("model-a", "1.0.0"));
 
-        assertThat(artifactSummaryQuery.findById(artifact.getId() + 1)).isEmpty();
+        assertThat(artifactRepository.findSummaryById(artifact.getId() + 1)).isEmpty();
     }
 
     // 보조 API(제안)라 요구사항 ID 가 없다
@@ -106,7 +102,8 @@ class ArtifactSummaryJpaQueryTest {
         save(new ArtifactRelease("model-a", "1.0.1"));
         Artifact third = save(new ArtifactRelease("model-b", "2.0.0"));
 
-        List<ArtifactSummary> summaries = artifactSummaryQuery.findAllByIds(List.of(first.getId(), third.getId(), -1L));
+        List<ArtifactSummary> summaries =
+                artifactRepository.findSummariesByIds(List.of(first.getId(), third.getId(), -1L));
 
         assertThat(summaries).extracting(ArtifactSummary::version).containsExactlyInAnyOrder("1.0.0", "2.0.0");
     }
@@ -116,7 +113,7 @@ class ArtifactSummaryJpaQueryTest {
     void emptyWhenNoIds() {
         save(new ArtifactRelease("model-a", "1.0.0"));
 
-        assertThat(artifactSummaryQuery.findAllByIds(List.of())).isEmpty();
+        assertThat(artifactRepository.findSummariesByIds(List.of())).isEmpty();
     }
 
     private Artifact save(ArtifactRelease release) {

@@ -25,24 +25,22 @@ class ArtifactQueryServiceTest {
     private static final ArtifactSummary MODEL_A = summaryOf(1L, "model-a");
     private static final ArtifactSummary MODEL_B = summaryOf(2L, "model-b");
 
-    private ArtifactSummaryQuery artifactSummaryQuery;
     private ArtifactRepository artifactRepository;
     private ArtifactQueryService service;
 
     @BeforeEach
     void setUp() {
-        artifactSummaryQuery = mock(ArtifactSummaryQuery.class);
         artifactRepository = mock(ArtifactRepository.class);
-        service = new ArtifactQueryService(artifactSummaryQuery, artifactRepository);
+        service = new ArtifactQueryService(artifactRepository);
     }
 
     @Test
     @DisplayName("ORIGIN-REQ-001: 차종을 주면 그 차종의 파일만 조회한다")
     void findsByModel() {
-        given(artifactSummaryQuery.findAllByModel("model-a")).willReturn(List.of(MODEL_A));
+        given(artifactRepository.findSummariesByModel("model-a")).willReturn(List.of(MODEL_A));
 
         assertThat(service.findAll("model-a")).containsExactly(MODEL_A);
-        verify(artifactSummaryQuery, never()).findAll();
+        verify(artifactRepository, never()).findAllSummaries();
     }
 
     @ParameterizedTest
@@ -50,7 +48,7 @@ class ArtifactQueryServiceTest {
     @ValueSource(strings = " ")
     @DisplayName("ORIGIN-REQ-001: 차종이 없거나 비어 있으면 전체 목록을 조회한다")
     void findsAllWithoutModel(String model) {
-        given(artifactSummaryQuery.findAll()).willReturn(List.of(MODEL_B, MODEL_A));
+        given(artifactRepository.findAllSummaries()).willReturn(List.of(MODEL_B, MODEL_A));
 
         assertThat(service.findAll(model)).containsExactly(MODEL_B, MODEL_A);
     }
@@ -58,7 +56,7 @@ class ArtifactQueryServiceTest {
     @Test
     @DisplayName("CAMPAIGN-REQ-001: ID 로 파일을 조회한다")
     void getsById() {
-        given(artifactSummaryQuery.findById(1L)).willReturn(Optional.of(MODEL_A));
+        given(artifactRepository.findSummaryById(1L)).willReturn(Optional.of(MODEL_A));
 
         assertThat(service.getById(1L)).isEqualTo(MODEL_A);
     }
@@ -66,7 +64,7 @@ class ArtifactQueryServiceTest {
     @Test
     @DisplayName("CAMPAIGN-REQ-001: 해당 ID 의 파일이 없으면 ARTIFACT_NOT_FOUND 로 실패한다")
     void failsWhenArtifactNotFound() {
-        given(artifactSummaryQuery.findById(3L)).willReturn(Optional.empty());
+        given(artifactRepository.findSummaryById(3L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.getById(3L))
                 .isInstanceOf(BusinessException.class)
@@ -78,7 +76,7 @@ class ArtifactQueryServiceTest {
     @Test
     @DisplayName("캠페인 목록: 여러 ID 의 파일을 한 번에 조회한다")
     void findsAllByIds() {
-        given(artifactSummaryQuery.findAllByIds(List.of(1L, 3L))).willReturn(List.of(MODEL_A));
+        given(artifactRepository.findSummariesByIds(List.of(1L, 3L))).willReturn(List.of(MODEL_A));
 
         assertThat(service.findAllByIds(List.of(1L, 3L))).containsExactly(MODEL_A);
     }
@@ -87,7 +85,7 @@ class ArtifactQueryServiceTest {
     @DisplayName("CAMPAIGN-POL-001: 파일 행을 잠근 뒤 조회한다")
     void locksAndGetsById() {
         given(artifactRepository.lockById(1L)).willReturn(Optional.of(1L));
-        given(artifactSummaryQuery.findById(1L)).willReturn(Optional.of(MODEL_A));
+        given(artifactRepository.findSummaryById(1L)).willReturn(Optional.of(MODEL_A));
 
         assertThat(service.lockAndGetById(1L)).isEqualTo(MODEL_A);
         verify(artifactRepository).lockById(1L);
