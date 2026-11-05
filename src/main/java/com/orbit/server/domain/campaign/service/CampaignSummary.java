@@ -6,7 +6,7 @@ import java.time.Instant;
 /**
  * 관리자가 캠페인 목록에서 보는 캠페인 정보.
  *
- * <p>조회 전용이라 Campaign 에 getter 를 두지 않고 DB 에서 바로 이 형태로 읽는다. 목표 버전은 Artifact 에 있으므로 여기에 담지 않고
+ * <p>목록에 필요한 컬럼만 읽도록 DB 에서 바로 이 형태로 읽는다. 목표 버전은 Artifact 에 있으므로 여기에 담지 않고
  * {@code artifactId} 로 따로 읽는다.
  *
  * @param campaignId 캠페인 ID
