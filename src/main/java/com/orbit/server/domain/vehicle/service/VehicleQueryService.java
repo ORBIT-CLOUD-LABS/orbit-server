@@ -1,6 +1,7 @@
 package com.orbit.server.domain.vehicle.service;
 
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
+import com.orbit.server.domain.vehicle.repository.VehicleRepository;
 import com.orbit.server.global.error.InvalidValueException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class VehicleQueryService {
 
-    private final VehicleProfileQuery vehicleProfileQuery;
+    private final VehicleRepository vehicleRepository;
 
     /**
      * 차량 정보를 조회한다. 차량 토큰 인증을 통과한 요청에서 부른다.
@@ -24,8 +25,8 @@ public class VehicleQueryService {
      */
     // 토큰은 차량에 딸려 함께 삭제되므로 인증을 통과했는데 차량이 없다면 데이터가 어긋난 것이라 서버 오류로 본다
     public VehicleProfile getProfile(String vehicleId) {
-        return vehicleProfileQuery
-                .findByExternalId(new VehicleExternalId(vehicleId))
+        return vehicleRepository
+                .findProfileByExternalId(new VehicleExternalId(vehicleId))
                 .orElseThrow(() -> new IllegalStateException("인증한 차량이 등록돼 있지 않습니다: " + vehicleId));
     }
 }
