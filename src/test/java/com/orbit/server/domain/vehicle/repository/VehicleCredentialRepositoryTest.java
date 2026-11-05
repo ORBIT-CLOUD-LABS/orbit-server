@@ -116,7 +116,7 @@ class VehicleCredentialRepositoryTest {
         return new VehicleCredential(vehicleId, VehicleToken.issue().hash());
     }
 
-    // 엔티티에 getter 를 두지 않으므로 상태와 폐기 시각 기록 여부를 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 기록된 상태와 폐기 시각을 확인한다
     @SuppressWarnings("unchecked")
     private List<String> statusesWithRevokedAt() {
         return entityManager
