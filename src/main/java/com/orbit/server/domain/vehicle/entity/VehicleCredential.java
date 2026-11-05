@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -25,6 +26,7 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "vehicle_credential")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VehicleCredential {
 
     @Id
@@ -52,8 +54,6 @@ public class VehicleCredential {
 
     @Column(name = "revoked_at")
     private Instant revokedAt;
-
-    protected VehicleCredential() {}
 
     /**
      * 차량에 새 토큰을 발급한다. 발급한 토큰은 유효 상태다.

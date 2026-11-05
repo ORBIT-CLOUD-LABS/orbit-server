@@ -9,7 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 
 /**
@@ -20,6 +22,7 @@ import org.hibernate.annotations.Generated;
 @Entity
 @Table(name = "artifact")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Artifact {
 
     // 저장 전이면 null
@@ -37,8 +40,6 @@ public class Artifact {
     @Generated
     @Column(name = "created_at")
     private Instant createdAt;
-
-    protected Artifact() {}
 
     /**
      * 업데이트 파일을 등록한다.
