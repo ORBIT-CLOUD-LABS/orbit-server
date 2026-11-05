@@ -84,7 +84,7 @@ public class CampaignQueryService {
         if (!campaign.targets(vehicle, now)) {
             throw new BusinessException(CampaignErrorCode.NOT_UPDATE_TARGET);
         }
-        ArtifactSummary artifact = artifactQueryService.getById(campaign.artifactId());
+        ArtifactSummary artifact = artifactQueryService.getById(campaign.getArtifactId());
         if (!isDeliverable(campaign, artifact, vehicle)) {
             throw new BusinessException(CampaignErrorCode.NOT_UPDATE_TARGET);
         }
@@ -109,10 +109,10 @@ public class CampaignQueryService {
     }
 
     private Optional<TargetCampaign> toTargetCampaign(Campaign campaign) {
-        return toTargetCampaign(campaign, artifactQueryService.getById(campaign.artifactId()));
+        return toTargetCampaign(campaign, artifactQueryService.getById(campaign.getArtifactId()));
     }
 
     private Optional<TargetCampaign> toTargetCampaign(Campaign campaign, ArtifactSummary artifact) {
-        return DottedVersion.parse(artifact.version()).map(version -> new TargetCampaign(campaign.id(), version));
+        return DottedVersion.parse(artifact.version()).map(version -> new TargetCampaign(campaign.getId(), version));
     }
 }

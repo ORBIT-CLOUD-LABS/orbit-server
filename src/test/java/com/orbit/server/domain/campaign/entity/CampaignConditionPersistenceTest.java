@@ -39,7 +39,7 @@ class CampaignConditionPersistenceTest {
         Campaign found = em.find(Campaign.class, campaignId);
 
         CampaignCondition condition = (CampaignCondition) ReflectionTestUtils.getField(found, "condition");
-        assertThat(condition.currentVersionRange()).isEqualTo(VersionRange.unbounded());
+        assertThat(condition.getCurrentVersionRange()).isEqualTo(VersionRange.unbounded());
     }
 
     @Test

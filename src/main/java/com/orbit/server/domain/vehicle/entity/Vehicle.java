@@ -9,6 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Getter;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
@@ -19,8 +20,10 @@ import org.hibernate.generator.EventType;
  */
 @Entity
 @Table(name = "vehicle")
+@Getter
 public class Vehicle {
 
+    // 토큰·상태처럼 차량에 딸린 데이터를 저장할 때 참조한다. 저장 전이면 null
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -51,15 +54,6 @@ public class Vehicle {
     public Vehicle(VehicleExternalId externalId, VehicleSpec spec) {
         this.externalId = Objects.requireNonNull(externalId, "externalId");
         this.spec = Objects.requireNonNull(spec, "spec");
-    }
-
-    /**
-     * 차량 ID. 토큰·상태처럼 차량에 딸린 데이터를 저장할 때 참조한다.
-     *
-     * @return 저장 전이면 null
-     */
-    public Long id() {
-        return id;
     }
 
     /**

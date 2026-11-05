@@ -202,8 +202,8 @@ class ManifestControllerTest {
         CampaignTarget target = new CampaignTarget("model-a", Set.of(hwVersion), Set.of("KR"));
         CampaignCondition condition = new CampaignCondition(target, VersionRange.unbounded(), period);
         Long campaignId = campaignRepository
-                .save(new Campaign(new CampaignName("campaign"), artifact.id(), condition))
-                .id();
+                .save(new Campaign(new CampaignName("campaign"), artifact.getId(), condition))
+                .getId();
         em.flush();
         em.clear();
         return campaignId;

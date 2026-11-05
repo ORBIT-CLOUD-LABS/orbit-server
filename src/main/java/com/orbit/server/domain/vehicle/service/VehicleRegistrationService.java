@@ -46,11 +46,11 @@ public class VehicleRegistrationService {
         Vehicle vehicle = registered
                 .map(found -> reregister(found, command.spec()))
                 .orElseGet(() -> vehicleRepository.save(command.toVehicle()));
-        vehicleStateService.recordCurrentVersion(vehicle.id(), command.currentVersion());
+        vehicleStateService.recordCurrentVersion(vehicle.getId(), command.currentVersion());
         VehicleToken token = VehicleToken.issue();
-        VehicleCredential credential = reissue(vehicle.id(), token);
+        VehicleCredential credential = reissue(vehicle.getId(), token);
         return new VehicleRegistrationResult(
-                registered.isEmpty(), command.externalId().value(), token, credential.issuedAt());
+                registered.isEmpty(), command.externalId().value(), token, credential.getIssuedAt());
     }
 
     private Vehicle reregister(Vehicle vehicle, VehicleSpec spec) {

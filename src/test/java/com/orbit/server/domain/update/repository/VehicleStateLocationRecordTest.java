@@ -43,7 +43,7 @@ class VehicleStateLocationRecordTest {
     void setUp() {
         Vehicle vehicle = new Vehicle(new VehicleExternalId("vehicle-001"), new VehicleSpec("model-a", "hw-1", "KR"));
         em.persist(vehicle);
-        vehicleId = vehicle.id();
+        vehicleId = vehicle.getId();
         em.persist(new VehicleState(vehicleId, new SoftwareVersion("1.0.0")));
         em.flush();
     }

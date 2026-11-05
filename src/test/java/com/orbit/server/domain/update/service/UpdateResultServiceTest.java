@@ -51,7 +51,7 @@ class UpdateResultServiceTest {
     void setUp() {
         Vehicle vehicle = new Vehicle(new VehicleExternalId("vehicle-001"), new VehicleSpec("model-a", "hw-1", "KR"));
         em.persist(vehicle);
-        vehicleId = vehicle.id();
+        vehicleId = vehicle.getId();
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.1");
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
         em.persist(artifact);
@@ -59,9 +59,9 @@ class UpdateResultServiceTest {
                 new CampaignTarget("model-a", null, null),
                 VersionRange.unbounded(),
                 new CampaignPeriod(FINISHED_AT, FINISHED_AT.plus(Duration.ofDays(1))));
-        Campaign campaign = new Campaign(new CampaignName("campaign"), artifact.id(), condition);
+        Campaign campaign = new Campaign(new CampaignName("campaign"), artifact.getId(), condition);
         em.persist(campaign);
-        campaignId = campaign.id();
+        campaignId = campaign.getId();
     }
 
     @Test

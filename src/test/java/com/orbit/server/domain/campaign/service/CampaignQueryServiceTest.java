@@ -255,13 +255,13 @@ class CampaignQueryServiceTest {
         CampaignTarget target = new CampaignTarget("model-a", Set.of("hw-1"), Set.of("KR"));
         Campaign campaign =
                 new Campaign(new CampaignName("campaign"), artifactId, new CampaignCondition(target, range, PERIOD));
-        return campaignRepository.save(campaign).id();
+        return campaignRepository.save(campaign).getId();
     }
 
     private Long saveArtifact(String version) {
         ArtifactRelease release = new ArtifactRelease("model-a", version);
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
         em.persist(artifact);
-        return artifact.id();
+        return artifact.getId();
     }
 }

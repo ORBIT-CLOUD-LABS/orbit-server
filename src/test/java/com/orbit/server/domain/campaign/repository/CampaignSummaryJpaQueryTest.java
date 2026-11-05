@@ -60,7 +60,7 @@ class CampaignSummaryJpaQueryTest {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.1");
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
         em.persist(artifact);
-        artifactId = artifact.id();
+        artifactId = artifact.getId();
 
         activeA = campaignRepository.save(campaignOf("model-a"));
         inactiveA = campaignRepository.save(campaignOf("model-a"));
@@ -78,7 +78,7 @@ class CampaignSummaryJpaQueryTest {
 
         assertThat(summaries)
                 .extracting(CampaignSummary::campaignId)
-                .containsExactly(inactiveB.id(), activeB.id(), inactiveA.id(), activeA.id());
+                .containsExactly(inactiveB.getId(), activeB.getId(), inactiveA.getId(), activeA.getId());
     }
 
     @Test
@@ -87,7 +87,9 @@ class CampaignSummaryJpaQueryTest {
         List<CampaignSummary> summaries =
                 campaignSummaryQuery.findAll(new CampaignFilter(CampaignStatus.INACTIVE, null));
 
-        assertThat(summaries).extracting(CampaignSummary::campaignId).containsExactly(inactiveB.id(), inactiveA.id());
+        assertThat(summaries)
+                .extracting(CampaignSummary::campaignId)
+                .containsExactly(inactiveB.getId(), inactiveA.getId());
     }
 
     @Test
@@ -95,7 +97,9 @@ class CampaignSummaryJpaQueryTest {
     void findAllByModel() {
         List<CampaignSummary> summaries = campaignSummaryQuery.findAll(new CampaignFilter(null, "model-a"));
 
-        assertThat(summaries).extracting(CampaignSummary::campaignId).containsExactly(inactiveA.id(), activeA.id());
+        assertThat(summaries)
+                .extracting(CampaignSummary::campaignId)
+                .containsExactly(inactiveA.getId(), activeA.getId());
     }
 
     @Test
@@ -104,7 +108,7 @@ class CampaignSummaryJpaQueryTest {
         List<CampaignSummary> summaries =
                 campaignSummaryQuery.findAll(new CampaignFilter(CampaignStatus.ACTIVE, "model-b"));
 
-        assertThat(summaries).extracting(CampaignSummary::campaignId).containsExactly(activeB.id());
+        assertThat(summaries).extracting(CampaignSummary::campaignId).containsExactly(activeB.getId());
     }
 
     @Test
@@ -125,7 +129,7 @@ class CampaignSummaryJpaQueryTest {
                 .usingRecursiveComparison()
                 .ignoringFields("createdAt")
                 .isEqualTo(new CampaignSummary(
-                        activeA.id(), artifactId, "campaign", "model-a", CampaignStatus.ACTIVE, START, END, null));
+                        activeA.getId(), artifactId, "campaign", "model-a", CampaignStatus.ACTIVE, START, END, null));
         assertThat(summary.createdAt()).isNotNull();
     }
 
@@ -140,7 +144,7 @@ class CampaignSummaryJpaQueryTest {
     private void deactivate(Campaign campaign) {
         em.flush();
         em.createNativeQuery("UPDATE campaign SET status = 'INACTIVE' WHERE id = :id")
-                .setParameter("id", campaign.id())
+                .setParameter("id", campaign.getId())
                 .executeUpdate();
         em.clear();
     }

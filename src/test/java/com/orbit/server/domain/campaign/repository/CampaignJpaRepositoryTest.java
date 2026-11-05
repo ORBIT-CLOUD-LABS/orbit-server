@@ -49,7 +49,7 @@ class CampaignJpaRepositoryTest {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.1");
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
         em.persist(artifact);
-        artifactId = artifact.id();
+        artifactId = artifact.getId();
     }
 
     @Test

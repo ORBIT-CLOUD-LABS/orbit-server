@@ -7,9 +7,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
 
 /**
  * 캠페인 대상 차량의 차종·HW 버전·지역.
@@ -17,6 +19,7 @@ import java.util.Set;
  * <p>HW 버전과 지역은 비어 있으면 전체가 대상이다. 행이 없는 것으로 "전체"를 표현하므로 별도 플래그를 두지 않는다.
  */
 @Embeddable
+@Getter
 public class CampaignTarget {
 
     private static final int MAX_LENGTH = 50;
@@ -24,6 +27,7 @@ public class CampaignTarget {
     @Column(name = "model")
     private String model;
 
+    // 밖에서 바꿀 수 없게 Lombok 대신 직접 만든 getHwVersions()·getRegions() 로 읽는다
     @ElementCollection
     @CollectionTable(name = "campaign_target_hw_version", joinColumns = @JoinColumn(name = "campaign_id"))
     @Column(name = "hw_version")
@@ -58,6 +62,20 @@ public class CampaignTarget {
         return model.equals(vehicle.model())
                 && includesOrAll(hwVersions, vehicle.hwVersion())
                 && includesOrAll(regions, vehicle.region());
+    }
+
+    /**
+     * @return 대상 HW 버전. 비어 있으면 전체. 수정할 수 없다
+     */
+    public Set<String> getHwVersions() {
+        return Collections.unmodifiableSet(hwVersions);
+    }
+
+    /**
+     * @return 대상 지역. 비어 있으면 전체. 수정할 수 없다
+     */
+    public Set<String> getRegions() {
+        return Collections.unmodifiableSet(regions);
     }
 
     private static boolean includesOrAll(Set<String> targets, String value) {

@@ -83,7 +83,7 @@ class CampaignListServiceTest {
         CampaignCondition condition =
                 new CampaignCondition(new CampaignTarget(model, Set.of(), Set.of()), VersionRange.unbounded(), PERIOD);
         return campaignRepository
-                .save(new Campaign(new CampaignName("campaign"), artifact.id(), condition))
-                .id();
+                .save(new Campaign(new CampaignName("campaign"), artifact.getId(), condition))
+                .getId();
     }
 }

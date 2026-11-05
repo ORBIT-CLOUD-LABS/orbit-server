@@ -4,6 +4,7 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Getter;
 
 /**
  * 차량이 캠페인 대상인지 판정하는 조건. 차종·HW·지역·현재 버전 범위·적용 기간을 모두 만족해야 대상이다.
@@ -11,11 +12,13 @@ import java.util.Objects;
  * <p>판정 규칙이 이 조건들을 함께 보므로 하나로 묶는다.
  */
 @Embeddable
+@Getter
 public class CampaignCondition {
 
     @Embedded
     private CampaignTarget target;
 
+    // Hibernate 가 null 로 채울 수 있어 Lombok 대신 직접 만든 getCurrentVersionRange() 로 읽는다
     @Embedded
     private VersionRange currentVersionRange;
 
@@ -42,7 +45,7 @@ public class CampaignCondition {
      * @return 대상 조건이 모두 같으면 true
      */
     boolean hasSameTargetAs(CampaignCondition other) {
-        return target.equals(other.target) && currentVersionRange().equals(other.currentVersionRange());
+        return target.equals(other.target) && getCurrentVersionRange().equals(other.getCurrentVersionRange());
     }
 
     /**
@@ -54,7 +57,7 @@ public class CampaignCondition {
      */
     boolean matches(TargetVehicle vehicle, Instant now) {
         return target.includes(vehicle)
-                && currentVersionRange().contains(vehicle.currentVersion())
+                && getCurrentVersionRange().contains(vehicle.currentVersion())
                 && period.contains(now);
     }
 
@@ -68,8 +71,14 @@ public class CampaignCondition {
         return period.contains(now);
     }
 
-    // Hibernate 는 컬럼이 모두 NULL 인 embeddable 을 null 로 채우므로, 필드를 직접 쓰지 않고 이 메서드로 읽는다
-    VersionRange currentVersionRange() {
+    /**
+     * 대상 차량의 현재 버전 범위.
+     *
+     * <p>Hibernate 는 컬럼이 모두 NULL 인 embeddable 을 null 로 채우므로, 필드를 직접 쓰지 않고 이 메서드로 읽는다.
+     *
+     * @return 현재 버전 범위. 제한이 없으면 {@link VersionRange#unbounded()}
+     */
+    public VersionRange getCurrentVersionRange() {
         if (currentVersionRange == null) {
             return VersionRange.unbounded();
         }

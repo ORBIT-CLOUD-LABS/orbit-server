@@ -40,7 +40,7 @@ class ArtifactSchemaTest {
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
         em.persist(artifact);
         em.flush();
-        artifactId = artifact.id();
+        artifactId = artifact.getId();
     }
 
     @Test

@@ -40,7 +40,7 @@ public class ArtifactRegistrationService {
         requireSameSha256(file, command);
         originStorage.upload(file, command.content());
         Artifact artifact = saveOrDiscardUpload(new Artifact(release, file), file);
-        return ArtifactRegistrationResult.of(artifact.id(), file);
+        return ArtifactRegistrationResult.of(artifact.getId(), file);
     }
 
     // 저장에 실패한 파일이 Origin 에 남으면 같은 경로 조건부 쓰기에 걸려 이 버전을 다시 등록할 수 없으므로 지운다
