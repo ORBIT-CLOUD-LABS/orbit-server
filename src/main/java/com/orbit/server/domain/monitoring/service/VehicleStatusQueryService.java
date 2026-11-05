@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.service;
 
+import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class VehicleStatusQueryService {
 
-    private final VehicleStatusQuery vehicleStatusQuery;
+    private final VehicleStatusViewRepository vehicleStatusViewRepository;
 
     /**
      * 대시보드가 SSE 를 연결한 뒤 처음 화면을 채울 전체 차량 상태를 조회한다. (MONITORING-POL-001, MONITORING-POL-003)
@@ -20,6 +21,6 @@ public class VehicleStatusQueryService {
      * @return DB 시각 기준의 스냅샷. 차량은 vehicleId 오름차순, 없으면 빈 목록
      */
     public VehicleStatusSnapshot getSnapshot() {
-        return vehicleStatusQuery.findSnapshot();
+        return vehicleStatusViewRepository.findSnapshot();
     }
 }
