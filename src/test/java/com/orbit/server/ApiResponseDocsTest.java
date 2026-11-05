@@ -69,6 +69,7 @@ class ApiResponseDocsTest {
                 "/api/v1/admin/artifacts/{artifactId} | get | 404 | ARTIFACT_NOT_FOUND",
                 "/api/v1/admin/campaigns | post | 404 | ARTIFACT_NOT_FOUND",
                 "/api/v1/admin/campaigns | post | 409 | ACTIVE_CAMPAIGN_EXISTS",
+                "/api/v1/admin/campaigns/{campaignId}/stats | get | 404 | CAMPAIGN_NOT_FOUND",
                 "/api/v1/vehicles/{vehicleId}/check-in | post | 403 | VEHICLE_MISMATCH",
                 "/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest | get | 403 | VEHICLE_MISMATCH",
                 "/api/v1/vehicles/{vehicleId}/campaigns/{campaignId}/manifest | get | 404 | CAMPAIGN_NOT_FOUND",
