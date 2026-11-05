@@ -10,6 +10,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
@@ -20,6 +22,7 @@ import org.hibernate.generator.EventType;
  */
 @Entity
 @Table(name = "vehicle_state")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VehicleState {
 
     @Id
@@ -46,8 +49,6 @@ public class VehicleState {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    protected VehicleState() {}
 
     /**
      * 차량의 상태를 처음 기록한다.

@@ -9,6 +9,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
@@ -19,6 +21,7 @@ import org.hibernate.generator.EventType;
  */
 @Entity
 @Table(name = "update_result")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UpdateResult {
 
     @Id
@@ -37,8 +40,6 @@ public class UpdateResult {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "reported_at")
     private Instant reportedAt;
-
-    protected UpdateResult() {}
 
     /**
      * 업데이트 결과를 기록한다.
