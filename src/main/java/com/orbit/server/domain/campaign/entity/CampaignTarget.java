@@ -11,7 +11,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 캠페인 대상 차량의 차종·HW 버전·지역.
@@ -20,6 +22,7 @@ import lombok.Getter;
  */
 @Embeddable
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CampaignTarget {
 
     private static final int MAX_LENGTH = 50;
@@ -37,8 +40,6 @@ public class CampaignTarget {
     @CollectionTable(name = "campaign_target_region", joinColumns = @JoinColumn(name = "campaign_id"))
     @Column(name = "region")
     private Set<String> regions = new HashSet<>();
-
-    protected CampaignTarget() {}
 
     /**
      * @param model 대상 차종. 공백 불가, 50자 이하

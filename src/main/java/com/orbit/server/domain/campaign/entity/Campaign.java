@@ -11,7 +11,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -24,6 +26,7 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "campaign")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Campaign {
 
     // 저장 전이면 null
@@ -50,8 +53,6 @@ public class Campaign {
     @Generated
     @Column(name = "created_at")
     private Instant createdAt;
-
-    protected Campaign() {}
 
     /**
      * 캠페인을 등록한다. 등록 즉시 활성 상태가 되어 체크인 대상 판정에 반영된다.

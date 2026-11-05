@@ -82,7 +82,8 @@ global/external → service   (포트 구현)
 ### 엔티티
 
 - 도메인 모델과 JPA 엔티티는 같은 클래스로 쓴다. 도메인 클래스에 `@Entity` 를 붙인다.
-- JPA 용 기본 생성자는 `protected` 로 막는다.
+- JPA 용 기본 생성자는 `@NoArgsConstructor(access = AccessLevel.PROTECTED)` 로 만든다. 엔티티와 `@Embeddable` 클래스 모두 같다.
+  JPA 만 쓰도록 `protected` 로 막고, 객체는 검증을 거치는 생성자로만 만든다.
 - setter 를 두지 않는다. 상태 변경은 의도를 드러내는 메서드로. (`changeStatus()` 가 아니라 `depart()`)
 - getter 는 클래스에 Lombok `@Getter` 를 붙여 JavaBean 형식(`getXxx()`)으로 만든다. 엔티티와 `@Embeddable` 클래스 모두 같다.
   응답 변환 같은 읽기에만 쓰고, 판단은 엔티티 메서드로 한다.

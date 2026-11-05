@@ -9,7 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
@@ -21,6 +23,7 @@ import org.hibernate.generator.EventType;
 @Entity
 @Table(name = "vehicle")
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Vehicle {
 
     // 토큰·상태처럼 차량에 딸린 데이터를 저장할 때 참조한다. 저장 전이면 null
@@ -42,8 +45,6 @@ public class Vehicle {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    protected Vehicle() {}
 
     /**
      * 차량을 등록한다.

@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Immutable;
 
 /**
@@ -16,6 +18,7 @@ import org.hibernate.annotations.Immutable;
 @Entity
 @Immutable
 @Table(name = "vehicle_status")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VehicleStatusView {
 
     // 차량이 보내는 식별자. 차량당 한 행이라 ID 로 쓴다
@@ -43,6 +46,4 @@ public class VehicleStatusView {
 
     @Column(name = "failure_reason")
     private String failureReason;
-
-    protected VehicleStatusView() {}
 }
