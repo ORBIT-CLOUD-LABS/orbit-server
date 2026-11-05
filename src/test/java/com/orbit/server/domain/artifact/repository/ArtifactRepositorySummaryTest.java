@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class ArtifactSummaryJpaQueryTest {
+class ArtifactRepositorySummaryTest {
 
     private static final String SHA256 = "a".repeat(64);
     private static final long SIZE_BYTES = 1024;
