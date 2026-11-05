@@ -262,6 +262,6 @@ class CampaignQueryServiceTest {
         ArtifactRelease release = new ArtifactRelease("model-a", version);
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
         em.persist(artifact);
-        return artifact.id();
+        return artifact.getId();
     }
 }

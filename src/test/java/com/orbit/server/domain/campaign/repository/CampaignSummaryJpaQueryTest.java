@@ -60,7 +60,7 @@ class CampaignSummaryJpaQueryTest {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.1");
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
         em.persist(artifact);
-        artifactId = artifact.id();
+        artifactId = artifact.getId();
 
         activeA = campaignRepository.save(campaignOf("model-a"));
         inactiveA = campaignRepository.save(campaignOf("model-a"));

@@ -40,7 +40,7 @@ class ArtifactSummaryJpaQueryTest {
 
         List<ArtifactSummary> summaries = artifactSummaryQuery.findAll();
 
-        assertThat(summaries).extracting(ArtifactSummary::artifactId).containsExactly(second.id(), first.id());
+        assertThat(summaries).extracting(ArtifactSummary::artifactId).containsExactly(second.getId(), first.getId());
     }
 
     @Test
@@ -52,7 +52,7 @@ class ArtifactSummaryJpaQueryTest {
 
         List<ArtifactSummary> summaries = artifactSummaryQuery.findAllByModel("model-a");
 
-        assertThat(summaries).extracting(ArtifactSummary::artifactId).containsExactly(newer.id(), older.id());
+        assertThat(summaries).extracting(ArtifactSummary::artifactId).containsExactly(newer.getId(), older.getId());
     }
 
     @Test
@@ -67,7 +67,7 @@ class ArtifactSummaryJpaQueryTest {
                 .usingRecursiveComparison()
                 .ignoringFields("createdAt")
                 .isEqualTo(new ArtifactSummary(
-                        artifact.id(), "model-a", "1.0.0", SIZE_BYTES, SHA256, release.originPath(), null));
+                        artifact.getId(), "model-a", "1.0.0", SIZE_BYTES, SHA256, release.originPath(), null));
         assertThat(summary.createdAt()).isNotNull();
     }
 
@@ -85,7 +85,7 @@ class ArtifactSummaryJpaQueryTest {
         save(new ArtifactRelease("model-a", "1.0.0"));
         Artifact target = save(new ArtifactRelease("model-a", "1.0.1"));
 
-        assertThat(artifactSummaryQuery.findById(target.id()))
+        assertThat(artifactSummaryQuery.findById(target.getId()))
                 .map(ArtifactSummary::version)
                 .contains("1.0.1");
     }
@@ -95,7 +95,7 @@ class ArtifactSummaryJpaQueryTest {
     void emptyWhenNoArtifactOfId() {
         Artifact artifact = save(new ArtifactRelease("model-a", "1.0.0"));
 
-        assertThat(artifactSummaryQuery.findById(artifact.id() + 1)).isEmpty();
+        assertThat(artifactSummaryQuery.findById(artifact.getId() + 1)).isEmpty();
     }
 
     // 보조 API(제안)라 요구사항 ID 가 없다
@@ -106,7 +106,7 @@ class ArtifactSummaryJpaQueryTest {
         save(new ArtifactRelease("model-a", "1.0.1"));
         Artifact third = save(new ArtifactRelease("model-b", "2.0.0"));
 
-        List<ArtifactSummary> summaries = artifactSummaryQuery.findAllByIds(List.of(first.id(), third.id(), -1L));
+        List<ArtifactSummary> summaries = artifactSummaryQuery.findAllByIds(List.of(first.getId(), third.getId(), -1L));
 
         assertThat(summaries).extracting(ArtifactSummary::version).containsExactlyInAnyOrder("1.0.0", "2.0.0");
     }

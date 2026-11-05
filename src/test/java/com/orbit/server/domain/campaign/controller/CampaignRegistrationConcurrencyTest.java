@@ -61,7 +61,7 @@ class CampaignRegistrationConcurrencyTest {
     void setUp() {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.1");
         Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
-        artifactId = artifactRepository.save(artifact).id();
+        artifactId = artifactRepository.save(artifact).getId();
     }
 
     // 트랜잭션 롤백에 기대지 않으므로 다른 DB 테스트에 데이터가 남지 않게 지운다. 대상 조건 테이블은 FK 의 ON DELETE CASCADE 로 함께 지워진다

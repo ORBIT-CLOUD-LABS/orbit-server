@@ -112,7 +112,7 @@ class ManifestServiceTest {
         CampaignTarget target = new CampaignTarget("model-a", Set.of("hw-1"), Set.of("KR"));
         CampaignCondition condition = new CampaignCondition(target, VersionRange.unbounded(), period);
         Long campaignId = campaignRepository
-                .save(new Campaign(new CampaignName("campaign"), artifact.id(), condition))
+                .save(new Campaign(new CampaignName("campaign"), artifact.getId(), condition))
                 .id();
         em.flush();
         em.clear();

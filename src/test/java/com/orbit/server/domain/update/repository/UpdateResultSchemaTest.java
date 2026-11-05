@@ -58,7 +58,7 @@ class UpdateResultSchemaTest {
                 new CampaignTarget("model-a", null, null),
                 VersionRange.unbounded(),
                 new CampaignPeriod(START_AT, START_AT.plus(Duration.ofDays(1))));
-        Campaign campaign = new Campaign(new CampaignName("campaign"), artifact.id(), condition);
+        Campaign campaign = new Campaign(new CampaignName("campaign"), artifact.getId(), condition);
         em.persist(campaign);
         campaignId = campaign.id();
     }

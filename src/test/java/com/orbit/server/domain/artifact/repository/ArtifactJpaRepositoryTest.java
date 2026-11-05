@@ -47,7 +47,7 @@ class ArtifactJpaRepositoryTest {
     void locksSavedArtifact() {
         Artifact artifact = artifactRepository.save(artifactOf(RELEASE));
 
-        assertThat(artifactRepository.lockById(artifact.id())).contains(artifact.id());
+        assertThat(artifactRepository.lockById(artifact.getId())).contains(artifact.getId());
     }
 
     @Test
@@ -55,7 +55,7 @@ class ArtifactJpaRepositoryTest {
     void lockReturnsEmptyWhenArtifactNotFound() {
         Artifact artifact = artifactRepository.save(artifactOf(RELEASE));
 
-        assertThat(artifactRepository.lockById(artifact.id() + 1)).isEmpty();
+        assertThat(artifactRepository.lockById(artifact.getId() + 1)).isEmpty();
     }
 
     private Artifact artifactOf(ArtifactRelease release) {
