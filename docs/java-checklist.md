@@ -95,8 +95,9 @@ public class Lottos {
 
 - 도메인 객체에 setter 를 두지 않는다. 상태는 의미 있는 메서드로 바꾼다. (`campaign.deactivate()`)
 - getter 는 응답 변환 같은 읽기에 쓴다. 값을 꺼내 판단하지 않고 객체에 시킨다. (Tell, Don't Ask)
-- 엔티티 getter 는 JavaBean 형식(`getXxx()`)으로, Lombok `@Getter` 를 쓴다. record 는 `xxx()` 그대로 쓴다.
-- 컬렉션 getter 는 밖에서 바꿀 수 없는 뷰나 복사본을 돌려준다.
+- 엔티티 getter 는 클래스 단위 Lombok `@Getter`(`getXxx()`)로 만든다. record 는 `xxx()` 그대로 쓴다.
+- 컬렉션 getter 는 밖에서 바꿀 수 없는 뷰나 복사본을 돌려준다. 민감한 필드는 `@Getter(AccessLevel.NONE)` 으로 막는다.
+- 자세한 기준은 [architecture.md](architecture.md) 의 엔티티 절을 따른다.
 
 ```java
 // 나쁨: 값을 꺼내 판단한다

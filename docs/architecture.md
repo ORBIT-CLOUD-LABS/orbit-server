@@ -84,8 +84,16 @@ global/external → service   (포트 구현)
 - 도메인 모델과 JPA 엔티티는 같은 클래스로 쓴다. 도메인 클래스에 `@Entity` 를 붙인다.
 - JPA 용 기본 생성자는 `protected` 로 막는다.
 - setter 를 두지 않는다. 상태 변경은 의도를 드러내는 메서드로. (`changeStatus()` 가 아니라 `depart()`)
-- getter 는 Lombok `@Getter` 로 JavaBean 형식(`getXxx()`)을 쓴다. 응답 변환 같은 읽기에만 쓰고, 판단은 엔티티 메서드로 한다.
-  컬렉션 필드는 `@Getter` 대신 수정할 수 없는 뷰를 돌려주는 getter 를 직접 만든다.
+- getter 는 클래스에 Lombok `@Getter` 를 붙여 JavaBean 형식(`getXxx()`)으로 만든다. 엔티티와 `@Embeddable` 클래스 모두 같다.
+  응답 변환 같은 읽기에만 쓰고, 판단은 엔티티 메서드로 한다.
+- 새 엔티티는 처음부터 클래스 단위 `@Getter` 를 붙인다. 아직 없는 기존 엔티티는 그 엔티티를 변경할 때 맞춘다.
+- 그대로 내보내면 안 되는 필드는 같은 이름의 getter 를 직접 만든다. Lombok 은 이미 있는 메서드를 만들지 않는다.
+  필드에 직접 만든 이유를 주석으로 남긴다.
+  - 컬렉션: 수정할 수 없는 뷰를 돌려준다. (`CampaignTarget.getHwVersions()`)
+  - Hibernate 가 null 로 채울 수 있는 `@Embedded`: 기본값으로 바꿔 돌려준다. (`CampaignCondition.getCurrentVersionRange()`)
+- 밖으로 내보낼 이유가 없는 민감한 필드(토큰 해시 등)는 `@Getter(AccessLevel.NONE)` 으로 막는다.
+- `@Setter`, `@Data`, `@ToString`, `@EqualsAndHashCode` 는 엔티티에 쓰지 않는다.
+  지연 로딩·순환 참조로 예외가 나거나, 영속 상태에 따라 동등성이 바뀌기 때문이다.
 
 ### 값 객체
 
