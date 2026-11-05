@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class ArtifactJpaRepositoryTest {
+class ArtifactRepositoryTest {
 
     private static final ArtifactRelease RELEASE = new ArtifactRelease("model-a", "1.0.0");
 
