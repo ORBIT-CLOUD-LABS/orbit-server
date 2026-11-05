@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class UpdateResultJpaRepositoryTest {
+class UpdateResultRepositoryTest {
 
     private static final Instant FINISHED_AT = Instant.parse("2026-10-01T12:00:00Z");
     private static final UpdateOutcome SUCCEEDED = new UpdateOutcome(UpdateStatus.SUCCEEDED, null, FINISHED_AT, null);
