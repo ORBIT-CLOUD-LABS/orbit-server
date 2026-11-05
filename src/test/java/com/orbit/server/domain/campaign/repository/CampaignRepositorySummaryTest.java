@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class CampaignSummaryJpaQueryTest {
+class CampaignRepositorySummaryTest {
 
     private static final Instant START = Instant.parse("2026-10-01T00:00:00Z");
     private static final Instant END = START.plus(Duration.ofDays(1));
