@@ -7,7 +7,7 @@ Java 는 [java-checklist.md](java-checklist.md) 를 함께 본다. 겹치면 그
 
 - 한 가지 일만 한다. 이름으로 설명이 안 되면 쪼갠다.
 - 20줄 이내 권장. 들여쓰기 2단계 이내.
-- 파라미터 3개 이하. 넘으면 객체로 묶는다.
+- 파라미터 3개 이하 권장. 넘으면 함께 다니는 값을 객체로 묶을 수 있는지 검토한다.
 - 조기 반환(guard clause)으로 중첩을 줄인다.
 - 부수효과를 숨기지 않는다. 조회 메서드는 상태를 바꾸지 않는다.
 - boolean 플래그 파라미터 금지. 메서드를 나눈다.
@@ -17,13 +17,13 @@ Java 는 [java-checklist.md](java-checklist.md) 를 함께 본다. 겹치면 그
 - 매직 넘버·문자열은 상수나 enum 으로.
 - 불변을 기본으로. 필드는 `final`, 컬렉션은 방어적 복사.
 - null 반환 대신 `Optional` 또는 빈 컬렉션.
-- 원시 값 대신 의미 있는 타입. (`String email` → `Email`)
+- 검증이나 도메인 의미가 있는 값은 원시 값 대신 의미 있는 타입. (`String email` → `Email`)
 
 ## 객체
 
 - 데이터를 꺼내서 판단하지 말고 객체에 시킨다. (Tell, Don't Ask)
-- 디미터 법칙: `a.getB().getC().do()` 금지.
-- getter/setter 기계적 생성 금지. 필요한 것만.
+- 디미터 법칙: `a.getB().getC().do()` 처럼 객체 내부를 연달아 탐색하지 않는다. stream·builder 체인은 허용.
+- setter 금지. getter 는 응답 변환 같은 읽기에만 쓴다.
 
 ## 예외
 
