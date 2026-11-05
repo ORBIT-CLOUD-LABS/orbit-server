@@ -96,6 +96,26 @@ class CampaignTest {
     }
 
     @Test
+    @DisplayName("캠페인 진행 현황: 적용 기간 밖이어도 대상 조건을 만족하면 조건 대상이다")
+    void includesVehicleRegardlessOfPeriod() {
+        assertThat(campaign.includes(vehicleOf("hw-1", "1.0.5"))).isTrue();
+    }
+
+    @Test
+    @DisplayName("캠페인 진행 현황: 비활성이어도 대상 조건을 만족하면 조건 대상이다")
+    void includesVehicleRegardlessOfStatus() {
+        campaign.deactivate();
+
+        assertThat(campaign.includes(vehicleOf("hw-1", "1.0.5"))).isTrue();
+    }
+
+    @Test
+    @DisplayName("캠페인 진행 현황: 현재 버전이 범위 밖이면 조건 대상이 아니다")
+    void notIncludesVehicleOutOfVersionRange() {
+        assertThat(campaign.includes(vehicleOf("hw-1", "1.0.10"))).isFalse();
+    }
+
+    @Test
     @DisplayName("MANIFEST-POL-001: 활성이고 적용 기간 안이면 배포 중이다")
     void activeWhenActiveStatusAndInPeriod() {
         assertThat(campaign.isActiveAt(START)).isTrue();

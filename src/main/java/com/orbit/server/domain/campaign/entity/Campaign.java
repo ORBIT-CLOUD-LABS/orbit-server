@@ -83,6 +83,18 @@ public class Campaign {
     }
 
     /**
+     * 차량이 이 캠페인의 대상 조건을 만족하는지 활성 여부·적용 기간과 상관없이 판정한다.
+     *
+     * <p>진행 현황은 배포를 중지했거나 기간이 끝난 캠페인에서도 아직 끝내지 못한 차량을 보여 줘야 하므로 기간을 보지 않는다.
+     *
+     * @param vehicle 판정할 차량
+     * @return 차종·HW·지역·현재 버전 범위를 모두 만족하면 true
+     */
+    public boolean includes(TargetVehicle vehicle) {
+        return condition.includes(vehicle);
+    }
+
+    /**
      * 지금 배포 중인 캠페인인지 판정한다. 매니페스트를 발급하기 전에 요청한 캠페인이 비활성이거나 기간 밖인지 확인하는 데 쓴다.
      * (MANIFEST-POL-001)
      *
