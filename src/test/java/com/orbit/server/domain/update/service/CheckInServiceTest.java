@@ -213,7 +213,7 @@ class CheckInServiceTest {
         CampaignCondition condition = new CampaignCondition(target, VersionRange.unbounded(), period);
         Long campaignId = campaignRepository
                 .save(new Campaign(new CampaignName("campaign"), artifact.getId(), condition))
-                .id();
+                .getId();
         em.flush();
         em.clear();
         return campaignId;

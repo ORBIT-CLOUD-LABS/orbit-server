@@ -68,7 +68,7 @@ class UpdateResultJpaRepositoryTest {
                 new CampaignPeriod(FINISHED_AT, FINISHED_AT.plus(Duration.ofDays(1))));
         Campaign campaign = new Campaign(new CampaignName("campaign"), artifact.getId(), condition);
         em.persist(campaign);
-        campaignId = campaign.id();
+        campaignId = campaign.getId();
     }
 
     @Test

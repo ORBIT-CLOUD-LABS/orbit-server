@@ -45,7 +45,7 @@ public class CampaignRegistrationService {
         release.requireSameAs(new TargetRelease(artifact.model(), artifact.version()));
         Campaign campaign = command.toCampaign();
         requireNoDuplicate(campaign, release.model());
-        return campaignRepository.save(campaign).id();
+        return campaignRepository.save(campaign).getId();
     }
 
     private void requireNoDuplicate(Campaign campaign, String model) {

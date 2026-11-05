@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Getter;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -24,10 +25,14 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "campaign")
 public class Campaign {
 
+    // 저장 전이면 null
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 목표 버전은 Artifact 에 있으므로 대상 판정에서 이 ID 로 조회한다
+    @Getter
     @Column(name = "artifact_id")
     private Long artifactId;
 
@@ -61,25 +66,6 @@ public class Campaign {
         this.artifactId = Objects.requireNonNull(artifactId, "artifactId");
         this.condition = Objects.requireNonNull(condition, "condition");
         this.status = CampaignStatus.ACTIVE;
-    }
-
-    /**
-     * 응답과 다른 Aggregate 가 이 캠페인을 가리킬 때 쓰는 식별자. 상태를 노출하는 getter 가 아니므로 예외적으로 둔다.
-     *
-     * @return 저장 전이면 null
-     */
-    public Long id() {
-        return id;
-    }
-
-    /**
-     * 이 캠페인이 배포하는 Artifact 의 ID. 목표 버전은 Artifact 에 있으므로 대상 판정에서 이 ID 로 조회한다. 다른 Aggregate 를
-     * 가리키는 식별자라 {@link #id()} 처럼 예외적으로 둔다.
-     *
-     * @return Artifact ID
-     */
-    public Long artifactId() {
-        return artifactId;
     }
 
     /**
