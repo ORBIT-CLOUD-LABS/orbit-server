@@ -7,7 +7,6 @@ import java.time.Instant;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 class CampaignTest {
 
@@ -105,10 +104,27 @@ class CampaignTest {
     @Test
     @DisplayName("MANIFEST-POL-001: 비활성이면 적용 기간 안이어도 배포 중이 아니다")
     void notActiveWhenInactiveStatus() {
-        // 비활성화 API 가 아직 없으므로 테스트에서만 상태를 바꾼다
-        ReflectionTestUtils.setField(campaign, "status", CampaignStatus.INACTIVE);
+        campaign.deactivate();
 
         assertThat(campaign.isActiveAt(START)).isFalse();
+    }
+
+    @Test
+    @DisplayName("캠페인 비활성화: 활성 캠페인을 비활성으로 바꾼다")
+    void deactivatesActiveCampaign() {
+        campaign.deactivate();
+
+        assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.INACTIVE);
+    }
+
+    @Test
+    @DisplayName("캠페인 비활성화: 이미 비활성이면 비활성으로 그대로 둔다")
+    void keepsInactiveWhenAlreadyInactive() {
+        campaign.deactivate();
+
+        campaign.deactivate();
+
+        assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.INACTIVE);
     }
 
     @Test
