@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.service;
 
+import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -16,20 +17,20 @@ public class VehicleStatusStreamService {
     // 대시보드가 닫을 때까지 연결을 유지한다. 끊긴 연결은 keep-alive 전송이 실패할 때 정리된다
     private static final long NO_TIMEOUT = 0L;
 
-    private final VehicleStatusQuery vehicleStatusQuery;
+    private final VehicleStatusViewRepository vehicleStatusViewRepository;
     private final VehicleStatusSubscribers subscribers;
     private final Duration overlap;
 
     /**
-     * @param vehicleStatusQuery 놓친 변경분 조회
+     * @param vehicleStatusViewRepository 놓친 변경분 조회
      * @param subscribers 이 pod 에 연결된 대시보드
      * @param properties 겹침 시간 설정
      */
     public VehicleStatusStreamService(
-            VehicleStatusQuery vehicleStatusQuery,
+            VehicleStatusViewRepository vehicleStatusViewRepository,
             VehicleStatusSubscribers subscribers,
             DashboardStreamProperties properties) {
-        this.vehicleStatusQuery = vehicleStatusQuery;
+        this.vehicleStatusViewRepository = vehicleStatusViewRepository;
         this.subscribers = subscribers;
         this.overlap = properties.overlap();
     }
@@ -61,7 +62,7 @@ public class VehicleStatusStreamService {
     // 조회가 실패하면 연결이 시작되지 않아 종료 콜백이 오지 않으므로 구독자에서 직접 뺀다
     private VehicleStatusChanges findMissed(SseEmitter emitter, Instant lastEventId) {
         try {
-            return vehicleStatusQuery.findChangesSince(lastEventId.minus(overlap));
+            return vehicleStatusViewRepository.findChangesSince(lastEventId.minus(overlap));
         } catch (RuntimeException e) {
             subscribers.remove(emitter);
             throw e;

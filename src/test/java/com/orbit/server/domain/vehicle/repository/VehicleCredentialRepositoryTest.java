@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class VehicleCredentialJpaRepositoryTest {
+class VehicleCredentialRepositoryTest {
 
     @Autowired
     private VehicleCredentialRepository credentialRepository;

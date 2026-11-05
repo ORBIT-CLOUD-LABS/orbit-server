@@ -20,7 +20,6 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class ArtifactQueryService {
 
-    private final ArtifactSummaryQuery artifactSummaryQuery;
     private final ArtifactRepository artifactRepository;
 
     /**
@@ -32,9 +31,9 @@ public class ArtifactQueryService {
     public List<ArtifactSummary> findAll(String model) {
         // ?model= 처럼 값 없이 온 필터는 필터가 없는 것으로 본다
         if (!StringUtils.hasText(model)) {
-            return artifactSummaryQuery.findAll();
+            return artifactRepository.findAllSummaries();
         }
-        return artifactSummaryQuery.findAllByModel(model);
+        return artifactRepository.findSummariesByModel(model);
     }
 
     /**
@@ -46,8 +45,8 @@ public class ArtifactQueryService {
      * @throws BusinessException 파일이 없으면 ARTIFACT_NOT_FOUND
      */
     public ArtifactSummary getById(Long artifactId) {
-        return artifactSummaryQuery
-                .findById(artifactId)
+        return artifactRepository
+                .findSummaryById(artifactId)
                 .orElseThrow(() -> new BusinessException(ArtifactErrorCode.ARTIFACT_NOT_FOUND));
     }
 
@@ -58,7 +57,7 @@ public class ArtifactQueryService {
      * @return 이 ID 들의 Origin 파일. 순서는 정하지 않으며 없는 ID 는 빠진다
      */
     public List<ArtifactSummary> findAllByIds(Collection<Long> artifactIds) {
-        return artifactSummaryQuery.findAllByIds(artifactIds);
+        return artifactRepository.findSummariesByIds(artifactIds);
     }
 
     /**

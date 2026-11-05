@@ -3,6 +3,7 @@ package com.orbit.server.domain.monitoring.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
+import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import com.orbit.server.domain.update.service.CheckInCommand;
 import com.orbit.server.domain.update.service.CheckInService;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
@@ -43,7 +44,7 @@ class CheckInLateCommitTest {
     private VehicleRegistrationService registrationService;
 
     @Autowired
-    private VehicleStatusQuery vehicleStatusQuery;
+    private VehicleStatusViewRepository vehicleStatusViewRepository;
 
     @Autowired
     private DashboardStreamProperties streamProperties;
@@ -70,14 +71,15 @@ class CheckInLateCommitTest {
     @DisplayName("MONITORING-POL-001: 변경분 조회 때 커밋 전이던 체크인도 커밋 뒤 다음 겹침 조회에서 받는다")
     void receivesCheckInCommittedAfterChangesQuery() {
         Instant previousAsOf =
-                vehicleStatusQuery.findChangesSince(Instant.EPOCH).asOf();
+                vehicleStatusViewRepository.findChangesSince(Instant.EPOCH).asOf();
 
         VehicleStatusChanges changesBeforeCommit = checkInPausedBeforeCommit(previousAsOf);
 
         Instant cursor = changesBeforeCommit.asOf();
         assertThat(changesBeforeCommit.vehicles()).isEmpty();
-        assertThat(vehicleStatusQuery.findChangesSince(cursor).vehicles()).isEmpty();
-        assertThat(vehicleStatusQuery
+        assertThat(vehicleStatusViewRepository.findChangesSince(cursor).vehicles())
+                .isEmpty();
+        assertThat(vehicleStatusViewRepository
                         .findChangesSince(cursor.minus(streamProperties.overlap()))
                         .vehicles())
                 .singleElement()
@@ -104,7 +106,7 @@ class CheckInLateCommitTest {
         otherConnection.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         return checkInTransaction.execute(status -> {
             checkInService.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.1"));
-            return otherConnection.execute(other -> vehicleStatusQuery.findChangesSince(since));
+            return otherConnection.execute(other -> vehicleStatusViewRepository.findChangesSince(since));
         });
     }
 }

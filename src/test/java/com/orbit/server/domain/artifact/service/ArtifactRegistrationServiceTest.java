@@ -2,6 +2,12 @@ package com.orbit.server.domain.artifact.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import com.orbit.server.domain.artifact.entity.Artifact;
 import com.orbit.server.domain.artifact.entity.ArtifactFile;
@@ -13,10 +19,7 @@ import com.orbit.server.global.error.BusinessException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,13 +36,19 @@ class ArtifactRegistrationServiceTest {
     // echo -n "hello" | sha256sum
     private static final String HELLO_SHA256 = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824";
 
-    private FakeArtifactRepository artifactRepository;
+    private ArtifactRepository artifactRepository;
     private FakeOriginStorage originStorage;
     private ArtifactRegistrationService service;
 
     @BeforeEach
     void setUp() {
-        artifactRepository = new FakeArtifactRepository();
+        artifactRepository = mock(ArtifactRepository.class);
+        // ID 는 DB 가 채우므로 저장할 때 흉내 낸다
+        given(artifactRepository.save(any())).willAnswer(invocation -> {
+            Artifact artifact = invocation.getArgument(0);
+            ReflectionTestUtils.setField(artifact, "id", 1L);
+            return artifact;
+        });
         originStorage = new FakeOriginStorage();
         service = new ArtifactRegistrationService(artifactRepository, originStorage);
     }
@@ -52,7 +61,7 @@ class ArtifactRegistrationServiceTest {
         ArtifactFile expectedFile = new ArtifactFile(HELLO_SHA256, 5, PATH);
         assertThat(result).isEqualTo(new ArtifactRegistrationResult(1L, 5, HELLO_SHA256, PATH));
         assertThat(originStorage.uploaded).containsExactly(expectedFile);
-        assertThat(artifactRepository.saved).hasSize(1);
+        verify(artifactRepository).save(any());
     }
 
     @Test
@@ -74,19 +83,19 @@ class ArtifactRegistrationServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.HASH_MISMATCH);
         assertThat(originStorage.uploaded).isEmpty();
-        assertThat(artifactRepository.saved).isEmpty();
+        verify(artifactRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("ORIGIN-POL-001: 같은 차종·버전이 있으면 409 ARTIFACT_VERSION_EXISTS 이고 기존 Origin 파일을 덮어쓰지 않는다")
     void rejectsExistingRelease() {
-        artifactRepository.releases.add(RELEASE);
+        given(artifactRepository.existsByRelease(RELEASE)).willReturn(true);
 
         assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.ARTIFACT_VERSION_EXISTS);
         assertThat(originStorage.uploaded).isEmpty();
-        assertThat(artifactRepository.saved).isEmpty();
+        verify(artifactRepository, never()).save(any());
     }
 
     @Test
@@ -96,48 +105,22 @@ class ArtifactRegistrationServiceTest {
 
         assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
                 .isInstanceOf(OriginUploadException.class);
-        assertThat(artifactRepository.saved).isEmpty();
+        verify(artifactRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("ORIGIN-POL-001: 업로드 후 저장에 실패하면 올린 파일을 지워 같은 버전을 다시 등록할 수 있게 하고 원래 오류를 알린다")
     void deletesUploadedFileWhenSaveFails() {
-        artifactRepository.saveFailure = new IllegalStateException("db unavailable");
+        IllegalStateException saveFailure = new IllegalStateException("db unavailable");
+        // setUp 의 저장 응답을 실행하지 않고 덮어쓰도록 willThrow(...).given(...) 형식으로 쓴다
+        willThrow(saveFailure).given(artifactRepository).save(any());
 
         assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
-                .isSameAs(artifactRepository.saveFailure);
+                .isSameAs(saveFailure);
         assertThat(originStorage.deleted).containsExactly(new ArtifactFile(HELLO_SHA256, 5, PATH));
     }
 
-    private static class FakeArtifactRepository implements ArtifactRepository {
-
-        private final Set<ArtifactRelease> releases = new HashSet<>();
-        private final List<Artifact> saved = new ArrayList<>();
-        private RuntimeException saveFailure;
-
-        @Override
-        public boolean existsByRelease(ArtifactRelease release) {
-            return releases.contains(release);
-        }
-
-        @Override
-        public Artifact save(Artifact artifact) {
-            if (saveFailure != null) {
-                throw saveFailure;
-            }
-            // ID 는 DB 가 채우므로 저장 순서대로 흉내 낸다
-            ReflectionTestUtils.setField(artifact, "id", saved.size() + 1L);
-            saved.add(artifact);
-            return artifact;
-        }
-
-        // 파일 등록은 잠금을 쓰지 않는다
-        @Override
-        public Optional<Long> lockById(Long id) {
-            throw new UnsupportedOperationException();
-        }
-    }
-
+    // Origin 은 외부 저장소 포트라 호출 기록과 실패를 직접 흉내 낸다
     private static class FakeOriginStorage implements OriginStorage {
 
         private final List<ArtifactFile> uploaded = new ArrayList<>();

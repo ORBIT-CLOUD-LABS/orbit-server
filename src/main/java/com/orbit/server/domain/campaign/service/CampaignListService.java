@@ -2,6 +2,7 @@ package com.orbit.server.domain.campaign.service;
 
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CampaignListService {
 
-    private final CampaignSummaryQuery campaignSummaryQuery;
+    private final CampaignRepository campaignRepository;
     private final ArtifactQueryService artifactQueryService;
 
     /**
@@ -27,7 +28,7 @@ public class CampaignListService {
      * @return 필터에 맞는 캠페인과 목표 버전. 최근 등록한 순서. 없으면 빈 목록
      */
     public List<CampaignListItem> findAll(CampaignFilter filter) {
-        List<CampaignSummary> campaigns = campaignSummaryQuery.findAll(filter);
+        List<CampaignSummary> campaigns = campaignRepository.findAllSummaries(filter);
         Map<Long, String> targetVersions = targetVersionsOf(campaigns);
         return campaigns.stream()
                 .map(campaign -> new CampaignListItem(campaign, targetVersions.get(campaign.artifactId())))

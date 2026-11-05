@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,7 +29,7 @@ class VehicleStatusBroadcasterTest {
     private static final VehicleStatus VEHICLE =
             new VehicleStatus("vehicle-001", "model-a", "1.0.0", FIRST_AS_OF, FIRST_AS_OF, null, null, null);
 
-    private final VehicleStatusQuery query = mock(VehicleStatusQuery.class);
+    private final VehicleStatusViewRepository query = mock(VehicleStatusViewRepository.class);
     private final VehicleStatusSubscribers subscribers = mock(VehicleStatusSubscribers.class);
     private final VehicleStatusBroadcaster broadcaster =
             new VehicleStatusBroadcaster(query, subscribers, PROPERTIES, Clock.fixed(STARTED_AT, ZoneOffset.UTC));

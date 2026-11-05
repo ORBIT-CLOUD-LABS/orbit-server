@@ -17,7 +17,7 @@ com.orbit.server
 │   │   │   ├── request/        # API 요청 DTO
 │   │   │   └── response/       # API 응답 DTO
 │   │   ├── service/            # 서비스(트랜잭션 경계), Command/Result·조회 결과, 외부 연동 포트, 도메인 서비스
-│   │   ├── repository/         # Repository 인터페이스, Spring Data 구현
+│   │   ├── repository/         # Spring Data Repository 인터페이스
 │   │   ├── entity/             # 엔티티, 값 객체, enum, 도메인 이벤트
 │   │   └── exception/          # 에러 코드, 커스텀 예외
 │   └── campaign/
@@ -53,10 +53,11 @@ global/external → service   (포트 구현)
 
 - `entity` 는 다른 패키지를 모른다. Spring 에 의존하지 않는다. (JPA 매핑 어노테이션만 예외, 아래 참고)
 - `service` 는 외부 시스템을 포트(인터페이스)로만 쓴다. 구현은 `global/external` 에 둔다.
-- 조회 전용 포트(예: `ArtifactSummaryQuery`)는 결과 타입과 함께 `service` 에 두고 `repository` 가 구현한다. 이때만 `repository → service` 의존을 허용한다.
-  - 목록·검색·대시보드처럼 필요한 컬럼만 읽는 조회에 쓴다.
-  - 단건 상세는 조회 전용 포트를 만들지 않는다. 서비스가 Repository 로 엔티티를 읽어 트랜잭션 안에서 조회 결과(`XxxDetail`)로 변환한다.
-    `open-in-view` 가 꺼져 있어 트랜잭션 밖에서는 지연 로딩이 실패하기 때문이다.
+- 목록·검색·대시보드처럼 필요한 컬럼만 읽는 조회는 Repository 의 `@Query` 에서 JPQL 생성자 표현식으로 조회 결과(`XxxSummary` 등)를 바로 만든다.
+  조회 결과 타입은 `service` 에 두므로, 이때만 `repository → service` 의존을 허용한다. (예: `ArtifactRepository.findAllSummaries()`)
+  - `JpaRepository` 기본 메서드와 헷갈리지 않도록 메서드 이름에 결과 종류를 넣는다. (`findById` 가 아니라 `findSummaryById`)
+- 단건 상세는 서비스가 Repository 로 엔티티를 읽어 트랜잭션 안에서 조회 결과(`XxxDetail`)로 변환한다.
+  `open-in-view` 가 꺼져 있어 트랜잭션 밖에서는 지연 로딩이 실패하기 때문이다.
 - `controller` 는 `entity` 를 응답으로 직접 노출하지 않는다. `dto/response` 로 변환한다.
 - `exception` 은 어느 패키지에서든 쓸 수 있다.
 
@@ -103,9 +104,12 @@ global/external → service   (포트 구현)
 
 ### Repository
 
-- Aggregate 루트 단위로만 만든다.
-- 인터페이스와 Spring Data 구현을 `repository` 에 함께 둔다.
-  구현은 package-private 으로 숨겨 `JpaRepository` 의 삭제·일괄 저장 같은 메서드를 밖에서 호출하지 못하게 한다.
+- Aggregate 루트 단위로만 만든다. 이름은 `XxxRepository` 로 하고 `JpaRepository<Xxx, ID>` 를 바로 상속한다. 서비스는 이 인터페이스를 주입받는다.
+- 별도의 포트 인터페이스와 구현(`XxxJpaRepository`)으로 나누지 않는다.
+  `JpaRepository` 의 삭제·일괄 저장 메서드도 노출되지만, 도메인 규칙상 지우지 않는 Aggregate 에서는 쓰지 않는다. 리뷰에서 확인한다.
+- `@Immutable` 뷰처럼 쓰기가 없는 대상은 쓰기 메서드가 없는 `Repository<Xxx, ID>` 를 상속한다. (`VehicleStatusViewRepository`)
+- 값 객체를 컬럼 값으로 풀어야 하는 쿼리는 `default` 메서드로 감싸고, 서비스는 `default` 메서드를 쓴다. (`UpdateResultRepository.record`)
+- 서비스 단위 테스트는 Repository 를 Mockito 로 대체한다. 쿼리 자체는 Testcontainers 를 쓰는 Repository 테스트로 확인한다.
 
 ### 도메인 서비스
 

@@ -8,7 +8,6 @@ import static org.assertj.core.api.Assertions.within;
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusChanges;
-import com.orbit.server.domain.monitoring.service.VehicleStatusQuery;
 import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
@@ -25,13 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class VehicleStatusJpaQueryTest {
+class VehicleStatusViewRepositoryTest {
 
     private static final Instant EARLIER = Instant.parse("2026-10-01T12:00:00Z");
     private static final Instant LATER = Instant.parse("2026-10-01T12:05:00Z");
 
     @Autowired
-    private VehicleStatusQuery vehicleStatusQuery;
+    private VehicleStatusViewRepository vehicleStatusViewRepository;
 
     // monitoring 은 뷰로 테이블만 읽으므로 다른 컨텍스트의 엔티티 대신 행을 바로 넣어 보고 시각까지 정한다
     @Autowired
@@ -49,7 +48,7 @@ class VehicleStatusJpaQueryTest {
     @Test
     @DisplayName("MONITORING-REQ-004: 차량이 없으면 기준 시각과 빈 목록을 응답한다")
     void returnsEmptyVehiclesWithAsOf() {
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.asOf()).isNotNull();
         assertThat(snapshot.vehicles()).isEmpty();
@@ -61,7 +60,7 @@ class VehicleStatusJpaQueryTest {
         Long vehicleId = insertVehicle("vehicle-001");
         checkIn(vehicleId);
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles()).singleElement().satisfies(status -> {
             assertThat(status.vehicleId()).isEqualTo("vehicle-001");
@@ -80,7 +79,7 @@ class VehicleStatusJpaQueryTest {
     void returnsVehicleNeverCheckedIn() {
         insertVehicle("vehicle-001");
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles())
                 .singleElement()
@@ -94,7 +93,7 @@ class VehicleStatusJpaQueryTest {
         Long vehicleId = insertVehicle("vehicle-001");
         insertFailed(vehicleId, firstCampaignId, EARLIER);
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles()).singleElement().satisfies(status -> {
             assertThat(status.campaignId()).isEqualTo(firstCampaignId);
@@ -110,7 +109,7 @@ class VehicleStatusJpaQueryTest {
         insertSucceeded(vehicleId, secondCampaignId, LATER);
         insertFailed(vehicleId, firstCampaignId, EARLIER);
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles()).singleElement().satisfies(status -> {
             assertThat(status.campaignId()).isEqualTo(secondCampaignId);
@@ -126,7 +125,7 @@ class VehicleStatusJpaQueryTest {
         insertFailed(vehicleId, firstCampaignId, EARLIER);
         insertSucceeded(vehicleId, secondCampaignId, EARLIER);
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles())
                 .singleElement()
@@ -140,7 +139,7 @@ class VehicleStatusJpaQueryTest {
         insertVehicle("vehicle-002");
         insertVehicle("vehicle-001");
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles())
                 .extracting(VehicleStatus::vehicleId)
@@ -152,7 +151,7 @@ class VehicleStatusJpaQueryTest {
     void asOfIsNotBeforeUpdatedAt() {
         insertVehicle("vehicle-001");
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles())
                 .singleElement()
@@ -164,7 +163,7 @@ class VehicleStatusJpaQueryTest {
     void asOfIsSameInstantAsDbTime() {
         insertVehicle("vehicle-001");
 
-        VehicleStatusSnapshot snapshot = vehicleStatusQuery.findSnapshot();
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
 
         assertThat(snapshot.vehicles())
                 .singleElement()
@@ -176,7 +175,7 @@ class VehicleStatusJpaQueryTest {
     void changesAsOfIsSameInstantAsDbTime() {
         insertVehicle("vehicle-001");
 
-        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+        VehicleStatusChanges changes = vehicleStatusViewRepository.findChangesSince(EARLIER);
 
         assertThat(changes.vehicles())
                 .singleElement()
@@ -189,7 +188,7 @@ class VehicleStatusJpaQueryTest {
         changeStateAt(insertVehicle("vehicle-001"), EARLIER);
         changeStateAt(insertVehicle("vehicle-002"), LATER);
 
-        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+        VehicleStatusChanges changes = vehicleStatusViewRepository.findChangesSince(EARLIER);
 
         assertThat(changes.vehicles()).extracting(VehicleStatus::vehicleId).containsExactly("vehicle-002");
     }
@@ -199,7 +198,7 @@ class VehicleStatusJpaQueryTest {
     void excludesVehicleUpdatedAtSince() {
         changeStateAt(insertVehicle("vehicle-001"), LATER);
 
-        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(LATER);
+        VehicleStatusChanges changes = vehicleStatusViewRepository.findChangesSince(LATER);
 
         assertThat(changes.vehicles()).isEmpty();
     }
@@ -209,7 +208,7 @@ class VehicleStatusJpaQueryTest {
     void returnsEmptyChangesWithAsOf() {
         changeStateAt(insertVehicle("vehicle-001"), EARLIER);
 
-        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(LATER);
+        VehicleStatusChanges changes = vehicleStatusViewRepository.findChangesSince(LATER);
 
         assertThat(changes.asOf()).isNotNull();
         assertThat(changes.vehicles()).isEmpty();
@@ -223,7 +222,7 @@ class VehicleStatusJpaQueryTest {
         changeStateAt(secondVehicleId, LATER);
         changeStateAt(insertVehicle("vehicle-001"), LATER);
 
-        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+        VehicleStatusChanges changes = vehicleStatusViewRepository.findChangesSince(EARLIER);
 
         assertThat(changes.vehicles())
                 .extracting(VehicleStatus::vehicleId, VehicleStatus::updatedAt, VehicleStatus::lastResult)
@@ -235,7 +234,7 @@ class VehicleStatusJpaQueryTest {
     void changesAsOfIsNotBeforeUpdatedAt() {
         insertVehicle("vehicle-001");
 
-        VehicleStatusChanges changes = vehicleStatusQuery.findChangesSince(EARLIER);
+        VehicleStatusChanges changes = vehicleStatusViewRepository.findChangesSince(EARLIER);
 
         assertThat(changes.vehicles())
                 .singleElement()

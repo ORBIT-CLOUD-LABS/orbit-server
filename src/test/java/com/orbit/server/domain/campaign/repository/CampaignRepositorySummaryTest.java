@@ -15,7 +15,6 @@ import com.orbit.server.domain.campaign.entity.CampaignTarget;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignSummary;
-import com.orbit.server.domain.campaign.service.CampaignSummaryQuery;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,16 +33,13 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class CampaignSummaryJpaQueryTest {
+class CampaignRepositorySummaryTest {
 
     private static final Instant START = Instant.parse("2026-10-01T00:00:00Z");
     private static final Instant END = START.plus(Duration.ofDays(1));
 
     @Autowired
     private CampaignRepository campaignRepository;
-
-    @Autowired
-    private CampaignSummaryQuery campaignSummaryQuery;
 
     @Autowired
     private EntityManager em;
@@ -74,7 +70,7 @@ class CampaignSummaryJpaQueryTest {
     @Test
     @DisplayName("캠페인 목록: 필터가 없으면 전체 캠페인을 최근 등록한 순서로 조회한다")
     void findAllWithoutFilter() {
-        List<CampaignSummary> summaries = campaignSummaryQuery.findAll(new CampaignFilter(null, null));
+        List<CampaignSummary> summaries = campaignRepository.findAllSummaries(new CampaignFilter(null, null));
 
         assertThat(summaries)
                 .extracting(CampaignSummary::campaignId)
@@ -85,7 +81,7 @@ class CampaignSummaryJpaQueryTest {
     @DisplayName("캠페인 목록: 상태로만 필터링하면 그 상태의 캠페인만 조회한다")
     void findAllByStatus() {
         List<CampaignSummary> summaries =
-                campaignSummaryQuery.findAll(new CampaignFilter(CampaignStatus.INACTIVE, null));
+                campaignRepository.findAllSummaries(new CampaignFilter(CampaignStatus.INACTIVE, null));
 
         assertThat(summaries)
                 .extracting(CampaignSummary::campaignId)
@@ -95,7 +91,7 @@ class CampaignSummaryJpaQueryTest {
     @Test
     @DisplayName("캠페인 목록: 차종으로만 필터링하면 그 차종의 캠페인만 조회한다")
     void findAllByModel() {
-        List<CampaignSummary> summaries = campaignSummaryQuery.findAll(new CampaignFilter(null, "model-a"));
+        List<CampaignSummary> summaries = campaignRepository.findAllSummaries(new CampaignFilter(null, "model-a"));
 
         assertThat(summaries)
                 .extracting(CampaignSummary::campaignId)
@@ -106,7 +102,7 @@ class CampaignSummaryJpaQueryTest {
     @DisplayName("캠페인 목록: 상태와 차종으로 함께 필터링하면 둘 다 맞는 캠페인만 조회한다")
     void findAllByStatusAndModel() {
         List<CampaignSummary> summaries =
-                campaignSummaryQuery.findAll(new CampaignFilter(CampaignStatus.ACTIVE, "model-b"));
+                campaignRepository.findAllSummaries(new CampaignFilter(CampaignStatus.ACTIVE, "model-b"));
 
         assertThat(summaries).extracting(CampaignSummary::campaignId).containsExactly(activeB.getId());
     }
@@ -114,15 +110,15 @@ class CampaignSummaryJpaQueryTest {
     @Test
     @DisplayName("캠페인 목록: 필터에 맞는 캠페인이 없으면 빈 목록을 조회한다")
     void emptyWhenNoMatch() {
-        assertThat(campaignSummaryQuery.findAll(new CampaignFilter(null, "model-c")))
+        assertThat(campaignRepository.findAllSummaries(new CampaignFilter(null, "model-c")))
                 .isEmpty();
     }
 
     @Test
     @DisplayName("캠페인 목록: 조회 결과에 캠페인 정보와 등록 시각을 담는다")
     void summaryContainsCampaignInfo() {
-        CampaignSummary summary = campaignSummaryQuery
-                .findAll(new CampaignFilter(CampaignStatus.ACTIVE, "model-a"))
+        CampaignSummary summary = campaignRepository
+                .findAllSummaries(new CampaignFilter(CampaignStatus.ACTIVE, "model-a"))
                 .getFirst();
 
         assertThat(summary)

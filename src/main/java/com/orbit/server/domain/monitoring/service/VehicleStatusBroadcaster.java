@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.service;
 
+import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -14,14 +15,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class VehicleStatusBroadcaster {
 
-    private final VehicleStatusQuery vehicleStatusQuery;
+    private final VehicleStatusViewRepository vehicleStatusViewRepository;
     private final VehicleStatusSubscribers subscribers;
     private final Duration overlap;
     private final SentVehicleStatuses sentStatuses = new SentVehicleStatuses();
     private Instant cursor;
 
     /**
-     * @param vehicleStatusQuery 변경분 조회
+     * @param vehicleStatusViewRepository 변경분 조회
      * @param subscribers 이 pod 에 연결된 대시보드
      * @param properties 겹침 시간 설정
      * @param clock 첫 커서를 정할 시계
@@ -30,11 +31,11 @@ public class VehicleStatusBroadcaster {
     // 앱 시계가 DB 보다 앞서 첫 조회가 시작 후 변경을 건너뛰어도, 다음 조회는 첫 조회의 DB 시각에서 겹침 시간만큼 앞당겨 읽는다.
     // 첫 조회는 시작 직후 돌아 그 구간이 시작 시각보다 앞서므로 시작 후 변경을 다시 잡는다
     public VehicleStatusBroadcaster(
-            VehicleStatusQuery vehicleStatusQuery,
+            VehicleStatusViewRepository vehicleStatusViewRepository,
             VehicleStatusSubscribers subscribers,
             DashboardStreamProperties properties,
             Clock clock) {
-        this.vehicleStatusQuery = vehicleStatusQuery;
+        this.vehicleStatusViewRepository = vehicleStatusViewRepository;
         this.subscribers = subscribers;
         this.overlap = properties.overlap();
         this.cursor = clock.instant();
@@ -49,7 +50,8 @@ public class VehicleStatusBroadcaster {
     // 그래서 커서보다 앞선 구간을 겹쳐 다시 읽고, 겹쳐 다시 잡힌 상태는 보낸 상태로 거른다
     public void broadcastChanges() {
         Instant since = cursor.minus(overlap);
-        VehicleStatusChanges unsent = sentStatuses.keepUnsent(since, vehicleStatusQuery.findChangesSince(since));
+        VehicleStatusChanges unsent =
+                sentStatuses.keepUnsent(since, vehicleStatusViewRepository.findChangesSince(since));
         cursor = unsent.asOf();
         if (unsent.vehicles().isEmpty()) {
             return;

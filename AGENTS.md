@@ -40,7 +40,8 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 - setter 금지. getter 는 Lombok `@Getter`(`getXxx()`)로 응답 변환 같은 읽기에만 쓰고, 판단은 객체에 시킨다.
 - 서비스가 주입받는 협력 객체는 5개 이하, 넘으면 분리를 검토하고 안 하면 PR 에 이유를 적는다.
 - 디미터 법칙: 객체 내부를 연달아 탐색하지 않는다. stream·builder 체인은 허용.
-- 단건 상세 조회는 엔티티를 읽어 변환하고, 목록·대시보드는 조회 전용 포트(projection)로 읽는다.
+- Repository 는 `JpaRepository` 를 바로 상속하고 서비스가 직접 주입받는다. 포트와 구현으로 나누지 않는다.
+- 단건 상세 조회는 엔티티를 읽어 변환하고, 목록·대시보드는 Repository 의 `@Query` projection 으로 읽는다.
 - 빈 catch 금지. 커스텀 예외로 감싸고 cause 를 유지한다.
 - null 반환 대신 `Optional` 또는 빈 컬렉션.
 - 매직 넘버·문자열은 상수나 enum 으로.
