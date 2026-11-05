@@ -14,6 +14,7 @@ import com.orbit.server.domain.campaign.entity.CampaignPeriod;
 import com.orbit.server.domain.campaign.entity.CampaignTarget;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.campaign.service.CampaignDeactivationService;
 import com.orbit.server.domain.update.entity.VehicleLocation;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
@@ -61,6 +62,9 @@ class CheckInServiceTest {
     private CampaignRepository campaignRepository;
 
     @Autowired
+    private CampaignDeactivationService campaignDeactivationService;
+
+    @Autowired
     private EntityManager em;
 
     @BeforeEach
@@ -88,6 +92,17 @@ class CheckInServiceTest {
 
         assertThat(result.updateTarget()).isFalse();
         assertThat(result.nextCheckInSeconds()).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("VEHICLE-REQ-001: 비활성화한 캠페인은 적용 기간 안이어도 대상이 아니다")
+    void returnsNotTargetAfterDeactivation() {
+        Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
+        campaignDeactivationService.deactivate(campaignId);
+
+        CheckInResult result = service.checkIn(new CheckInCommand(VEHICLE_ID, "1.0.0"));
+
+        assertThat(result.updateTarget()).isFalse();
     }
 
     @Test

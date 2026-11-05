@@ -15,6 +15,7 @@ import com.orbit.server.domain.campaign.entity.CampaignTarget;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.campaign.service.CampaignDeactivationService;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
 import com.orbit.server.domain.vehicle.service.RegisterVehicleCommand;
@@ -62,6 +63,9 @@ class ManifestServiceTest {
     private CampaignRepository campaignRepository;
 
     @Autowired
+    private CampaignDeactivationService campaignDeactivationService;
+
+    @Autowired
     private EntityManager em;
 
     @BeforeEach
@@ -93,6 +97,17 @@ class ManifestServiceTest {
         assertThatThrownBy(() -> service.issue(VEHICLE_ID, campaignId))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", CampaignErrorCode.NOT_UPDATE_TARGET);
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 비활성화한 캠페인이면 적용 기간 안이어도 CAMPAIGN_INACTIVE")
+    void rejectsDeactivatedCampaign() {
+        Long campaignId = registerCampaign("1.0.1", periodAround(NOW));
+        campaignDeactivationService.deactivate(campaignId);
+
+        assertThatThrownBy(() -> service.issue(VEHICLE_ID, campaignId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CampaignErrorCode.CAMPAIGN_INACTIVE);
     }
 
     @Test
