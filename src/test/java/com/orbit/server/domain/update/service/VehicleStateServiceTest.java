@@ -41,7 +41,7 @@ class VehicleStateServiceTest {
     @BeforeEach
     void setUp() {
         Vehicle vehicle = new Vehicle(new VehicleExternalId("vehicle-001"), new VehicleSpec("model-a", "hw-1", "KR"));
-        vehicleId = vehicleRepository.save(vehicle).id();
+        vehicleId = vehicleRepository.save(vehicle).getId();
     }
 
     @Test

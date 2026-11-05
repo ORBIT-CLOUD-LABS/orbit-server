@@ -40,7 +40,7 @@ class VehicleCredentialJpaRepositoryTest {
     @BeforeEach
     void setUp() {
         Vehicle vehicle = new Vehicle(new VehicleExternalId("vehicle-001"), new VehicleSpec("model-a", "hw-1", "KR"));
-        vehicleId = vehicleRepository.save(vehicle).id();
+        vehicleId = vehicleRepository.save(vehicle).getId();
     }
 
     @Test
@@ -48,7 +48,7 @@ class VehicleCredentialJpaRepositoryTest {
     void fillsIssuedAtOnSave() {
         VehicleCredential saved = credentialRepository.save(newCredential());
 
-        assertThat(saved.issuedAt()).isNotNull();
+        assertThat(saved.getIssuedAt()).isNotNull();
     }
 
     @Test

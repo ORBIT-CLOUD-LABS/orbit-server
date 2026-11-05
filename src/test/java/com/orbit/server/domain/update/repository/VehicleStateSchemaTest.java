@@ -36,7 +36,7 @@ class VehicleStateSchemaTest {
     void setUp() {
         Vehicle vehicle = new Vehicle(new VehicleExternalId("vehicle-001"), new VehicleSpec("model-a", "hw-1", "KR"));
         em.persist(vehicle);
-        vehicleId = vehicle.id();
+        vehicleId = vehicle.getId();
         em.createNativeQuery("INSERT INTO vehicle_state (vehicle_id, current_version) VALUES (:id, '1.0.0')")
                 .setParameter("id", vehicleId)
                 .executeUpdate();

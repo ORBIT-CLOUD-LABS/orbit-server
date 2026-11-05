@@ -35,7 +35,7 @@ class VehicleQueryServiceTest {
                 new Vehicle(new VehicleExternalId("vehicle-001"), new VehicleSpec("model-a", "hw-1", "KR")));
 
         assertThat(service.getProfile("vehicle-001"))
-                .isEqualTo(new VehicleProfile(vehicle.id(), "model-a", "hw-1", "KR"));
+                .isEqualTo(new VehicleProfile(vehicle.getId(), "model-a", "hw-1", "KR"));
     }
 
     @Test

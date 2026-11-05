@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.Getter;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -40,6 +41,8 @@ public class VehicleCredential {
     @Column(name = "status")
     private CredentialStatus status;
 
+    // 등록 응답에 담아 차량에 알려준다. DB 가 기록하므로 저장 전이면 null
+    @Getter
     @Generated
     @Column(name = "issued_at")
     private Instant issuedAt;
@@ -59,14 +62,5 @@ public class VehicleCredential {
         this.vehicleId = Objects.requireNonNull(vehicleId, "vehicleId");
         this.tokenHash = Objects.requireNonNull(tokenHash, "tokenHash");
         this.status = CredentialStatus.ACTIVE;
-    }
-
-    /**
-     * 발급 시각. 등록 응답에 담아 차량에 알려준다. DB 가 기록하므로 저장 후에 채워진다.
-     *
-     * @return 저장 전이면 null
-     */
-    public Instant issuedAt() {
-        return issuedAt;
     }
 }

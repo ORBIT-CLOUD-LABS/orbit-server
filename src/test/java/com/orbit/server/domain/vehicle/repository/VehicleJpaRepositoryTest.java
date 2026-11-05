@@ -38,7 +38,7 @@ class VehicleJpaRepositoryTest {
 
         Optional<Vehicle> locked = vehicleRepository.lockByExternalId(EXTERNAL_ID);
 
-        assertThat(locked).map(Vehicle::id).contains(saved.id());
+        assertThat(locked).map(Vehicle::getId).contains(saved.getId());
     }
 
     @Test
@@ -60,7 +60,7 @@ class VehicleJpaRepositoryTest {
 
         Object[] row = (Object[]) entityManager
                 .createNativeQuery("SELECT model, hw_version, region FROM vehicle WHERE id = :id")
-                .setParameter("id", vehicle.id())
+                .setParameter("id", vehicle.getId())
                 .getSingleResult();
         assertThat(row).containsExactly("model-b", "hw-2", "US");
     }
