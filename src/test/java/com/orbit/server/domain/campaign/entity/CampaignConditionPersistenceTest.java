@@ -65,14 +65,9 @@ class CampaignConditionPersistenceTest {
         em.persist(artifact);
         CampaignCondition condition =
                 new CampaignCondition(new CampaignTarget("model-a", null, null), versionRange, PERIOD);
-        Campaign campaign = new Campaign(new CampaignName("campaign"), idOf(artifact), condition);
+        Campaign campaign = new Campaign(new CampaignName("campaign"), artifact.getId(), condition);
         em.persist(campaign);
         em.flush();
-        return idOf(campaign);
-    }
-
-    // 도메인 객체에 getter 를 두지 않으므로 테스트에서만 ID 를 꺼낸다
-    private static Long idOf(Object entity) {
-        return (Long) ReflectionTestUtils.getField(entity, "id");
+        return campaign.getId();
     }
 }

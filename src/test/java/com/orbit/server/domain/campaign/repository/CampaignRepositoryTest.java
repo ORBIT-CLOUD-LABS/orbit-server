@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -62,7 +61,7 @@ class CampaignRepositoryTest {
 
         List<Campaign> found = campaignRepository.findAllActiveByModel("model-a");
 
-        assertThat(found).extracting(CampaignRepositoryTest::idOf).containsExactly(idOf(active));
+        assertThat(found).extracting(Campaign::getId).containsExactly(active.getId());
     }
 
     @Test
@@ -87,13 +86,8 @@ class CampaignRepositoryTest {
     private void deactivate(Campaign campaign) {
         em.flush();
         em.createNativeQuery("UPDATE campaign SET status = 'INACTIVE' WHERE id = :id")
-                .setParameter("id", idOf(campaign))
+                .setParameter("id", campaign.getId())
                 .executeUpdate();
         em.clear();
-    }
-
-    // 도메인 객체에 getter 를 두지 않으므로 테스트에서만 ID 를 꺼낸다
-    private static Long idOf(Campaign campaign) {
-        return (Long) ReflectionTestUtils.getField(campaign, "id");
     }
 }
