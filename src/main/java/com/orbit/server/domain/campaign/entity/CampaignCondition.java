@@ -4,7 +4,9 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
 import java.time.Instant;
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * 차량이 캠페인 대상인지 판정하는 조건. 차종·HW·지역·현재 버전 범위·적용 기간을 모두 만족해야 대상이다.
@@ -13,6 +15,7 @@ import lombok.Getter;
  */
 @Embeddable
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CampaignCondition {
 
     @Embedded
@@ -24,8 +27,6 @@ public class CampaignCondition {
 
     @Embedded
     private CampaignPeriod period;
-
-    protected CampaignCondition() {}
 
     /**
      * @param target 대상 차종·HW 버전·지역. null 불가
