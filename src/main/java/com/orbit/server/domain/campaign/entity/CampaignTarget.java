@@ -19,14 +19,15 @@ import lombok.Getter;
  * <p>HW 버전과 지역은 비어 있으면 전체가 대상이다. 행이 없는 것으로 "전체"를 표현하므로 별도 플래그를 두지 않는다.
  */
 @Embeddable
+@Getter
 public class CampaignTarget {
 
     private static final int MAX_LENGTH = 50;
 
-    @Getter
     @Column(name = "model")
     private String model;
 
+    // 밖에서 바꿀 수 없게 Lombok 대신 직접 만든 getHwVersions()·getRegions() 로 읽는다
     @ElementCollection
     @CollectionTable(name = "campaign_target_hw_version", joinColumns = @JoinColumn(name = "campaign_id"))
     @Column(name = "hw_version")

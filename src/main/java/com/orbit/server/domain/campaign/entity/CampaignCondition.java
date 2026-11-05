@@ -12,17 +12,16 @@ import lombok.Getter;
  * <p>판정 규칙이 이 조건들을 함께 보므로 하나로 묶는다.
  */
 @Embeddable
+@Getter
 public class CampaignCondition {
 
-    @Getter
     @Embedded
     private CampaignTarget target;
 
-    // Hibernate 가 null 로 채울 수 있어 @Getter 대신 getCurrentVersionRange() 로 읽는다
+    // Hibernate 가 null 로 채울 수 있어 Lombok 대신 직접 만든 getCurrentVersionRange() 로 읽는다
     @Embedded
     private VersionRange currentVersionRange;
 
-    @Getter
     @Embedded
     private CampaignPeriod period;
 
