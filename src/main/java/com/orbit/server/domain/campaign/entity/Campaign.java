@@ -23,16 +23,15 @@ import org.hibernate.type.SqlTypes;
  */
 @Entity
 @Table(name = "campaign")
+@Getter
 public class Campaign {
 
     // 저장 전이면 null
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // 목표 버전은 Artifact 에 있으므로 대상 판정에서 이 ID 로 조회한다
-    @Getter
     @Column(name = "artifact_id")
     private Long artifactId;
 

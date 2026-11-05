@@ -32,6 +32,18 @@ class CampaignTargetTest {
                 .isInstanceOf(InvalidValueException.class);
     }
 
+    // 응답 변환용 읽기 getter 라 요구사항 ID 가 없다
+    @Test
+    @DisplayName("대상 HW 버전·지역은 밖에서 바꿀 수 없다")
+    void exposesUnmodifiableTargets() {
+        CampaignTarget target = new CampaignTarget("model-a", Set.of("hw-1"), Set.of("KR"));
+
+        assertThat(target.getHwVersions()).containsExactly("hw-1");
+        assertThat(target.getRegions()).containsExactly("KR");
+        assertThatThrownBy(() -> target.getHwVersions().add("hw-2")).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> target.getRegions().add("US")).isInstanceOf(UnsupportedOperationException.class);
+    }
+
     @Test
     @DisplayName("VEHICLE-POL-001: 차종이 같고 HW 버전·지역이 대상에 들면 대상이다")
     void includesMatchingVehicle() {

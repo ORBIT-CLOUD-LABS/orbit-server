@@ -7,9 +7,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
 
 /**
  * 캠페인 대상 차량의 차종·HW 버전·지역.
@@ -21,6 +23,7 @@ public class CampaignTarget {
 
     private static final int MAX_LENGTH = 50;
 
+    @Getter
     @Column(name = "model")
     private String model;
 
@@ -58,6 +61,20 @@ public class CampaignTarget {
         return model.equals(vehicle.model())
                 && includesOrAll(hwVersions, vehicle.hwVersion())
                 && includesOrAll(regions, vehicle.region());
+    }
+
+    /**
+     * @return 대상 HW 버전. 비어 있으면 전체. 수정할 수 없다
+     */
+    public Set<String> getHwVersions() {
+        return Collections.unmodifiableSet(hwVersions);
+    }
+
+    /**
+     * @return 대상 지역. 비어 있으면 전체. 수정할 수 없다
+     */
+    public Set<String> getRegions() {
+        return Collections.unmodifiableSet(regions);
     }
 
     private static boolean includesOrAll(Set<String> targets, String value) {
