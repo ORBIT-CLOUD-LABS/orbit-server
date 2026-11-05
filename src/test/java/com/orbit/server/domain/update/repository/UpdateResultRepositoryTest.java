@@ -151,7 +151,7 @@ class UpdateResultRepositoryTest {
                 .getResultList();
     }
 
-    // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다. 세션 시간대는 UTC 로 고정돼 있다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 기록된 결과를 확인한다. 세션 시간대는 UTC 로 고정돼 있다
     @SuppressWarnings("unchecked")
     private List<String> results() {
         return em.createNativeQuery("SELECT CONCAT_WS(':', result, IFNULL(failure_reason, 'null'),"

@@ -120,7 +120,7 @@ class VehicleStateServiceTest {
         return ((Number) recorded).intValue() == 1;
     }
 
-    // 엔티티에 getter 를 두지 않으므로 저장된 버전을 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 저장된 버전을 확인한다
     @SuppressWarnings("unchecked")
     private List<String> currentVersions() {
         entityManager.flush();
