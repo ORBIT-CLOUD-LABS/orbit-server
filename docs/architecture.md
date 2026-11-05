@@ -54,6 +54,9 @@ global/external → service   (포트 구현)
 - `entity` 는 다른 패키지를 모른다. Spring 에 의존하지 않는다. (JPA 매핑 어노테이션만 예외, 아래 참고)
 - `service` 는 외부 시스템을 포트(인터페이스)로만 쓴다. 구현은 `global/external` 에 둔다.
 - 조회 전용 포트(예: `ArtifactSummaryQuery`)는 결과 타입과 함께 `service` 에 두고 `repository` 가 구현한다. 이때만 `repository → service` 의존을 허용한다.
+  - 목록·검색·대시보드처럼 필요한 컬럼만 읽는 조회에 쓴다.
+  - 단건 상세는 조회 전용 포트를 만들지 않는다. 서비스가 Repository 로 엔티티를 읽어 트랜잭션 안에서 조회 결과(`XxxDetail`)로 변환한다.
+    `open-in-view` 가 꺼져 있어 트랜잭션 밖에서는 지연 로딩이 실패하기 때문이다.
 - `controller` 는 `entity` 를 응답으로 직접 노출하지 않는다. `dto/response` 로 변환한다.
 - `exception` 은 어느 패키지에서든 쓸 수 있다.
 
@@ -81,6 +84,8 @@ global/external → service   (포트 구현)
 - 도메인 모델과 JPA 엔티티는 같은 클래스로 쓴다. 도메인 클래스에 `@Entity` 를 붙인다.
 - JPA 용 기본 생성자는 `protected` 로 막는다.
 - setter 를 두지 않는다. 상태 변경은 의도를 드러내는 메서드로. (`changeStatus()` 가 아니라 `depart()`)
+- getter 는 Lombok `@Getter` 로 JavaBean 형식(`getXxx()`)을 쓴다. 응답 변환 같은 읽기에만 쓰고, 판단은 엔티티 메서드로 한다.
+  컬렉션 필드는 `@Getter` 대신 수정할 수 없는 뷰를 돌려주는 getter 를 직접 만든다.
 
 ### 값 객체
 
