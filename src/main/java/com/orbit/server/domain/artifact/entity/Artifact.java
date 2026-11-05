@@ -19,10 +19,10 @@ import org.hibernate.annotations.Generated;
  */
 @Entity
 @Table(name = "artifact")
+@Getter
 public class Artifact {
 
     // 저장 전이면 null
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

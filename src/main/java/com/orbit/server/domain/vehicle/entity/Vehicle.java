@@ -20,10 +20,10 @@ import org.hibernate.generator.EventType;
  */
 @Entity
 @Table(name = "vehicle")
+@Getter
 public class Vehicle {
 
     // 토큰·상태처럼 차량에 딸린 데이터를 저장할 때 참조한다. 저장 전이면 null
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
