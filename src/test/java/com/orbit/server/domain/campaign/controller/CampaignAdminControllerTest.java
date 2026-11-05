@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -18,6 +19,7 @@ import com.orbit.server.domain.campaign.entity.CampaignStatus;
 import com.orbit.server.domain.campaign.entity.TargetRelease;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
+import com.orbit.server.domain.campaign.service.CampaignDeactivationService;
 import com.orbit.server.domain.campaign.service.CampaignDetail;
 import com.orbit.server.domain.campaign.service.CampaignDetailService;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
@@ -39,6 +41,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -59,6 +62,7 @@ class CampaignAdminControllerTest {
     private CampaignRegistrationService campaignRegistrationService;
     private CampaignListService campaignListService;
     private CampaignDetailService campaignDetailService;
+    private CampaignDeactivationService campaignDeactivationService;
     private MockMvc mockMvc;
 
     @BeforeEach
@@ -66,8 +70,12 @@ class CampaignAdminControllerTest {
         campaignRegistrationService = mock(CampaignRegistrationService.class);
         campaignListService = mock(CampaignListService.class);
         campaignDetailService = mock(CampaignDetailService.class);
+        campaignDeactivationService = mock(CampaignDeactivationService.class);
         mockMvc = MockMvcBuilders.standaloneSetup(new CampaignAdminController(
-                        campaignRegistrationService, campaignListService, campaignDetailService))
+                        campaignRegistrationService,
+                        campaignListService,
+                        campaignDetailService,
+                        campaignDeactivationService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -182,6 +190,55 @@ class CampaignAdminControllerTest {
     }
 
     @Test
+    @DisplayName("캠페인 비활성화: 비활성화한 캠페인 상세를 200 으로 응답한다")
+    void deactivatesCampaign() throws Exception {
+        given(campaignDeactivationService.deactivate(1L))
+                .willReturn(new CampaignDetail(
+                        1L,
+                        "campaign",
+                        10L,
+                        "1.1.0",
+                        new CampaignTargetDetail("model-a", List.of(), List.of(), null, null),
+                        CampaignStatus.INACTIVE,
+                        Instant.parse(START_AT),
+                        Instant.parse(END_AT),
+                        Instant.parse(CREATED_AT)));
+
+        performDeactivate("""
+                        {"status": "INACTIVE"}""")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.campaignId").value(1))
+                .andExpect(jsonPath("$.data.targetVersion").value("1.1.0"))
+                .andExpect(jsonPath("$.data.status").value("INACTIVE"));
+    }
+
+    @Test
+    @DisplayName("캠페인 비활성화: 캠페인이 없으면 404 CAMPAIGN_NOT_FOUND 로 응답한다")
+    void respondsCampaignNotFoundOnDeactivate() throws Exception {
+        given(campaignDeactivationService.deactivate(1L))
+                .willThrow(new BusinessException(CampaignErrorCode.CAMPAIGN_NOT_FOUND));
+
+        performDeactivate("""
+                        {"status": "INACTIVE"}""")
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(CampaignErrorCode.CAMPAIGN_NOT_FOUND.getCode()));
+    }
+
+    // 재활성화는 허용하지 않으므로 ACTIVE 도 정의되지 않은 값과 같이 요청 값 오류로 본다
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"status\": \"ACTIVE\"}", "{\"status\": \"PAUSED\"}", "{\"status\": null}", "{}"})
+    @DisplayName("캠페인 비활성화: 상태가 INACTIVE 가 아니면 400 INVALID_INPUT 이고 바꾸지 않는다")
+    void rejectsStatusOtherThanInactive(String body) throws Exception {
+        performDeactivate(body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+
+        verify(campaignDeactivationService, never()).deactivate(any());
+    }
+
+    @Test
     @DisplayName("CAMPAIGN-REQ-001: 캠페인을 등록하고 201 과 캠페인 ID 를 응답한다")
     void registersCampaign() throws Exception {
         given(campaignRegistrationService.register(any())).willReturn(1L);
@@ -253,6 +310,11 @@ class CampaignAdminControllerTest {
 
     private ResultActions perform(String body) throws Exception {
         return mockMvc.perform(post(URL).contentType(MediaType.APPLICATION_JSON).content(body));
+    }
+
+    private ResultActions performDeactivate(String body) throws Exception {
+        return mockMvc.perform(
+                patch(URL + "/1").contentType(MediaType.APPLICATION_JSON).content(body));
     }
 
     private static String body(String startAt, String endAt) {

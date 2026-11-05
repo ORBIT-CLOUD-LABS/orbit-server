@@ -1,12 +1,14 @@
 package com.orbit.server.domain.campaign.controller;
 
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
+import com.orbit.server.domain.campaign.dto.request.DeactivateCampaignRequest;
 import com.orbit.server.domain.campaign.dto.request.RegisterCampaignRequest;
 import com.orbit.server.domain.campaign.dto.response.CampaignDetailResponse;
 import com.orbit.server.domain.campaign.dto.response.CampaignListResponse;
 import com.orbit.server.domain.campaign.dto.response.CampaignRegistrationResponse;
 import com.orbit.server.domain.campaign.entity.CampaignStatus;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
+import com.orbit.server.domain.campaign.service.CampaignDeactivationService;
 import com.orbit.server.domain.campaign.service.CampaignDetailService;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignListService;
@@ -20,6 +22,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +40,7 @@ public class CampaignAdminController {
     private final CampaignRegistrationService campaignRegistrationService;
     private final CampaignListService campaignListService;
     private final CampaignDetailService campaignDetailService;
+    private final CampaignDeactivationService campaignDeactivationService;
 
     /**
      * 대상 조건·목표 버전·기간으로 캠페인을 등록한다. 등록 즉시 활성 상태가 된다. (CAMPAIGN-REQ-001 / CAMPAIGN-POL-001)
@@ -89,5 +93,22 @@ public class CampaignAdminController {
             codes = {"CAMPAIGN_NOT_FOUND"})
     public ApiResponse<CampaignDetailResponse> findById(@PathVariable Long campaignId) {
         return ApiResponse.success(CampaignDetailResponse.from(campaignDetailService.getById(campaignId)));
+    }
+
+    /**
+     * 활성 캠페인을 비활성으로 바꿔 배포를 중지한다. 이후 체크인 대상 판정과 매니페스트 발급에서 빠진다. 이미 비활성이면 그대로 두고
+     * 200 으로 응답한다.
+     *
+     * @param campaignId 캠페인 ID
+     * @param request 바꿀 상태. {@code INACTIVE} 만 허용하고, 그 밖의 값이면 400 INVALID_INPUT
+     * @return 200 과 비활성화한 캠페인 상세
+     */
+    @PatchMapping("/{campaignId}")
+    @ApiErrorCodes(
+            type = CampaignErrorCode.class,
+            codes = {"CAMPAIGN_NOT_FOUND"})
+    public ApiResponse<CampaignDetailResponse> deactivate(
+            @PathVariable Long campaignId, @Valid @RequestBody DeactivateCampaignRequest request) {
+        return ApiResponse.success(CampaignDetailResponse.from(campaignDeactivationService.deactivate(campaignId)));
     }
 }
