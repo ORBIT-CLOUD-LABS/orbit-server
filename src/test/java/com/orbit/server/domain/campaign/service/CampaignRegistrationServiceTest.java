@@ -99,7 +99,7 @@ class CampaignRegistrationServiceTest {
     @DisplayName("CAMPAIGN-POL-001: 같은 대상 조건과 목표 버전의 활성 캠페인이 있으면 409 ACTIVE_CAMPAIGN_EXISTS 이고 저장하지 않는다")
     void rejectsDuplicateActiveCampaign() {
         RegisterCampaignCommand command = commandOf(ARTIFACT_ID, new TargetRelease("model-a", "1.0.1"));
-        // 대상 차종 필터는 CampaignJpaRepositoryTest 에서 검증하므로 같은 조건의 활성 캠페인이 있다고 둔다
+        // 대상 차종 필터는 CampaignRepositoryTest 에서 검증하므로 같은 조건의 활성 캠페인이 있다고 둔다
         given(campaignRepository.findAllActiveByModel("model-a")).willReturn(List.of(command.toCampaign()));
 
         assertThatThrownBy(() -> service.register(command))

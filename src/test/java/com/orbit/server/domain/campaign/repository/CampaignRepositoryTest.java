@@ -31,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
-class CampaignJpaRepositoryTest {
+class CampaignRepositoryTest {
 
     private static final Instant START = Instant.parse("2026-10-01T00:00:00Z");
     private static final CampaignPeriod PERIOD = new CampaignPeriod(START, START.plus(Duration.ofDays(1)));
@@ -62,7 +62,7 @@ class CampaignJpaRepositoryTest {
 
         List<Campaign> found = campaignRepository.findAllActiveByModel("model-a");
 
-        assertThat(found).extracting(CampaignJpaRepositoryTest::idOf).containsExactly(idOf(active));
+        assertThat(found).extracting(CampaignRepositoryTest::idOf).containsExactly(idOf(active));
     }
 
     @Test
