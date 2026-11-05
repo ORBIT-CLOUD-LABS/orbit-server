@@ -18,11 +18,14 @@ import com.orbit.server.domain.campaign.entity.CampaignStatus;
 import com.orbit.server.domain.campaign.entity.TargetRelease;
 import com.orbit.server.domain.campaign.entity.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
+import com.orbit.server.domain.campaign.service.CampaignDetail;
+import com.orbit.server.domain.campaign.service.CampaignDetailService;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignListItem;
 import com.orbit.server.domain.campaign.service.CampaignListService;
 import com.orbit.server.domain.campaign.service.CampaignRegistrationService;
 import com.orbit.server.domain.campaign.service.CampaignSummary;
+import com.orbit.server.domain.campaign.service.CampaignTargetDetail;
 import com.orbit.server.domain.campaign.service.RegisterCampaignCommand;
 import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.BusinessException;
@@ -55,14 +58,16 @@ class CampaignAdminControllerTest {
 
     private CampaignRegistrationService campaignRegistrationService;
     private CampaignListService campaignListService;
+    private CampaignDetailService campaignDetailService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         campaignRegistrationService = mock(CampaignRegistrationService.class);
         campaignListService = mock(CampaignListService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(
-                        new CampaignAdminController(campaignRegistrationService, campaignListService))
+        campaignDetailService = mock(CampaignDetailService.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(new CampaignAdminController(
+                        campaignRegistrationService, campaignListService, campaignDetailService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -127,6 +132,53 @@ class CampaignAdminControllerTest {
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
 
         verify(campaignListService, never()).findAll(any());
+    }
+
+    @Test
+    @DisplayName("캠페인 상세: 대상 조건·기간·상태·목표 버전을 200 으로 응답한다")
+    void respondsCampaignDetail() throws Exception {
+        CampaignTargetDetail target =
+                new CampaignTargetDetail("model-a", List.of("hw-1", "hw-2"), List.of("KR"), "1.0.0", null);
+        given(campaignDetailService.getById(1L))
+                .willReturn(new CampaignDetail(
+                        1L,
+                        "campaign",
+                        10L,
+                        "1.1.0",
+                        target,
+                        CampaignStatus.ACTIVE,
+                        Instant.parse(START_AT),
+                        Instant.parse(END_AT),
+                        Instant.parse(CREATED_AT)));
+
+        mockMvc.perform(get(URL + "/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isSuccess").value(true))
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.campaignId").value(1))
+                .andExpect(jsonPath("$.data.name").value("campaign"))
+                .andExpect(jsonPath("$.data.artifactId").value(10))
+                .andExpect(jsonPath("$.data.targetVersion").value("1.1.0"))
+                .andExpect(jsonPath("$.data.target.model").value("model-a"))
+                .andExpect(jsonPath("$.data.target.hwVersions[0]").value("hw-1"))
+                .andExpect(jsonPath("$.data.target.hwVersions[1]").value("hw-2"))
+                .andExpect(jsonPath("$.data.target.regions[0]").value("KR"))
+                .andExpect(jsonPath("$.data.target.currentVersionMin").value("1.0.0"))
+                .andExpect(jsonPath("$.data.target.currentVersionMax").doesNotExist())
+                .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.data.startAt").value(START_AT))
+                .andExpect(jsonPath("$.data.endAt").value(END_AT))
+                .andExpect(jsonPath("$.data.createdAt").value(CREATED_AT));
+    }
+
+    @Test
+    @DisplayName("캠페인 상세: 캠페인이 없으면 404 CAMPAIGN_NOT_FOUND 로 응답한다")
+    void respondsCampaignNotFound() throws Exception {
+        given(campaignDetailService.getById(1L)).willThrow(new BusinessException(CampaignErrorCode.CAMPAIGN_NOT_FOUND));
+
+        mockMvc.perform(get(URL + "/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(CampaignErrorCode.CAMPAIGN_NOT_FOUND.getCode()));
     }
 
     @Test
