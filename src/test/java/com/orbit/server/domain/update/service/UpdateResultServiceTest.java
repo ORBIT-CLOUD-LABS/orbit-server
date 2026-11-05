@@ -130,7 +130,7 @@ class UpdateResultServiceTest {
         return new ReportUpdateResultCommand(campaignId, result.name(), reasonName, null, FINISHED_AT.toString(), null);
     }
 
-    // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 기록된 결과를 확인한다
     @SuppressWarnings("unchecked")
     private List<String> results() {
         return em.createNativeQuery("SELECT CONCAT(result, ':', IFNULL(failure_reason, 'null')) FROM update_result"

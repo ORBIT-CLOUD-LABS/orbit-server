@@ -196,7 +196,7 @@ class CheckInServiceTest {
         assertThat(updateResultsOf(campaignId)).isEmpty();
     }
 
-    // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 기록된 결과를 확인한다
     @SuppressWarnings("unchecked")
     private List<String> updateResultsOf(Long campaignId) {
         em.flush();
@@ -227,7 +227,7 @@ class CheckInServiceTest {
         return new CheckInCommand(VEHICLE_ID, "1.0.1", Optional.of(location), Optional.empty());
     }
 
-    // 엔티티에 getter 를 두지 않으므로 저장된 위치를 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 저장된 위치를 확인한다
     @SuppressWarnings("unchecked")
     private List<String> locationOf() {
         em.flush();
@@ -239,7 +239,7 @@ class CheckInServiceTest {
                 .getResultList();
     }
 
-    // 엔티티에 getter 를 두지 않으므로 저장된 상태를 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 저장된 상태를 확인한다
     @SuppressWarnings("unchecked")
     private List<String> stateOf() {
         em.flush();

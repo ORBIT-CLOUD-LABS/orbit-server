@@ -363,7 +363,7 @@ class CheckInControllerTest {
                 .getResultList();
     }
 
-    // 엔티티에 getter 를 두지 않으므로 기록한 위치를 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 기록된 위치를 확인한다
     @SuppressWarnings("unchecked")
     private List<String> locations() {
         em.flush();
@@ -380,7 +380,7 @@ class CheckInControllerTest {
                 {"campaignId": %d, "result": "%s", "failureReason": %s, "finishedAt": "2026-10-01T12:00:00Z"}""".formatted(campaignId, result, failureReason);
     }
 
-    // 엔티티에 getter 를 두지 않으므로 기록한 결과를 DB 에서 직접 읽는다
+    // 영속성 컨텍스트가 아닌 DB 에 실제로 기록된 결과를 확인한다
     @SuppressWarnings("unchecked")
     private List<String> updateResults() {
         em.flush();
