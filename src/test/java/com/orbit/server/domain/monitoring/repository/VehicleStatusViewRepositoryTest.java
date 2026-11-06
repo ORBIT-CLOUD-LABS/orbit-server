@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.within;
 
 import com.orbit.server.TestcontainersConfiguration;
+import com.orbit.server.domain.monitoring.service.VehicleLastLocation;
+import com.orbit.server.domain.monitoring.service.VehicleLastUpdate;
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusChanges;
 import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
@@ -241,6 +243,59 @@ class VehicleStatusViewRepositoryTest {
                 .satisfies(status -> assertThat(changes.asOf()).isAfterOrEqualTo(status.updatedAt()));
     }
 
+    // 차량 상세는 보조 API(제안)라 요구사항 ID 가 없다
+    @Test
+    @DisplayName("차량 상세: 차량 정보·현재 상태·위치·배정 Edge·최근 업데이트 결과를 함께 조회한다")
+    void findsDetailWithLocationAndLastUpdate() {
+        Long vehicleId = insertVehicle("vehicle-001");
+        checkIn(vehicleId);
+        locate(vehicleId);
+        insertSucceeded(vehicleId, firstCampaignId, EARLIER);
+        insertFailedWithDetail(vehicleId, secondCampaignId, LATER);
+
+        assertThat(vehicleStatusViewRepository.findDetail("vehicle-001")).hasValueSatisfying(detail -> {
+            assertThat(detail.vehicleId()).isEqualTo("vehicle-001");
+            assertThat(detail.model()).isEqualTo("model-a");
+            assertThat(detail.hwVersion()).isEqualTo("hw-1");
+            assertThat(detail.region()).isEqualTo("KR");
+            assertThat(detail.currentVersion()).isEqualTo("1.0.0");
+            assertThat(detail.lastSeenAt()).isEqualTo(EARLIER);
+            assertThat(detail.updatedAt()).isNotNull();
+            assertThat(detail.location()).isEqualTo(new VehicleLastLocation(37.5665, 126.978, EARLIER));
+            assertThat(detail.assignedEdgeId()).isEqualTo("edge-seoul");
+            assertThat(detail.lastUpdate())
+                    .isEqualTo(new VehicleLastUpdate(
+                            secondCampaignId,
+                            "FAILED",
+                            "SIGNATURE_INVALID",
+                            "unknown keyId: v2",
+                            "edge-daejeon",
+                            LATER));
+        });
+    }
+
+    @Test
+    @DisplayName("차량 상세: 위치를 받은 적 없고 업데이트 결과가 없으면 위치·배정 Edge·최근 결과를 비운다")
+    void findsDetailWithoutLocationAndLastUpdate() {
+        insertVehicle("vehicle-001");
+
+        assertThat(vehicleStatusViewRepository.findDetail("vehicle-001")).hasValueSatisfying(detail -> {
+            assertThat(detail.vehicleId()).isEqualTo("vehicle-001");
+            assertThat(detail.lastSeenAt()).isNull();
+            assertThat(detail.location()).isNull();
+            assertThat(detail.assignedEdgeId()).isNull();
+            assertThat(detail.lastUpdate()).isNull();
+        });
+    }
+
+    @Test
+    @DisplayName("차량 상세: 차량이 없으면 빈 값을 돌려준다")
+    void findsNoDetailForUnknownVehicle() {
+        insertVehicle("vehicle-001");
+
+        assertThat(vehicleStatusViewRepository.findDetail("vehicle-999")).isEmpty();
+    }
+
     private Long insertCampaign(String version) {
         em.createNativeQuery("INSERT INTO artifact (model, version, sha256, size_bytes, path)"
                         + " VALUES ('model-a', :version, :sha256, 1, :path)")
@@ -297,6 +352,26 @@ class VehicleStatusViewRepositoryTest {
         em.createNativeQuery("INSERT INTO update_result"
                         + " (vehicle_id, campaign_id, result, failure_reason, finished_at, reported_at)"
                         + " VALUES (:vehicleId, :campaignId, 'FAILED', 'HASH_MISMATCH', :reportedAt, :reportedAt)")
+                .setParameter("vehicleId", vehicleId)
+                .setParameter("campaignId", campaignId)
+                .setParameter("reportedAt", reportedAt)
+                .executeUpdate();
+    }
+
+    private void locate(Long vehicleId) {
+        em.createNativeQuery("UPDATE vehicle_state SET latitude = 37.5665, longitude = 126.978,"
+                        + " location_updated_at = :locatedAt, assigned_edge_id = 'edge-seoul'"
+                        + " WHERE vehicle_id = :vehicleId")
+                .setParameter("locatedAt", EARLIER)
+                .setParameter("vehicleId", vehicleId)
+                .executeUpdate();
+    }
+
+    private void insertFailedWithDetail(Long vehicleId, Long campaignId, Instant reportedAt) {
+        em.createNativeQuery("INSERT INTO update_result (vehicle_id, campaign_id, result, failure_reason,"
+                        + " failure_detail, edge_id, finished_at, reported_at)"
+                        + " VALUES (:vehicleId, :campaignId, 'FAILED', 'SIGNATURE_INVALID',"
+                        + " 'unknown keyId: v2', 'edge-daejeon', :reportedAt, :reportedAt)")
                 .setParameter("vehicleId", vehicleId)
                 .setParameter("campaignId", campaignId)
                 .setParameter("reportedAt", reportedAt)

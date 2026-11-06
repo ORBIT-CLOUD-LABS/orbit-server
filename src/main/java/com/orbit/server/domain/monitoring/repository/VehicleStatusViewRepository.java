@@ -1,13 +1,16 @@
 package com.orbit.server.domain.monitoring.repository;
 
 import com.orbit.server.domain.monitoring.entity.VehicleStatusView;
+import com.orbit.server.domain.monitoring.service.VehicleDetail;
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusChanges;
 import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.query.Param;
 
 /**
  * 대시보드용 차량 상태 저장소. vehicle_status 뷰를 읽기만 한다.
@@ -50,6 +53,23 @@ public interface VehicleStatusViewRepository extends Repository<VehicleStatusVie
         Instant asOf = Instant.ofEpochMilli(currentEpochMilli());
         return new VehicleStatusChanges(asOf, findStatusesUpdatedAfter(since));
     }
+
+    /**
+     * 차량 한 대의 상세를 조회한다. 최근 업데이트 결과는 스냅샷과 같은 기준으로 고른다.
+     *
+     * @param vehicleId 차량이 보내는 식별자
+     * @return 차량 상세. 차량이 없으면 빈 값
+     */
+    // external_id 는 뷰가 MERGE 로 처리돼 uk_vehicle_external_id 로 한 행을 찾는다
+    @Query("""
+            select new com.orbit.server.domain.monitoring.service.VehicleDetail(
+                s.vehicleId, s.model, s.hwVersion, s.region, s.currentVersion, s.lastSeenAt, s.updatedAt,
+                s.latitude, s.longitude, s.locationUpdatedAt, s.assignedEdgeId,
+                s.campaignId, s.lastResult, s.failureReason, s.failureDetail, s.downloadedEdgeId, s.finishedAt)
+            from VehicleStatusView s
+            where s.vehicleId = :vehicleId
+            """)
+    Optional<VehicleDetail> findDetail(@Param("vehicleId") String vehicleId);
 
     /**
      * {@link #findSnapshot} 과 {@link #findChangesSince} 의 기준 시각. 직접 쓰지 않고 두 메서드를 쓴다.
