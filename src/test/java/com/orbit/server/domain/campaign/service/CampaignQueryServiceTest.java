@@ -20,6 +20,7 @@ import com.orbit.server.global.error.BusinessException;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -217,6 +218,50 @@ class CampaignQueryServiceTest {
         Long campaignId = register("1.0.1-beta", VersionRange.unbounded());
 
         assertRejected(campaignId, VEHICLE, NOW, CampaignErrorCode.NOT_UPDATE_TARGET);
+    }
+
+    @Test
+    @DisplayName("캠페인 진행 현황: 후보 중 대상 조건에 맞고 아직 목표 버전이 아닌 차량만 센다")
+    void countsPendingTargets() {
+        Long campaignId = register("1.0.1", VersionRange.unbounded());
+        List<TargetVehicleCriteria> candidates = List.of(
+                VEHICLE,
+                new TargetVehicleCriteria("model-a", "hw-1", "KR", "0.9.0"),
+                new TargetVehicleCriteria("model-a", "hw-9", "KR", "1.0.0"),
+                new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.1"));
+
+        assertThat(countPendingTargets(campaignId, candidates)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("캠페인 진행 현황: 비활성이거나 적용 기간이 끝난 캠페인도 대상 조건으로 센다")
+    void countsPendingTargetsOfInactiveCampaign() {
+        Long campaignId = register("1.0.1", VersionRange.unbounded());
+        deactivate(campaignId);
+
+        assertThat(countPendingTargets(campaignId, List.of(VEHICLE))).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("캠페인 진행 현황: 체크인처럼 목표 버전을 숫자 자리로 읽을 수 없으면 진행할 차량이 없다")
+    void countsNoPendingTargetsWithUnparsableTargetVersion() {
+        Long campaignId = register("1.0.1-beta", VersionRange.unbounded());
+
+        assertThat(countPendingTargets(campaignId, List.of(VEHICLE))).isZero();
+    }
+
+    @Test
+    @DisplayName("캠페인 진행 현황: 캠페인이 없으면 CAMPAIGN_NOT_FOUND")
+    void rejectsCountingMissingCampaign() {
+        assertThatThrownBy(() -> countPendingTargets(Long.MAX_VALUE, List.of(VEHICLE)))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CampaignErrorCode.CAMPAIGN_NOT_FOUND);
+    }
+
+    private long countPendingTargets(Long campaignId, List<TargetVehicleCriteria> candidates) {
+        em.flush();
+        em.clear();
+        return service.countPendingTargets(campaignId, candidates);
     }
 
     // 지연 로딩하는 HW 버전·지역까지 DB 에서 다시 읽은 캠페인으로 판정하도록 영속성 컨텍스트를 비운다

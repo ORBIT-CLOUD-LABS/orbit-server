@@ -56,6 +56,7 @@ class OpenApiSecurityConfigTest {
         "/api/v1/admin/artifacts, post, adminToken",
         "/api/v1/admin/artifacts/{artifactId}, get, adminToken",
         "/api/v1/admin/campaigns, get, adminToken",
+        "/api/v1/admin/campaigns/{campaignId}/stats, get, adminToken",
         "/api/v1/dashboard/vehicles, get, adminToken",
         "/api/v1/dashboard/vehicles/stream, get, adminToken",
         "/api/v1/vehicles/register, post, enrollmentKey",

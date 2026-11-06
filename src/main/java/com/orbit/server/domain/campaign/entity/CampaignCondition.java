@@ -57,9 +57,17 @@ public class CampaignCondition {
      * @return 차종·HW·지역·현재 버전 범위·적용 기간을 모두 만족하면 true
      */
     boolean matches(TargetVehicle vehicle, Instant now) {
-        return target.includes(vehicle)
-                && getCurrentVersionRange().contains(vehicle.currentVersion())
-                && period.contains(now);
+        return includes(vehicle) && period.contains(now);
+    }
+
+    /**
+     * 적용 기간을 빼고 차량이 대상 조건(차종·HW·지역·현재 버전 범위)을 만족하는지 판정한다.
+     *
+     * @param vehicle 판정할 차량
+     * @return 차종·HW·지역·현재 버전 범위를 모두 만족하면 true
+     */
+    boolean includes(TargetVehicle vehicle) {
+        return target.includes(vehicle) && getCurrentVersionRange().contains(vehicle.currentVersion());
     }
 
     /**

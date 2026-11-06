@@ -10,13 +10,14 @@ import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 차량이 업데이트할 캠페인을 고른다. 다른 컨텍스트(체크인, 매니페스트 발급)는 캠페인을 직접 읽지 않고 이 서비스로만 대상 여부를 묻는다.
+ * 차량이 업데이트할 캠페인을 고른다. 다른 컨텍스트(체크인, 매니페스트 발급, 진행 현황)는 캠페인을 직접 읽지 않고 이 서비스로만 대상 여부를 묻는다.
  * (VEHICLE-POL-001, MANIFEST-POL-001)
  *
  * <p>다른 컨텍스트인 Artifact 는 {@link ArtifactQueryService} 로만 읽는다.
@@ -91,10 +92,43 @@ public class CampaignQueryService {
         return artifact;
     }
 
-    private Campaign getActiveCampaign(Long campaignId, Instant now) {
-        Campaign campaign = campaignRepository
+    /**
+     * 결과를 아직 보고하지 않은 후보 차량 중 이 캠페인으로 업데이트할 차량 수를 센다. 진행 현황의 진행 중 차량 수다.
+     *
+     * <p>대상 조건(차종·HW·지역·현재 버전 범위)에 맞고 아직 목표 버전이 아닌 차량을 센다. 활성 여부·적용 기간은 보지 않아, 배포를
+     * 중지했거나 기간이 끝난 캠페인에서도 끝내지 못한 차량이 드러나게 한다. 목표 버전을 숫자 자리로 읽을 수 없으면 체크인에서 고르지 않는
+     * 캠페인이므로 0 이다.
+     *
+     * @param campaignId 캠페인 ID
+     * @param candidates 이 캠페인에 결과를 보고하지 않은 차량. 결과를 보고한 차량은 호출하는 쪽이 뺀다
+     * @return 진행 중 차량 수
+     * @throws BusinessException 캠페인이 없으면 CAMPAIGN_NOT_FOUND
+     */
+    // HW 버전·지역을 지연 로딩하므로 조회부터 판정까지 한 트랜잭션으로 묶는다
+    @Transactional(readOnly = true)
+    public long countPendingTargets(Long campaignId, List<TargetVehicleCriteria> candidates) {
+        Campaign campaign = getCampaign(campaignId);
+        return toTargetCampaign(campaign)
+                .map(target -> countPending(campaign, target, candidates))
+                .orElse(0L);
+    }
+
+    private long countPending(Campaign campaign, TargetCampaign target, List<TargetVehicleCriteria> candidates) {
+        return candidates.stream()
+                .map(TargetVehicleCriteria::toTargetVehicle)
+                .filter(campaign::includes)
+                .filter(vehicle -> !target.isInstalledOn(vehicle.currentVersion()))
+                .count();
+    }
+
+    private Campaign getCampaign(Long campaignId) {
+        return campaignRepository
                 .findById(campaignId)
                 .orElseThrow(() -> new BusinessException(CampaignErrorCode.CAMPAIGN_NOT_FOUND));
+    }
+
+    private Campaign getActiveCampaign(Long campaignId, Instant now) {
+        Campaign campaign = getCampaign(campaignId);
         if (!campaign.isActiveAt(now)) {
             throw new BusinessException(CampaignErrorCode.CAMPAIGN_INACTIVE);
         }
