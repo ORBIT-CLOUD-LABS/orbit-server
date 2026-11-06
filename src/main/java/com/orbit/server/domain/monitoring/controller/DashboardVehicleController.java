@@ -1,16 +1,20 @@
 package com.orbit.server.domain.monitoring.controller;
 
+import com.orbit.server.domain.monitoring.dto.response.VehicleDetailResponse;
 import com.orbit.server.domain.monitoring.dto.response.VehicleStatusSnapshotResponse;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
 import com.orbit.server.domain.monitoring.service.VehicleStatusStreamService;
+import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.common.ApiResponse;
 import com.orbit.server.global.config.ApiTags;
+import com.orbit.server.global.error.ApiErrorCodes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +41,22 @@ public class DashboardVehicleController {
     @GetMapping
     public ApiResponse<VehicleStatusSnapshotResponse> getSnapshot() {
         return ApiResponse.success(VehicleStatusSnapshotResponse.from(vehicleStatusQueryService.getSnapshot()));
+    }
+
+    /**
+     * 차량 한 대의 상세와 최근 업데이트 결과를 조회한다. 대시보드에서 차량을 고르면 부른다.
+     *
+     * <p>고정 경로인 {@code /stream} 이 패턴 경로보다 먼저 매칭되므로 {@code stream} 이라는 vehicleId 는 이 API 로 조회할 수 없다.
+     *
+     * @param vehicleId 차량이 보내는 식별자
+     * @return 200 과 차량 상세. 업데이트 결과가 없으면 {@code lastUpdate} 는 null
+     */
+    @GetMapping("/{vehicleId}")
+    @ApiErrorCodes(
+            type = VehicleErrorCode.class,
+            codes = {"VEHICLE_NOT_FOUND"})
+    public ApiResponse<VehicleDetailResponse> getDetail(@PathVariable String vehicleId) {
+        return ApiResponse.success(VehicleDetailResponse.from(vehicleStatusQueryService.getDetail(vehicleId)));
     }
 
     /**
