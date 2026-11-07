@@ -11,11 +11,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.orbit.server.domain.monitoring.service.VehicleDetail;
+import com.orbit.server.domain.monitoring.service.VehicleLastLocation;
+import com.orbit.server.domain.monitoring.service.VehicleLastUpdate;
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
 import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
 import com.orbit.server.domain.monitoring.service.VehicleStatusStreamService;
+import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.common.SuccessCode;
+import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
 import java.time.Instant;
@@ -33,6 +38,7 @@ class DashboardVehicleControllerTest {
 
     private static final String URL = "/api/v1/dashboard/vehicles";
     private static final String STREAM_URL = "/api/v1/dashboard/vehicles/stream";
+    private static final String DETAIL_URL = "/api/v1/dashboard/vehicles/{vehicleId}";
     private static final String LAST_EVENT_ID = "Last-Event-ID";
     private static final String AS_OF = "2026-10-11T07:00:00.123Z";
     private static final String LAST_SEEN_AT = "2026-10-11T06:59:00.456Z";
@@ -143,5 +149,72 @@ class DashboardVehicleControllerTest {
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
 
         verifyNoInteractions(vehicleStatusStreamService);
+    }
+
+    // 차량 상세는 보조 API(제안)라 요구사항 ID 가 없다
+    @Test
+    @DisplayName("차량 상세: 차량 정보·위치·배정 Edge·최근 업데이트 결과를 200 으로 응답한다")
+    void respondsDetail() throws Exception {
+        VehicleDetail detail = new VehicleDetail(
+                "vehicle-001",
+                "model-a",
+                "hw-1",
+                "KR",
+                "1.0.0",
+                Instant.parse(LAST_SEEN_AT),
+                Instant.parse(UPDATED_AT),
+                new VehicleLastLocation(37.5665, 126.978, Instant.parse(LAST_SEEN_AT)),
+                "edge-seoul",
+                new VehicleLastUpdate(
+                        7L, "FAILED", "SIGNATURE_INVALID", "unknown keyId: v2", "edge-seoul", Instant.parse(AS_OF)));
+        given(vehicleStatusQueryService.getDetail("vehicle-001")).willReturn(detail);
+
+        mockMvc.perform(get(DETAIL_URL, "vehicle-001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.vehicleId").value("vehicle-001"))
+                .andExpect(jsonPath("$.data.model").value("model-a"))
+                .andExpect(jsonPath("$.data.hwVersion").value("hw-1"))
+                .andExpect(jsonPath("$.data.region").value("KR"))
+                .andExpect(jsonPath("$.data.currentVersion").value("1.0.0"))
+                .andExpect(jsonPath("$.data.lastSeenAt").value(LAST_SEEN_AT))
+                .andExpect(jsonPath("$.data.updatedAt").value(UPDATED_AT))
+                .andExpect(jsonPath("$.data.location.latitude").value(37.5665))
+                .andExpect(jsonPath("$.data.location.longitude").value(126.978))
+                .andExpect(jsonPath("$.data.location.updatedAt").value(LAST_SEEN_AT))
+                .andExpect(jsonPath("$.data.assignedEdgeId").value("edge-seoul"))
+                .andExpect(jsonPath("$.data.lastUpdate.campaignId").value(7))
+                .andExpect(jsonPath("$.data.lastUpdate.result").value("FAILED"))
+                .andExpect(jsonPath("$.data.lastUpdate.failureReason").value("SIGNATURE_INVALID"))
+                .andExpect(jsonPath("$.data.lastUpdate.failureDetail").value("unknown keyId: v2"))
+                .andExpect(jsonPath("$.data.lastUpdate.edgeId").value("edge-seoul"))
+                .andExpect(jsonPath("$.data.lastUpdate.finishedAt").value(AS_OF));
+    }
+
+    @Test
+    @DisplayName("차량 상세: 위치·업데이트 결과가 없으면 location 과 lastUpdate 를 null 로 응답한다")
+    void respondsDetailWithoutLocationAndLastUpdate() throws Exception {
+        VehicleDetail detail = new VehicleDetail(
+                "vehicle-001", "model-a", "hw-1", "KR", "1.0.0", null, Instant.parse(UPDATED_AT), null, null, null);
+        given(vehicleStatusQueryService.getDetail("vehicle-001")).willReturn(detail);
+
+        mockMvc.perform(get(DETAIL_URL, "vehicle-001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.vehicleId").value("vehicle-001"))
+                .andExpect(jsonPath("$.data.lastSeenAt").value(nullValue()))
+                .andExpect(jsonPath("$.data.location").value(nullValue()))
+                .andExpect(jsonPath("$.data.assignedEdgeId").value(nullValue()))
+                .andExpect(jsonPath("$.data.lastUpdate").value(nullValue()));
+    }
+
+    @Test
+    @DisplayName("차량 상세: 차량이 없으면 404 VEHICLE_NOT_FOUND")
+    void respondsDetailNotFound() throws Exception {
+        given(vehicleStatusQueryService.getDetail("vehicle-999"))
+                .willThrow(new BusinessException(VehicleErrorCode.VEHICLE_NOT_FOUND));
+
+        mockMvc.perform(get(DETAIL_URL, "vehicle-999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(VehicleErrorCode.VEHICLE_NOT_FOUND.getCode()));
     }
 }
