@@ -2,8 +2,10 @@ package com.orbit.server.domain.monitoring.controller;
 
 import com.orbit.server.domain.monitoring.dto.response.VehicleDetailResponse;
 import com.orbit.server.domain.monitoring.dto.response.VehicleStatusSnapshotResponse;
+import com.orbit.server.domain.monitoring.dto.response.VehicleUpdateHistoryResponse;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
 import com.orbit.server.domain.monitoring.service.VehicleStatusStreamService;
+import com.orbit.server.domain.monitoring.service.VehicleUpdateHistoryService;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.common.ApiResponse;
 import com.orbit.server.global.config.ApiTags;
@@ -31,6 +33,7 @@ public class DashboardVehicleController {
 
     private final VehicleStatusQueryService vehicleStatusQueryService;
     private final VehicleStatusStreamService vehicleStatusStreamService;
+    private final VehicleUpdateHistoryService vehicleUpdateHistoryService;
 
     /**
      * 전체 차량 상태 스냅샷을 조회한다. 대시보드는 SSE 를 먼저 연결한 뒤 이 API 를 부른다.
@@ -57,6 +60,21 @@ public class DashboardVehicleController {
             codes = {"VEHICLE_NOT_FOUND"})
     public ApiResponse<VehicleDetailResponse> getDetail(@PathVariable String vehicleId) {
         return ApiResponse.success(VehicleDetailResponse.from(vehicleStatusQueryService.getDetail(vehicleId)));
+    }
+
+    /**
+     * 차량이 어떤 버전의 업데이트를 언제 시도해 성공·실패했는지 최근 50건을 조회한다. 같은 버전을 실패 후 재시도했으면 실패와 성공이 따로 나온다.
+     *
+     * @param vehicleId 차량이 보내는 식별자
+     * @return 200 과 완료 시각이 늦은 순의 업데이트 시도. 시도한 적이 없으면 빈 목록
+     */
+    @GetMapping("/{vehicleId}/events")
+    @ApiErrorCodes(
+            type = VehicleErrorCode.class,
+            codes = {"VEHICLE_NOT_FOUND"})
+    public ApiResponse<VehicleUpdateHistoryResponse> getUpdateHistory(@PathVariable String vehicleId) {
+        return ApiResponse.success(
+                VehicleUpdateHistoryResponse.from(vehicleUpdateHistoryService.getRecentAttempts(vehicleId)));
     }
 
     /**
