@@ -13,18 +13,43 @@ import org.springframework.data.repository.query.Param;
 public interface VehicleStateRepository extends JpaRepository<VehicleState, Long> {
 
     /**
-     * 차량의 현재 버전만 조회한다. 매니페스트 발급에서 마지막 체크인 때 기록한 버전으로 대상을 다시 판정할 때 쓴다.
-     * (MANIFEST-POL-001)
+     * 매니페스트 발급에 필요한 차량 상태를 한 번에 조회한다. 대상을 다시 판정할 현재 버전과 Edge 를 고를 마지막 위치·경과 시간이다.
      *
      * @param vehicleId 차량 ID
-     * @return 차량의 현재 버전. 상태가 없으면 빈 값
+     * @return 차량 상태. 상태가 없으면 빈 값
      */
-    // 판정에는 버전만 필요하므로 엔티티를 읽지 않고 버전 값만 조회한다
-    @Query("select s.currentVersion from VehicleState s where s.vehicleId = :vehicleId")
-    Optional<SoftwareVersion> findCurrentVersionById(@Param("vehicleId") Long vehicleId);
+    // 위치 경과 시간은 위치 갱신 시각을 기록한 DB 시계(NOW(3))로 잰다. 앱 pod 시계와 DB 시계가 어긋나도 위치 유효 판단이 흔들리지 않게 하기 위해서다.
+    // 위치를 받은 적 없으면 위도·경도·경과 시간이 모두 NULL 이다(ck_vehicle_state_location)
+    @Query(value = """
+                    SELECT current_version AS currentVersion,
+                           latitude AS latitude,
+                           longitude AS longitude,
+                           TIMESTAMPDIFF(MICROSECOND, location_updated_at, NOW(3)) AS locationAgeMicros
+                    FROM vehicle_state
+                    WHERE vehicle_id = :vehicleId
+                    """, nativeQuery = true)
+    Optional<ManifestStateRow> findManifestStateById(@Param("vehicleId") Long vehicleId);
 
     /**
-     * 체크인한 차량의 현재 버전과 마지막 체크인 시각을 덮어쓴다. 마지막 체크인 시각은 DB 시계로 기록한다. (VEHICLE-REQ-001)
+     * 매니페스트가 고른 Edge 를 배정 Edge 로 덮어쓴다.
+     *
+     * @param vehicleId 차량 ID
+     * @param edgeId 고른 Edge 의 id
+     * @return 조건에 맞은 행 수. 상태가 없는 차량이면 0
+     */
+    // 이 컬럼만 바꾸는 native UPDATE 로 쓴다. 엔티티를 읽어 변경 감지로 저장하면 모든 컬럼을 다시 쓰므로, 그 사이 다른 pod 에서 커밋된
+    // 체크인(현재 버전, 마지막 체크인 시각)을 읽어 둔 옛 값으로 되돌린다.
+    // MySQL 은 값이 그대로인 행을 바꾸지 않으므로 같은 Edge 를 다시 배정하면 updated_at(ON UPDATE)도 그대로다
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+                    UPDATE vehicle_state
+                    SET assigned_edge_id = :edgeId
+                    WHERE vehicle_id = :vehicleId
+                    """, nativeQuery = true)
+    int recordAssignedEdge(@Param("vehicleId") Long vehicleId, @Param("edgeId") String edgeId);
+
+    /**
+     * 체크인한 차량의 현재 버전과 마지막 체크인 시각을 덮어쓴다. 마지막 체크인 시각은 DB 시계로 기록한다.
      *
      * @param vehicleId 차량 ID
      * @param currentVersion 차량이 보낸 현재 버전
@@ -51,7 +76,6 @@ public interface VehicleStateRepository extends JpaRepository<VehicleState, Long
 
     /**
      * 차량이 체크인으로 보낸 위치와 위치 갱신 시각을 덮어쓴다. 갱신 시각은 마지막 체크인 시각처럼 DB 시계로 기록한다.
-     * (VEHICLE-REQ-001)
      *
      * @param vehicleId 차량 ID
      * @param location 차량이 보낸 위치

@@ -1,7 +1,9 @@
 package com.orbit.server.domain.edge.entity;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 
 import com.orbit.server.global.error.InvalidValueException;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +15,33 @@ class CoordinatesTest {
 
     private static final double SEOUL_LATITUDE = 37.5665;
     private static final double SEOUL_LONGITUDE = 126.9780;
+    private static final Coordinates SEOUL = new Coordinates(SEOUL_LATITUDE, SEOUL_LONGITUDE);
+    private static final Coordinates BUSAN = new Coordinates(35.1796, 129.0756);
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 두 지점 사이의 대권 거리를 km 로 계산한다")
+    void calculatesHaversineDistance() {
+        // 서울 시청 ↔ 부산 시청 직선 거리는 약 325km 다
+        assertThat(SEOUL.distanceKmTo(BUSAN)).isCloseTo(325.0, within(2.0));
+    }
+
+    @Test
+    @DisplayName("거리는 방향에 상관없이 같고, 같은 지점이면 0 이다")
+    void distanceIsSymmetricAndZeroForSamePoint() {
+        assertThat(SEOUL.distanceKmTo(BUSAN)).isEqualTo(BUSAN.distanceKmTo(SEOUL));
+        assertThat(SEOUL.distanceKmTo(SEOUL)).isZero();
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {0, 37.5665, -45.123456, 89.999999})
+    @DisplayName("정반대 지점까지의 거리도 NaN 이 아니라 지구 둘레의 절반이다")
+    void calculatesAntipodalDistanceWithoutNaN(double latitude) {
+        Coordinates point = new Coordinates(latitude, SEOUL_LONGITUDE);
+        Coordinates antipode = new Coordinates(-latitude, SEOUL_LONGITUDE - 180);
+
+        // 지구 평균 반지름 6371.0088km × π
+        assertThat(point.distanceKmTo(antipode)).isCloseTo(20015.1, within(0.1));
+    }
 
     @Test
     @DisplayName("위도 -90~90, 경도 -180~180 의 경계값으로 생성한다")

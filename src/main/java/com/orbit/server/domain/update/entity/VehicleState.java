@@ -6,10 +6,8 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Generated;
@@ -36,14 +34,8 @@ public class VehicleState {
     @Column(name = "last_seen_at")
     private Instant lastSeenAt;
 
-    // 위치와 갱신 시각은 체크인 쿼리가 DB 시계(NOW(3))로 함께 쓰므로 엔티티에서는 읽기만 한다
-    @Embedded
-    @AttributeOverride(name = "latitude", column = @Column(name = "latitude", insertable = false, updatable = false))
-    @AttributeOverride(name = "longitude", column = @Column(name = "longitude", insertable = false, updatable = false))
-    private VehicleLocation location;
-
-    @Column(name = "location_updated_at", insertable = false, updatable = false)
-    private Instant locationUpdatedAt;
+    // 위치(latitude, longitude, location_updated_at)와 배정 Edge(assigned_edge_id)는 매핑하지 않는다.
+    // 체크인과 매니페스트가 각 컬럼만 바꾸는 쿼리로 쓰고 읽으므로, 엔티티가 옛 값을 다시 쓰지 않게 하기 위해서다
 
     // SSE 가 이 시각으로 변경분을 조회하므로 DB 의 ON UPDATE 로만 갱신한다
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
@@ -68,19 +60,5 @@ public class VehicleState {
      */
     public void changeVersion(SoftwareVersion currentVersion) {
         this.currentVersion = Objects.requireNonNull(currentVersion, "currentVersion");
-    }
-
-    /**
-     * Edge 선택에 쓸 수 있는 위치를 돌려준다. 차량이 움직이므로 너무 오래된 위치는 쓰지 않는다. (MANIFEST-POL-001)
-     *
-     * @param now 판단 기준 시각
-     * @param maxAge 위치를 믿을 수 있는 최대 경과 시간
-     * @return 받은 지 {@code maxAge} 이내인 마지막 위치. 받은 적이 없거나 더 오래됐으면 빈 값
-     */
-    public Optional<VehicleLocation> freshLocation(Instant now, Duration maxAge) {
-        if (location == null || locationUpdatedAt.plus(maxAge).isBefore(now)) {
-            return Optional.empty();
-        }
-        return Optional.of(location);
     }
 }

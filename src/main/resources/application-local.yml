@@ -16,9 +16,7 @@ orbit:
     key: ${ENROLLMENT_KEY:local-enrollment-key}
   admin:
     token: ${ADMIN_TOKEN:local-admin-token}
-  # 로컬에는 CDN 이 없으므로 매니페스트 응답 확인용 임시 주소. 실제로 받으려면 환경 변수로 바꾼다
   cdn:
-    base-url: ${CDN_BASE_URL:http://localhost:8080}
     # 로컬에는 Edge 가 없으므로 Edge 선택 확인용 임시 목록. 좌표는 flow.md 의 서울·대전·부산 Edge 와 같다
     default-edge-id: edge-seoul
     edges:

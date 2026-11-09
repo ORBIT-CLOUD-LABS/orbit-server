@@ -5,12 +5,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.update.entity.SoftwareVersion;
+import com.orbit.server.domain.update.entity.VehicleLocation;
+import com.orbit.server.domain.update.service.ManifestVehicleState.LastLocation;
 import com.orbit.server.domain.vehicle.entity.Vehicle;
 import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
 import com.orbit.server.domain.vehicle.repository.VehicleRepository;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.EntityManager;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Import(TestcontainersConfiguration.class)
 @Transactional
 class VehicleStateServiceTest {
+
+    private static final VehicleLocation SEOUL = new VehicleLocation(37.5665, 126.978);
 
     @Autowired
     private VehicleStateService vehicleStateService;
@@ -97,19 +102,95 @@ class VehicleStateServiceTest {
     }
 
     @Test
-    @DisplayName("MANIFEST-POL-001: 마지막 체크인 때 기록한 현재 버전을 조회한다")
+    @DisplayName("MANIFEST-POL-001: 매니페스트용 상태로 마지막 체크인 때 기록한 현재 버전을 조회한다")
     void getsCurrentVersionRecordedAtLastCheckIn() {
         vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
         vehicleStateService.recordCheckIn(vehicleId, "1.0.1");
 
-        assertThat(vehicleStateService.getCurrentVersion(vehicleId)).isEqualTo(new SoftwareVersion("1.0.1"));
+        ManifestVehicleState state = vehicleStateService.getManifestState(vehicleId);
+
+        assertThat(state.vehicleId()).isEqualTo(vehicleId);
+        assertThat(state.currentVersion()).isEqualTo(new SoftwareVersion("1.0.1"));
     }
 
     @Test
-    @DisplayName("MANIFEST-POL-001: 상태가 없는 차량의 현재 버전 조회는 데이터가 어긋난 것이므로 서버 오류다")
-    void failsGettingCurrentVersionWithoutState() {
-        assertThatThrownBy(() -> vehicleStateService.getCurrentVersion(vehicleId))
+    @DisplayName("MANIFEST-POL-001: 상태가 없는 차량의 매니페스트용 상태 조회는 데이터가 어긋난 것이므로 서버 오류다")
+    void failsGettingManifestStateWithoutState() {
+        assertThatThrownBy(() -> vehicleStateService.getManifestState(vehicleId))
                 .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 위치를 받은 적이 없으면 마지막 위치가 비어 있다")
+    void hasNoLastLocationBeforeFirstReport() {
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+
+        assertThat(vehicleStateService.getManifestState(vehicleId).lastLocation())
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 마지막 위치와 받은 뒤 지난 시간을 DB 시계로 잰다")
+    void getsLastLocationWithAgeOnDatabaseClock() {
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+        vehicleStateService.recordLocation(vehicleId, SEOUL);
+        moveLocationUpdatedAtBack(Duration.ofMinutes(45));
+
+        LastLocation last =
+                vehicleStateService.getManifestState(vehicleId).lastLocation().orElseThrow();
+
+        assertThat(last.location()).isEqualTo(SEOUL);
+        assertThat(last.age()).isBetween(Duration.ofMinutes(45), Duration.ofMinutes(46));
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 매니페스트가 고른 Edge 를 기록하고 새 Edge 로 덮어쓴다")
+    void assignsEdge() {
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+
+        vehicleStateService.assignEdge(vehicleId, "edge-seoul");
+        assertThat(assignedEdgeId()).isEqualTo("edge-seoul");
+
+        vehicleStateService.assignEdge(vehicleId, "edge-busan");
+        assertThat(assignedEdgeId()).isEqualTo("edge-busan");
+    }
+
+    @Test
+    @DisplayName("Edge 배정은 그 사이 기록된 체크인의 현재 버전을 이전 값으로 되돌리지 않는다")
+    void assigningEdgeKeepsVersionRecordedByCheckIn() {
+        // 상태 엔티티가 1.0.0 으로 영속성 컨텍스트에 남은 채 체크인이 native UPDATE 로 1.0.1 을 기록한다
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+        vehicleStateService.recordCheckIn(vehicleId, "1.0.1");
+
+        vehicleStateService.assignEdge(vehicleId, "edge-seoul");
+
+        assertThat(currentVersions()).containsExactly("1.0.1");
+        assertThat(assignedEdgeId()).isEqualTo("edge-seoul");
+    }
+
+    @Test
+    @DisplayName("상태가 없는 차량에 Edge 를 배정하면 데이터가 어긋난 것이므로 서버 오류다")
+    void failsAssigningEdgeWithoutState() {
+        assertThatThrownBy(() -> vehicleStateService.assignEdge(vehicleId, "edge-seoul"))
+                .isInstanceOf(IllegalStateException.class);
+    }
+
+    private void moveLocationUpdatedAtBack(Duration duration) {
+        entityManager
+                .createNativeQuery(
+                        "UPDATE vehicle_state SET location_updated_at = location_updated_at - INTERVAL :seconds"
+                                + " SECOND WHERE vehicle_id = :vehicleId")
+                .setParameter("seconds", duration.toSeconds())
+                .setParameter("vehicleId", vehicleId)
+                .executeUpdate();
+    }
+
+    private String assignedEdgeId() {
+        entityManager.flush();
+        return (String) entityManager
+                .createNativeQuery("SELECT assigned_edge_id FROM vehicle_state WHERE vehicle_id = :vehicleId")
+                .setParameter("vehicleId", vehicleId)
+                .getSingleResult();
     }
 
     private boolean lastSeenRecorded() {

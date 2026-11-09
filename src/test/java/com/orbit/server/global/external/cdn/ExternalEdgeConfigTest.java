@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.domain.edge.entity.Edges;
 import com.orbit.server.domain.edge.service.EdgeCatalog;
+import com.orbit.server.domain.edge.service.EdgeSelectionProperties;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
@@ -36,7 +38,8 @@ class ExternalEdgeConfigTest {
     @DisplayName("가져온 파일의 값이 application.yml 의 기본값보다 우선한다")
     void importedFileOverridesDefaults() throws IOException {
         try (ConfigurableApplicationContext context = runWithImportedFile()) {
-            assertThat(context.getBean(CdnProperties.class).fallbackCount()).isEqualTo(1);
+            assertThat(context.getBean(EdgeSelectionProperties.class).fallbackCount())
+                    .isEqualTo(1);
         }
     }
 
@@ -44,8 +47,12 @@ class ExternalEdgeConfigTest {
     private static ConfigurableApplicationContext runWithImportedFile() throws IOException {
         Path file = new ClassPathResource("cdn/application-cdn.yml").getFile().toPath();
 
-        return new SpringApplicationBuilder(CdnConfig.class, ConfiguredEdgeCatalog.class)
+        return new SpringApplicationBuilder(CdnConfig.class, ConfiguredEdgeCatalog.class, SelectionConfig.class)
                 .web(WebApplicationType.NONE)
-                .run("--spring.config.import=file:" + file, "--orbit.cdn.base-url=http://cdn.test");
+                .run("--spring.config.import=file:" + file);
     }
+
+    // Edge 선택 설정은 edge 컨텍스트가 읽는다. 그 설정 클래스는 패키지 밖에 열려 있지 않으므로 같은 바인딩을 테스트 안에서 켠다
+    @EnableConfigurationProperties(EdgeSelectionProperties.class)
+    static class SelectionConfig {}
 }
