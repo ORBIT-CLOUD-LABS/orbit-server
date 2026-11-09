@@ -87,13 +87,14 @@ class ManifestControllerTest {
     }
 
     @Test
-    @DisplayName("DOWNLOAD-POL-001: 다운로드 URL 은 CDN 주소 뒤에 Origin 경로를 붙인 고정 URL 이고 만료 시각은 없다")
-    void respondsFixedCdnDownloadUrl() throws Exception {
+    @DisplayName("DOWNLOAD-POL-001: 다운로드 URL 은 고른 Edge 주소 뒤에 Origin 경로를 붙인 URL 이고 서명 전이라 만료 시각은 없다")
+    void respondsEdgeDownloadUrl() throws Exception {
         Long campaignId = registerCampaign("1.0.1", "hw-1", periodAroundNow());
 
-        // application-test.yml 의 orbit.cdn.base-url
+        // 위치를 보낸 적이 없으므로 application-test.yml 의 기본 Edge(edge-seoul) 주소다
         requestManifest(VEHICLE_ID, campaignId, token)
-                .andExpect(jsonPath("$.data.downloadUrl").value("http://cdn.test/firmware/model-a/1.0.1/firmware.bin"))
+                .andExpect(jsonPath("$.data.downloadUrl")
+                        .value("http://cdn.test:30081/firmware/model-a/1.0.1/firmware.bin"))
                 .andExpect(jsonPath("$.data.urlExpiresAt").doesNotExist());
     }
 
