@@ -37,7 +37,8 @@ public record Coordinates(double latitude, double longitude) {
                 + Math.cos(Math.toRadians(latitude))
                         * Math.cos(Math.toRadians(other.latitude))
                         * Math.pow(Math.sin(longitudeDelta / 2), 2);
-        return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(haversine));
+        // 정반대에 가까운 두 지점이면 부동소수 오차로 1 을 조금 넘어 asin 이 NaN 이 되므로 1 로 자른다
+        return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(Math.min(1, haversine)));
     }
 
     // 범위를 벗어난 경우가 아니라 범위 안인 경우를 판정해야 NaN 도 거부된다. NaN 은 어떤 비교에서도 false 이기 때문이다

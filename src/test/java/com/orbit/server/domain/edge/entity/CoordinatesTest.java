@@ -32,6 +32,17 @@ class CoordinatesTest {
         assertThat(SEOUL.distanceKmTo(SEOUL)).isZero();
     }
 
+    @ParameterizedTest
+    @ValueSource(doubles = {0, 37.5665, -45.123456, 89.999999})
+    @DisplayName("정반대 지점까지의 거리도 NaN 이 아니라 지구 둘레의 절반이다")
+    void calculatesAntipodalDistanceWithoutNaN(double latitude) {
+        Coordinates point = new Coordinates(latitude, SEOUL_LONGITUDE);
+        Coordinates antipode = new Coordinates(-latitude, SEOUL_LONGITUDE - 180);
+
+        // 지구 평균 반지름 6371.0088km × π
+        assertThat(point.distanceKmTo(antipode)).isCloseTo(20015.1, within(0.1));
+    }
+
     @Test
     @DisplayName("위도 -90~90, 경도 -180~180 의 경계값으로 생성한다")
     void createsAtBoundaries() {
