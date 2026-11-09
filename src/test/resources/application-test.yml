@@ -12,9 +12,23 @@ orbit:
   cdn:
     base-url: http://cdn.test
     default-edge-id: edge-seoul
+    health-check:
+      # 테스트의 Edge 주소는 접속되지 않는다. 기동 직후 한 번만 확인하고(실패 1회 < 기준 3회) 다시 돌지 않게 해 Edge 가 정상으로 남게 한다
+      interval: 1h
+    # flow.md 의 Edge 3개 예시와 같은 구성. Edge 선택 테스트가 가까운 순서와 기본 Edge 를 구분하는 데 쓴다
     edges:
       - id: edge-seoul
         name: 서울
         base-url: http://cdn.test:30081
         latitude: 37.5665
         longitude: 126.9780
+      - id: edge-daejeon
+        name: 대전
+        base-url: http://cdn.test:30082
+        latitude: 36.3504
+        longitude: 127.3845
+      - id: edge-busan
+        name: 부산
+        base-url: http://cdn.test:30083
+        latitude: 35.1796
+        longitude: 129.0756
