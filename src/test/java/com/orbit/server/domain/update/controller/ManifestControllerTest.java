@@ -1,5 +1,7 @@
 package com.orbit.server.domain.update.controller;
 
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -99,6 +101,37 @@ class ManifestControllerTest {
     }
 
     @Test
+    @DisplayName("MANIFEST-POL-001: 위치를 모르면 기본 Edge 를 거리 없이 응답하고 나머지 Edge 를 설정 순서대로 예비 URL 로 준다")
+    void respondsDefaultEdgeWithFallbacksWithoutLocation() throws Exception {
+        Long campaignId = registerCampaign("1.0.1", "hw-1", periodAroundNow());
+
+        requestManifest(VEHICLE_ID, campaignId, token)
+                .andExpect(jsonPath("$.data.edge.edgeId").value("edge-seoul"))
+                .andExpect(jsonPath("$.data.edge.distanceKm").value(nullValue()))
+                .andExpect(jsonPath("$.data.fallbackUrls.length()").value(2))
+                .andExpect(jsonPath("$.data.fallbackUrls[0].edgeId").value("edge-daejeon"))
+                .andExpect(jsonPath("$.data.fallbackUrls[0].url")
+                        .value("http://cdn.test:30082/firmware/model-a/1.0.1/firmware.bin"))
+                .andExpect(jsonPath("$.data.fallbackUrls[1].edgeId").value("edge-busan"));
+    }
+
+    @Test
+    @DisplayName("MANIFEST-POL-001: 체크인으로 보낸 위치에서 가장 가까운 정상 Edge 로 URL 을 만들고 거리를 함께 응답한다")
+    void respondsNearestEdgeForCheckInLocation() throws Exception {
+        Long campaignId = registerCampaign("1.0.1", "hw-1", periodAroundNow());
+        // 울산 근처: application-test.yml 의 Edge 중 부산이 가장 가깝다
+        checkInAt(35.5384, 129.3114);
+
+        requestManifest(VEHICLE_ID, campaignId, token)
+                .andExpect(jsonPath("$.data.edge.edgeId").value("edge-busan"))
+                .andExpect(jsonPath("$.data.edge.distanceKm").value(closeTo(50.0, 5.0)))
+                .andExpect(jsonPath("$.data.downloadUrl")
+                        .value("http://cdn.test:30083/firmware/model-a/1.0.1/firmware.bin"))
+                .andExpect(jsonPath("$.data.fallbackUrls[0].edgeId").value("edge-daejeon"))
+                .andExpect(jsonPath("$.data.fallbackUrls[1].edgeId").value("edge-seoul"));
+    }
+
+    @Test
     @DisplayName("MANIFEST-REQ-001: 캠페인이 없으면 404 CAMPAIGN_NOT_FOUND 로 응답한다")
     void rejectsMissingCampaign() throws Exception {
         requestManifest(VEHICLE_ID, Long.MAX_VALUE, token)
@@ -194,6 +227,19 @@ class ManifestControllerTest {
                 .getResponse()
                 .getContentAsString();
         return JsonPath.read(response, "$.data.vehicleToken");
+    }
+
+    // 위치는 native UPDATE 로 기록되므로 캐시된 상태 엔티티를 비워 매니페스트가 DB 값을 읽게 한다
+    private void checkInAt(double latitude, double longitude) throws Exception {
+        String body = """
+                {"currentVersion": "1.0.0", "location": {"latitude": %s, "longitude": %s}}""".formatted(latitude, longitude);
+        mockMvc.perform(post("/api/v1/vehicles/{vehicleId}/check-in", VEHICLE_ID)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+        em.flush();
+        em.clear();
     }
 
     private Long registerCampaign(String targetVersion, String hwVersion, CampaignPeriod period) {
