@@ -48,6 +48,6 @@ class FixedCdnDownloadUrlIssuerTest {
 
     // 고정 URL 은 CDN 주소만 쓰므로 Edge 관련 값은 비워 둔다
     private static FixedCdnDownloadUrlIssuer issuerOf(String baseUrl) {
-        return new FixedCdnDownloadUrlIssuer(new CdnProperties(URI.create(baseUrl), null, null, null, List.of()));
+        return new FixedCdnDownloadUrlIssuer(new CdnProperties(URI.create(baseUrl), null, List.of()));
     }
 }
