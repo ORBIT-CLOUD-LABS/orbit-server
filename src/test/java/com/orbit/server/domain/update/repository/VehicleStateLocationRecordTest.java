@@ -11,7 +11,6 @@ import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
 import com.orbit.server.domain.vehicle.entity.VehicleSpec;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
-import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,6 @@ class VehicleStateLocationRecordTest {
 
     private static final VehicleLocation SEOUL = new VehicleLocation(37.5665, 126.978);
     private static final VehicleLocation BUSAN = new VehicleLocation(35.1796, 129.0756);
-    private static final Duration MAX_AGE = Duration.ofMinutes(10);
 
     @Autowired
     private VehicleStateRepository vehicleStateRepository;
@@ -54,7 +52,11 @@ class VehicleStateLocationRecordTest {
         int updated = vehicleStateRepository.recordLocation(vehicleId, SEOUL);
 
         assertThat(updated).isEqualTo(1);
-        assertThat(reload().freshLocation(databaseNow(), MAX_AGE)).contains(SEOUL);
+        ManifestStateRow row = manifestState();
+        assertThat(locationOf(row)).isEqualTo(SEOUL);
+        // 방금 DB 시계로 기록했으므로 같은 시계로 잰 경과 시간은 0 에 가깝다
+        assertThat(row.getLocationAgeMicros())
+                .isBetween(0L, Duration.ofSeconds(5).toNanos() / 1_000);
     }
 
     @Test
@@ -64,7 +66,18 @@ class VehicleStateLocationRecordTest {
 
         vehicleStateRepository.recordLocation(vehicleId, BUSAN);
 
-        assertThat(reload().freshLocation(databaseNow(), MAX_AGE)).contains(BUSAN);
+        assertThat(locationOf(manifestState())).isEqualTo(BUSAN);
+    }
+
+    @Test
+    @DisplayName("위치를 받은 적 없으면 위도·경도·경과 시간이 모두 비어 있다")
+    void readsNoLocationBeforeFirstReport() {
+        ManifestStateRow row = manifestState();
+
+        assertThat(row.getCurrentVersion()).isEqualTo("1.0.0");
+        assertThat(row.getLatitude()).isNull();
+        assertThat(row.getLongitude()).isNull();
+        assertThat(row.getLocationAgeMicros()).isNull();
     }
 
     @Test
@@ -73,12 +86,12 @@ class VehicleStateLocationRecordTest {
         assertThat(vehicleStateRepository.recordLocation(vehicleId + 1, SEOUL)).isZero();
     }
 
-    private Instant databaseNow() {
-        return (Instant) em.createNativeQuery("SELECT NOW(3)", Instant.class).getSingleResult();
+    private ManifestStateRow manifestState() {
+        return vehicleStateRepository.findManifestStateById(vehicleId).orElseThrow();
     }
 
-    private VehicleState reload() {
-        em.clear();
-        return em.find(VehicleState.class, vehicleId);
+    private static VehicleLocation locationOf(ManifestStateRow row) {
+        return new VehicleLocation(
+                row.getLatitude().doubleValue(), row.getLongitude().doubleValue());
     }
 }
