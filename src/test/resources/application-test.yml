@@ -11,12 +11,7 @@ orbit:
     token: test-admin-token
   cdn:
     default-edge-id: edge-seoul
-    health-check:
-      # 테스트의 Edge 주소는 접속되지 않아 헬스체크가 항상 실패한다. Spring 7 테스트 컨텍스트는 테스트 클래스마다 lifecycle 빈을
-      # 멈췄다 다시 시작하므로(pause/restart) 캐시된 컨텍스트를 쓰는 클래스 수만큼 기동 직후 확인이 반복된다. 주기를 길게 둬 클래스 안에서
-      # 다시 돌지 않게 하고, 실패 기준을 테스트 클래스 수보다 훨씬 크게 둬 Edge 가 정상으로 남게 한다
-      interval: 1h
-      failure-threshold: 1000
+    # Edge 주소는 접속되지 않는 가짜 주소다. 테스트에서는 AlwaysUpEdgeHealthProbe 가 헬스체크를 대신해 모든 Edge 를 정상으로 본다
     # flow.md 의 Edge 3개 예시와 같은 구성. Edge 선택 테스트가 가까운 순서와 기본 Edge 를 구분하는 데 쓴다
     edges:
       - id: edge-seoul
