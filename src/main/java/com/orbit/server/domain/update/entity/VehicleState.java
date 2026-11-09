@@ -1,5 +1,7 @@
 package com.orbit.server.domain.update.entity;
 
+import com.orbit.server.global.common.Preconditions;
+import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -25,6 +27,9 @@ import org.hibernate.generator.EventType;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VehicleState {
 
+    // assigned_edge_id VARCHAR(50). Edge id 의 최대 길이(edge 컨텍스트 Edge)와 같다
+    private static final int MAX_EDGE_ID_LENGTH = 50;
+
     @Id
     @Column(name = "vehicle_id")
     private Long vehicleId;
@@ -44,6 +49,10 @@ public class VehicleState {
 
     @Column(name = "location_updated_at", insertable = false, updatable = false)
     private Instant locationUpdatedAt;
+
+    // 매니페스트가 마지막으로 배정한 Edge. Edge 는 설정에만 있으므로 FK 없이 id 문자열로 둔다. 배정한 적 없으면 null
+    @Column(name = "assigned_edge_id")
+    private String assignedEdgeId;
 
     // SSE 가 이 시각으로 변경분을 조회하므로 DB 의 ON UPDATE 로만 갱신한다
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
@@ -71,7 +80,17 @@ public class VehicleState {
     }
 
     /**
-     * Edge 선택에 쓸 수 있는 위치를 돌려준다. 차량이 움직이므로 너무 오래된 위치는 쓰지 않는다. (MANIFEST-POL-001)
+     * 매니페스트가 고른 Edge 를 기록한다. 대시보드가 차량별 배정 Edge 를 보여 주는 데 쓴다.
+     *
+     * @param edgeId 고른 Edge 의 id. 공백 불가, 50자 이하
+     * @throws InvalidValueException id 가 비어 있거나 50자를 넘는 경우
+     */
+    public void assignEdge(String edgeId) {
+        this.assignedEdgeId = Preconditions.requireText(edgeId, MAX_EDGE_ID_LENGTH, "Edge id");
+    }
+
+    /**
+     * Edge 선택에 쓸 수 있는 위치를 돌려준다. 차량이 움직이므로 너무 오래된 위치는 쓰지 않는다.
      *
      * @param now 판단 기준 시각
      * @param maxAge 위치를 믿을 수 있는 최대 경과 시간
