@@ -20,15 +20,12 @@ import org.springframework.validation.annotation.Validated;
  * 규칙의 설정(fallback 개수, 위치 유효 시간)은 같은 접두사지만 도메인 규칙이라 {@code edge} 컨텍스트의 {@code
  * EdgeSelectionProperties} 가 읽는다.
  *
- * @param baseUrl Phase1 고정 다운로드 URL 의 CDN 주소. 환경 변수 {@code CDN_BASE_URL} 로 주입한다. 예: {@code
- *     http://cdn.orbit.internal}
  * @param defaultEdgeId 차량 위치를 모를 때 쓰는 Edge 의 id
  * @param edges Edge 목록. 중첩 리스트라 환경 변수가 아니라 외부 YAML 파일로 넣는다
  */
 @Validated
 @ConfigurationProperties("orbit.cdn")
 record CdnProperties(
-        @NotNull URI baseUrl,
         String defaultEdgeId,
         // 목록이 빠지면 null 이 아니라 빈 목록으로 받아, 비어 있다는 같은 이유로 Edges 가 거부하게 한다
         @DefaultValue List<@Valid EdgeProperties> edges) {

@@ -12,34 +12,17 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class CdnPropertiesTest {
 
-    private static final String BASE_URL = "orbit.cdn.base-url=";
     private static final String SEOUL = "orbit.cdn.edges[0].";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(CdnConfig.class)
             .withPropertyValues(
-                    BASE_URL + "http://cdn.test",
                     "orbit.cdn.default-edge-id=edge-seoul",
                     SEOUL + "id=edge-seoul",
                     SEOUL + "name=서울",
                     SEOUL + "base-url=http://cdn.test:30081",
                     SEOUL + "latitude=37.5665",
                     SEOUL + "longitude=126.9780");
-
-    @Test
-    @DisplayName("DOWNLOAD-REQ-001: 설정한 CDN 주소를 읽는다")
-    void bindsBaseUrl() {
-        contextRunner.run(context ->
-                assertThat(context.getBean(CdnProperties.class).baseUrl()).isEqualTo(URI.create("http://cdn.test")));
-    }
-
-    @Test
-    @DisplayName("DOWNLOAD-REQ-001: CDN 주소가 없으면 앱을 띄우지 않는다")
-    void failsWithoutBaseUrl() {
-        contextRunner
-                .withPropertyValues(BASE_URL)
-                .run(context -> assertThat(context).hasFailed());
-    }
 
     @Test
     @DisplayName("기본 Edge id 를 읽는다")

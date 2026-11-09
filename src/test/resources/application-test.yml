@@ -10,7 +10,6 @@ orbit:
   admin:
     token: test-admin-token
   cdn:
-    base-url: http://cdn.test
     default-edge-id: edge-seoul
     health-check:
       # 테스트의 Edge 주소는 접속되지 않는다. 기동 직후 한 번만 확인하고(실패 1회 < 기준 3회) 다시 돌지 않게 해 Edge 가 정상으로 남게 한다

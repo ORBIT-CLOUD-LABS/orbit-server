@@ -49,7 +49,7 @@ class ExternalEdgeConfigTest {
 
         return new SpringApplicationBuilder(CdnConfig.class, ConfiguredEdgeCatalog.class, SelectionConfig.class)
                 .web(WebApplicationType.NONE)
-                .run("--spring.config.import=file:" + file, "--orbit.cdn.base-url=http://cdn.test");
+                .run("--spring.config.import=file:" + file);
     }
 
     // Edge 선택 설정은 edge 컨텍스트가 읽는다. 그 설정 클래스는 패키지 밖에 열려 있지 않으므로 같은 바인딩을 테스트 안에서 켠다
