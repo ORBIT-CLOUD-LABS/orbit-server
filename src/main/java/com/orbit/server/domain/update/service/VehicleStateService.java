@@ -3,10 +3,12 @@ package com.orbit.server.domain.update.service;
 import com.orbit.server.domain.update.entity.SoftwareVersion;
 import com.orbit.server.domain.update.entity.VehicleLocation;
 import com.orbit.server.domain.update.entity.VehicleState;
+import com.orbit.server.domain.update.repository.ManifestStateRow;
 import com.orbit.server.domain.update.repository.VehicleStateRepository;
+import com.orbit.server.domain.update.service.ManifestVehicleState.LastLocation;
 import com.orbit.server.global.error.InvalidValueException;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -72,49 +74,42 @@ public class VehicleStateService {
     }
 
     /**
-     * Edge 선택에 쓸 수 있는 차량의 마지막 위치를 조회한다.
+     * 매니페스트 발급에 쓸 차량 상태(현재 버전, 마지막 위치와 받은 뒤 지난 시간)를 한 번에 조회한다.
      *
      * @param vehicleId 차량 ID
-     * @param now 판단 기준 시각
-     * @param maxAge 위치를 믿을 수 있는 최대 경과 시간
-     * @return 받은 지 {@code maxAge} 이내인 마지막 위치. 받은 적이 없거나 더 오래됐으면 빈 값
+     * @return 차량 상태
      * @throws IllegalStateException 차량의 상태가 없는 경우
      */
-    public Optional<VehicleLocation> findFreshLocation(Long vehicleId, Instant now, Duration maxAge) {
-        return getState(vehicleId).freshLocation(now, maxAge);
+    // 등록할 때 상태를 함께 만들므로 인증을 통과한 차량에 상태가 없다면 데이터가 어긋난 것이라 서버 오류로 본다
+    public ManifestVehicleState getManifestState(Long vehicleId) {
+        ManifestStateRow row = vehicleStateRepository
+                .findManifestStateById(vehicleId)
+                .orElseThrow(() -> new IllegalStateException("차량의 상태가 없습니다: " + vehicleId));
+        return new ManifestVehicleState(vehicleId, new SoftwareVersion(row.getCurrentVersion()), lastLocationOf(row));
     }
 
     /**
      * 매니페스트가 차량에 고른 Edge 를 기록한다.
      *
      * @param vehicleId 차량 ID
-     * @param edgeId 고른 Edge 의 id
+     * @param edgeId 고른 Edge 의 id. Edge 설정에서 검증된 값이다
      * @throws IllegalStateException 차량의 상태가 없는 경우
-     * @throws InvalidValueException Edge id 가 비어 있거나 50자를 넘는 경우
      */
-    // 조회한 상태를 변경 감지로 덮어쓰므로 조회부터 저장까지 한 트랜잭션으로 묶는다
     @Transactional
     public void assignEdge(Long vehicleId, String edgeId) {
-        getState(vehicleId).assignEdge(edgeId);
+        int updated = vehicleStateRepository.recordAssignedEdge(vehicleId, edgeId);
+        if (updated == 0) {
+            throw new IllegalStateException("Edge 를 배정할 차량의 상태가 없습니다: " + vehicleId);
+        }
     }
 
-    /**
-     * 마지막 체크인 때 기록한 차량의 현재 버전을 조회한다. 매니페스트 발급에서 대상을 다시 판정할 때 쓴다.
-     *
-     * @param vehicleId 차량 ID
-     * @return 차량의 현재 버전
-     * @throws IllegalStateException 차량의 상태가 없는 경우
-     */
-    // 등록할 때 상태를 함께 만들므로 인증을 통과한 차량에 상태가 없다면 데이터가 어긋난 것이라 서버 오류로 본다
-    public SoftwareVersion getCurrentVersion(Long vehicleId) {
-        return vehicleStateRepository
-                .findCurrentVersionById(vehicleId)
-                .orElseThrow(() -> new IllegalStateException("차량의 상태가 없습니다: " + vehicleId));
-    }
-
-    private VehicleState getState(Long vehicleId) {
-        return vehicleStateRepository
-                .findById(vehicleId)
-                .orElseThrow(() -> new IllegalStateException("차량의 상태가 없습니다: " + vehicleId));
+    // 위도·경도·갱신 시각은 DB 검사 제약으로 함께 있거나 함께 없으므로 위도만 보고 위치 유무를 판단한다
+    private static Optional<LastLocation> lastLocationOf(ManifestStateRow row) {
+        if (row.getLatitude() == null) {
+            return Optional.empty();
+        }
+        VehicleLocation location = new VehicleLocation(
+                row.getLatitude().doubleValue(), row.getLongitude().doubleValue());
+        return Optional.of(new LastLocation(location, Duration.of(row.getLocationAgeMicros(), ChronoUnit.MICROS)));
     }
 }
