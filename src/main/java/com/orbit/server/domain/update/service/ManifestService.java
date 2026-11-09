@@ -3,12 +3,10 @@ package com.orbit.server.domain.update.service;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.campaign.service.TargetVehicleCriteria;
-import com.orbit.server.domain.update.entity.SoftwareVersion;
 import com.orbit.server.domain.vehicle.service.VehicleProfile;
 import com.orbit.server.domain.vehicle.service.VehicleQueryService;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Clock;
-import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,16 +38,19 @@ public class ManifestService {
      * @throws BusinessException 캠페인이 없으면 CAMPAIGN_NOT_FOUND, 비활성이거나 적용 기간 밖이면 CAMPAIGN_INACTIVE, 대상이 아니면
      *     NOT_UPDATE_TARGET, 정상인 Edge 가 없으면 NO_AVAILABLE_EDGE
      */
-    // 여러 컨텍스트를 차례로 조회하고 배정 Edge 를 기록하므로 한 커넥션·한 스냅샷에서 처리하도록 묶는다
+    // 여러 컨텍스트를 차례로 조회하고 배정 Edge 를 기록하므로 한 커넥션·한 스냅샷에서 처리하도록 묶는다.
+    // 배정 Edge 기록(UPDATE)은 마지막 단계라 차량 상태 행을 잠그는 시간은 그 뒤 커밋까지뿐이다
     @Transactional
     public ManifestResult issue(String vehicleId, Long campaignId) {
         VehicleProfile vehicle = vehicleQueryService.getProfile(vehicleId);
-        SoftwareVersion currentVersion = vehicleStateService.getCurrentVersion(vehicle.vehicleId());
+        ManifestVehicleState state = vehicleStateService.getManifestState(vehicle.vehicleId());
         TargetVehicleCriteria target = new TargetVehicleCriteria(
-                vehicle.model(), vehicle.hwVersion(), vehicle.region(), currentVersion.value());
-        Instant now = clock.instant();
-        ArtifactSummary artifact = campaignQueryService.getTargetArtifact(campaignId, target, now);
-        EdgeAssignment assignment = edgeAssigner.assign(vehicle.vehicleId(), artifact.path(), now);
+                vehicle.model(),
+                vehicle.hwVersion(),
+                vehicle.region(),
+                state.currentVersion().value());
+        ArtifactSummary artifact = campaignQueryService.getTargetArtifact(campaignId, target, clock.instant());
+        EdgeAssignment assignment = edgeAssigner.assign(state, artifact.path());
         return ManifestResult.of(campaignId, artifact, assignment);
     }
 }
