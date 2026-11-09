@@ -29,20 +29,18 @@ public class EdgeSelector {
     }
 
     /**
-     * 차량 위치에서 가까운 순서로 정상 Edge 를 고른다. 거리가 같으면 설정 순서를 따른다.
+     * 차량의 마지막 위치로 Edge 를 고른다. 위치가 유효 시간 안이면 가까운 순서로, 더 오래됐으면 {@link #selectDefault()} 와 같이 고른다.
      *
-     * @param latitude 차량 위치의 위도
-     * @param longitude 차량 위치의 경도
-     * @return 가장 가까운 Edge 와 그 다음으로 가까운 예비 Edge 들
+     * @param location 차량의 마지막 위치와 받은 뒤 지난 시간
+     * @return 다운로드 Edge 와 예비 Edge 들
      * @throws BusinessException 정상인 Edge 가 하나도 없으면 NO_AVAILABLE_EDGE
      */
-    public EdgeSelection selectNearest(double latitude, double longitude) {
-        Coordinates vehicle = new Coordinates(latitude, longitude);
-        List<SelectedEdge> candidates = requireHealthyEdges().stream()
-                .map(edge -> SelectedEdge.nearest(edge, vehicle.distanceKmTo(edge.coordinates())))
-                .sorted(Comparator.comparingDouble(edge -> edge.distanceKm().orElseThrow()))
-                .toList();
-        return toSelection(candidates);
+    // 차량이 움직이므로 오래된 위치로 고르면 가까운 Edge 가 아닐 수 있다
+    public EdgeSelection select(ObservedLocation location) {
+        if (location.age().compareTo(properties.locationMaxAge()) > 0) {
+            return selectDefault();
+        }
+        return selectNearest(new Coordinates(location.latitude(), location.longitude()));
     }
 
     /**
@@ -61,6 +59,15 @@ public class EdgeSelector {
             ordered.addFirst(defaultEdge);
         }
         return toSelection(ordered.stream().map(SelectedEdge::withoutDistance).toList());
+    }
+
+    // 거리가 같으면 설정 순서를 따른다(안정 정렬). Edge 는 몇 개뿐이라 정렬과 응답용으로 거리를 두 번 계산해도 비용이 없다
+    private EdgeSelection selectNearest(Coordinates vehicle) {
+        List<SelectedEdge> candidates = requireHealthyEdges().stream()
+                .sorted(Comparator.comparingDouble(edge -> vehicle.distanceKmTo(edge.coordinates())))
+                .map(edge -> SelectedEdge.nearest(edge, vehicle.distanceKmTo(edge.coordinates())))
+                .toList();
+        return toSelection(candidates);
     }
 
     private List<Edge> requireHealthyEdges() {
