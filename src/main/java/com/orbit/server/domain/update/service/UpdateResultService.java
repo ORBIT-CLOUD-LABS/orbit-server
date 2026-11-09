@@ -3,6 +3,7 @@ package com.orbit.server.domain.update.service;
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.update.entity.UpdateOutcome;
 import com.orbit.server.domain.update.repository.UpdateResultRepository;
+import com.orbit.server.domain.update.repository.VehicleEventRepository;
 import com.orbit.server.global.error.InvalidValueException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +23,10 @@ public class UpdateResultService {
 
     private final CampaignQueryService campaignQueryService;
     private final UpdateResultRepository updateResultRepository;
+    private final VehicleEventRepository vehicleEventRepository;
 
     /**
-     * 보고 검증 → 캠페인 확인 → 기록 순서로 처리한다.
+     * 보고 검증 → 캠페인 확인 → 결과·시도 이력 기록 순서로 처리한다.
      *
      * <p>형식이 틀린 보고와 없는 캠페인의 결과는 기록하지 않고 버린다. 차량은 체크인이 성공할 때까지 같은 결과를 다시 보내므로, 오류로
      * 응답하면 그 차량의 체크인이 계속 실패한다.
@@ -38,7 +40,9 @@ public class UpdateResultService {
         if (outcome.isEmpty() || !campaignExists(vehicleId, report)) {
             return;
         }
+        // 결과는 차량·캠페인당 하나를 덮어쓰므로, 재시도 전 실패도 남도록 시도 이력을 같은 트랜잭션에서 함께 기록한다
         updateResultRepository.record(vehicleId, report.campaignId(), outcome.get());
+        vehicleEventRepository.record(vehicleId, report.campaignId(), outcome.get());
     }
 
     // 형식이 틀린 보고는 차량 쪽 버그이므로 ERROR 로 남겨 드러낸다. 상세는 길이를 검증하지 못했으므로 로그에 남기지 않는다

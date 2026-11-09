@@ -125,6 +125,53 @@ class UpdateResultServiceTest {
         assertThat(allResults()).isEmpty();
     }
 
+    @Test
+    @DisplayName("결과를 기록하면 업데이트 시도 이력도 남긴다")
+    void recordsAttemptHistory() {
+        service.record(vehicleId, reportOf(campaignId, UpdateStatus.FAILED, FailureReason.HASH_MISMATCH));
+
+        assertThat(events()).containsExactly("FAILED:HASH_MISMATCH");
+    }
+
+    @Test
+    @DisplayName("같은 보고가 다시 와도 시도 이력은 하나다")
+    void recordsDuplicateAttemptOnce() {
+        ReportUpdateResultCommand report = reportOf(campaignId, UpdateStatus.FAILED, FailureReason.HASH_MISMATCH);
+
+        service.record(vehicleId, report);
+        service.record(vehicleId, report);
+
+        assertThat(events()).containsExactly("FAILED:HASH_MISMATCH");
+    }
+
+    @Test
+    @DisplayName("실패 후 재시도로 성공하면 결과는 덮어쓰지만 시도 이력에는 실패가 남는다")
+    void keepsFailedAttemptAfterRetry() {
+        service.record(vehicleId, reportOf(campaignId, UpdateStatus.FAILED, FailureReason.HASH_MISMATCH));
+
+        service.record(
+                vehicleId,
+                new ReportUpdateResultCommand(
+                        campaignId,
+                        "SUCCEEDED",
+                        null,
+                        null,
+                        FINISHED_AT.plusSeconds(60).toString(),
+                        null));
+
+        assertThat(results()).containsExactly("SUCCEEDED:null");
+        assertThat(events()).containsExactly("FAILED:HASH_MISMATCH", "SUCCEEDED:null");
+    }
+
+    @Test
+    @DisplayName("버린 보고는 시도 이력에도 남기지 않는다")
+    void discardsAttemptOfRejectedReport() {
+        service.record(vehicleId, reportOf(Long.MAX_VALUE, UpdateStatus.SUCCEEDED, null));
+        service.record(vehicleId, reportOf(campaignId, UpdateStatus.FAILED, null));
+
+        assertThat(allEvents()).isEmpty();
+    }
+
     private static ReportUpdateResultCommand reportOf(Long campaignId, UpdateStatus result, FailureReason reason) {
         String reasonName = reason == null ? null : reason.name();
         return new ReportUpdateResultCommand(campaignId, result.name(), reasonName, null, FINISHED_AT.toString(), null);
@@ -143,5 +190,19 @@ class UpdateResultServiceTest {
     @SuppressWarnings("unchecked")
     private List<Object> allResults() {
         return em.createNativeQuery("SELECT id FROM update_result").getResultList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> events() {
+        return em.createNativeQuery("SELECT CONCAT(result, ':', IFNULL(failure_reason, 'null')) FROM vehicle_event"
+                        + " WHERE vehicle_id = :vehicleId AND campaign_id = :campaignId ORDER BY finished_at")
+                .setParameter("vehicleId", vehicleId)
+                .setParameter("campaignId", campaignId)
+                .getResultList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Object> allEvents() {
+        return em.createNativeQuery("SELECT id FROM vehicle_event").getResultList();
     }
 }

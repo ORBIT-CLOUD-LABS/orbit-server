@@ -18,6 +18,8 @@ import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
 import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
 import com.orbit.server.domain.monitoring.service.VehicleStatusStreamService;
+import com.orbit.server.domain.monitoring.service.VehicleUpdateAttempt;
+import com.orbit.server.domain.monitoring.service.VehicleUpdateHistoryService;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.BusinessException;
@@ -39,6 +41,7 @@ class DashboardVehicleControllerTest {
     private static final String URL = "/api/v1/dashboard/vehicles";
     private static final String STREAM_URL = "/api/v1/dashboard/vehicles/stream";
     private static final String DETAIL_URL = "/api/v1/dashboard/vehicles/{vehicleId}";
+    private static final String EVENTS_URL = "/api/v1/dashboard/vehicles/{vehicleId}/events";
     private static final String LAST_EVENT_ID = "Last-Event-ID";
     private static final String AS_OF = "2026-10-11T07:00:00.123Z";
     private static final String LAST_SEEN_AT = "2026-10-11T06:59:00.456Z";
@@ -46,14 +49,16 @@ class DashboardVehicleControllerTest {
 
     private VehicleStatusQueryService vehicleStatusQueryService;
     private VehicleStatusStreamService vehicleStatusStreamService;
+    private VehicleUpdateHistoryService vehicleUpdateHistoryService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         vehicleStatusQueryService = mock(VehicleStatusQueryService.class);
         vehicleStatusStreamService = mock(VehicleStatusStreamService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(
-                        new DashboardVehicleController(vehicleStatusQueryService, vehicleStatusStreamService))
+        vehicleUpdateHistoryService = mock(VehicleUpdateHistoryService.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(new DashboardVehicleController(
+                        vehicleStatusQueryService, vehicleStatusStreamService, vehicleUpdateHistoryService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -214,6 +219,60 @@ class DashboardVehicleControllerTest {
                 .willThrow(new BusinessException(VehicleErrorCode.VEHICLE_NOT_FOUND));
 
         mockMvc.perform(get(DETAIL_URL, "vehicle-999"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(VehicleErrorCode.VEHICLE_NOT_FOUND.getCode()));
+    }
+
+    // 차량 업데이트 이력은 보조 API(제안)라 요구사항 ID 가 없다
+    @Test
+    @DisplayName("차량 업데이트 이력: 버전별 업데이트 시도를 조회한 순서 그대로 200 으로 응답한다")
+    void respondsUpdateHistory() throws Exception {
+        given(vehicleUpdateHistoryService.getRecentAttempts("vehicle-001"))
+                .willReturn(List.of(
+                        new VehicleUpdateAttempt(
+                                7L, "1.0.2", "SUCCEEDED", null, null, "edge-seoul", Instant.parse(UPDATED_AT)),
+                        new VehicleUpdateAttempt(
+                                7L,
+                                "1.0.2",
+                                "FAILED",
+                                "HASH_MISMATCH",
+                                "sha256 mismatch",
+                                "edge-daejeon",
+                                Instant.parse(LAST_SEEN_AT))));
+
+        mockMvc.perform(get(EVENTS_URL, "vehicle-001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(SuccessCode.OK.getCode()))
+                .andExpect(jsonPath("$.data.events.length()").value(2))
+                .andExpect(jsonPath("$.data.events[0].campaignId").value(7))
+                .andExpect(jsonPath("$.data.events[0].version").value("1.0.2"))
+                .andExpect(jsonPath("$.data.events[0].result").value("SUCCEEDED"))
+                .andExpect(jsonPath("$.data.events[0].failureReason").value(nullValue()))
+                .andExpect(jsonPath("$.data.events[0].edgeId").value("edge-seoul"))
+                .andExpect(jsonPath("$.data.events[0].finishedAt").value(UPDATED_AT))
+                .andExpect(jsonPath("$.data.events[1].result").value("FAILED"))
+                .andExpect(jsonPath("$.data.events[1].failureReason").value("HASH_MISMATCH"))
+                .andExpect(jsonPath("$.data.events[1].failureDetail").value("sha256 mismatch"))
+                .andExpect(jsonPath("$.data.events[1].finishedAt").value(LAST_SEEN_AT));
+    }
+
+    @Test
+    @DisplayName("차량 업데이트 이력: 시도한 적이 없으면 빈 목록을 200 으로 응답한다")
+    void respondsEmptyUpdateHistory() throws Exception {
+        given(vehicleUpdateHistoryService.getRecentAttempts("vehicle-001")).willReturn(List.of());
+
+        mockMvc.perform(get(EVENTS_URL, "vehicle-001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.events").isEmpty());
+    }
+
+    @Test
+    @DisplayName("차량 업데이트 이력: 차량이 없으면 404 VEHICLE_NOT_FOUND")
+    void respondsUpdateHistoryNotFound() throws Exception {
+        given(vehicleUpdateHistoryService.getRecentAttempts("vehicle-999"))
+                .willThrow(new BusinessException(VehicleErrorCode.VEHICLE_NOT_FOUND));
+
+        mockMvc.perform(get(EVENTS_URL, "vehicle-999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(VehicleErrorCode.VEHICLE_NOT_FOUND.getCode()));
     }
