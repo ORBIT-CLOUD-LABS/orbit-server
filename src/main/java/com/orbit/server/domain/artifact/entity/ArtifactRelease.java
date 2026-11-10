@@ -20,6 +20,7 @@ public record ArtifactRelease(
     private static final int MAX_LENGTH = 50;
     private static final String PATH_SEPARATOR = "/";
     private static final String ORIGIN_PATH_FORMAT = "/firmware/%s/%s/firmware.bin";
+    private static final String VERSION_NAME = "버전";
 
     /**
      * @throws InvalidValueException 차종이나 버전이 비어 있거나 50자를 넘는 경우, 차종이 '/' 를 포함하는 경우, 버전이 점으로 나눈 숫자
@@ -28,7 +29,7 @@ public record ArtifactRelease(
     // 버전은 숫자와 점만 허용하므로 '/' 검사를 따로 하지 않아도 Origin 경로가 겹치지 않는다
     public ArtifactRelease {
         requirePathSegment(Preconditions.requireText(model, MAX_LENGTH, "차종"), "차종");
-        DottedVersion.of(Preconditions.requireText(version, MAX_LENGTH, "버전"), "버전");
+        DottedVersion.of(Preconditions.requireText(version, MAX_LENGTH, VERSION_NAME), VERSION_NAME);
     }
 
     /**
@@ -38,6 +39,17 @@ public record ArtifactRelease(
      */
     public String originPath() {
         return ORIGIN_PATH_FORMAT.formatted(model, version);
+    }
+
+    /**
+     * 등록된 다른 버전이 비교 규칙상 이 버전과 같은지 판정한다. 표기는 입력한 그대로 두되, {@code 1.0} 과 {@code 1.0.0} 처럼 대상
+     * 판정에서 같은 버전으로 보는 파일이 한 차종에 둘 생기지 않게 등록 전 중복 확인에 쓴다. (VEHICLE-POL-001)
+     *
+     * @param registeredVersion 같은 차종으로 등록된 버전. 입력 단계에서 형식을 검증해 저장한 값
+     * @return 숫자 자리로 비교해 같으면 true
+     */
+    public boolean isSameVersionAs(String registeredVersion) {
+        return DottedVersion.of(version, VERSION_NAME).equals(DottedVersion.of(registeredVersion, VERSION_NAME));
     }
 
     // '/' 를 허용하면 다른 차종·버전 조합이 같은 경로를 만들어 기존 파일을 덮어쓸 수 있다
