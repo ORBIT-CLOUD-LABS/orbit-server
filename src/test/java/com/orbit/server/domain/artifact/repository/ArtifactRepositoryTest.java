@@ -26,23 +26,6 @@ class ArtifactRepositoryTest {
     private ArtifactRepository artifactRepository;
 
     @Test
-    @DisplayName("ORIGIN-POL-001: 같은 차종·버전이 저장되어 있으면 이미 있다고 판단한다")
-    void existsWhenSameReleaseSaved() {
-        artifactRepository.save(artifactOf(RELEASE));
-
-        assertThat(artifactRepository.existsByRelease(RELEASE)).isTrue();
-    }
-
-    @Test
-    @DisplayName("ORIGIN-POL-001: 같은 차종의 다른 버전만 있으면 없다고 판단한다")
-    void doesNotExistForOtherVersion() {
-        artifactRepository.save(artifactOf(RELEASE));
-
-        assertThat(artifactRepository.existsByRelease(new ArtifactRelease("model-a", "1.0.1")))
-                .isFalse();
-    }
-
-    @Test
     @DisplayName("ORIGIN-POL-001: 차종에 등록된 버전을 입력한 표기 그대로 읽는다")
     void findsVersionsOfModelAsEntered() {
         artifactRepository.save(artifactOf(RELEASE));

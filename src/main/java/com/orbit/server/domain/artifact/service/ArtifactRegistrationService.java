@@ -29,7 +29,8 @@ public class ArtifactRegistrationService {
      *
      * @param command 등록 요청
      * @return 등록한 Artifact 의 ID 와 파일 정보
-     * @throws BusinessException 같은 차종·버전이 있으면 ARTIFACT_VERSION_EXISTS, 해시가 다르면 HASH_MISMATCH
+     * @throws BusinessException 같은 차종에 비교 규칙상 같은 버전({@code 1.0}·{@code 1.0.0})이 있으면 ARTIFACT_VERSION_EXISTS,
+     *     해시가 다르면 HASH_MISMATCH
      * @throws OriginUploadException Origin 업로드에 실패한 경우
      */
     public ArtifactRegistrationResult register(RegisterArtifactCommand command) {
@@ -53,8 +54,11 @@ public class ArtifactRegistrationService {
         }
     }
 
+    // 표기가 달라도 비교 규칙상 같은 버전(1.0·1.0.0)은 대상 판정에서 구분되지 않으므로 이미 있는 버전으로 본다
     private void requireNewRelease(ArtifactRelease release) {
-        if (artifactRepository.existsByRelease(release)) {
+        boolean exists =
+                artifactRepository.findVersionsByModel(release.model()).stream().anyMatch(release::isSameVersionAs);
+        if (exists) {
             throw new BusinessException(ArtifactErrorCode.ARTIFACT_VERSION_EXISTS);
         }
     }
