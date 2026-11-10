@@ -1,5 +1,6 @@
 package com.orbit.server.domain.shared;
 
+import com.orbit.server.global.error.InvalidValueException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +24,19 @@ public final class DottedVersion implements Comparable<DottedVersion> {
 
     private DottedVersion(List<Integer> segments) {
         this.segments = List.copyOf(segments);
+    }
+
+    /**
+     * 입력받은 버전 문자열을 읽는다. 형식이 다른 버전이 저장되면 대상 판정에서 그 차량·파일이 오류 없이 빠지므로, 입력 단계에서 거부한다.
+     *
+     * @param value 버전 문자열. 예: {@code 1.0.10}
+     * @param name 오류 메시지에 쓸 값 이름
+     * @return 읽은 버전
+     * @throws InvalidValueException 점으로 나눈 숫자 형식이 아니거나 한 자리가 9자를 넘는 경우
+     */
+    public static DottedVersion of(String value, String name) {
+        return parse(value)
+                .orElseThrow(() -> new InvalidValueException(name + " 은(는) 점으로 나눈 숫자 형식이어야 합니다. (예: 1.0.1)"));
     }
 
     /**
