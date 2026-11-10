@@ -84,6 +84,24 @@ class CampaignQueryServiceTest {
     }
 
     @Test
+    @DisplayName("VEHICLE-POL-001: 현재 버전이 목표 버전보다 높으면 대상이 아니다")
+    void findsNothingWhenAboveTargetVersion() {
+        register("1.0.1", VersionRange.unbounded());
+
+        assertThat(findTarget(new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.2")))
+                .isEmpty();
+    }
+
+    @Test
+    @DisplayName("VEHICLE-POL-001: 현재 버전을 숫자 자리로 읽을 수 없으면 목표 버전보다 낮은지 알 수 없으므로 대상이 아니다")
+    void findsNothingWhenCurrentVersionIsUnparsable() {
+        register("1.0.1", VersionRange.unbounded());
+
+        assertThat(findTarget(new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.0-rc1")))
+                .isEmpty();
+    }
+
+    @Test
     @DisplayName("VEHICLE-POL-001: 여러 캠페인이 맞으면 목표 버전이 숫자로 가장 높은 캠페인을 고른다")
     void prefersHighestTargetVersion() {
         Long higher = register("1.0.10", VersionRange.unbounded());
@@ -213,6 +231,18 @@ class CampaignQueryServiceTest {
     }
 
     @Test
+    @DisplayName("MANIFEST-POL-001: 현재 버전이 목표 버전보다 높으면 NOT_UPDATE_TARGET")
+    void rejectsWhenAboveTargetVersion() {
+        Long campaignId = register("1.0.1", VersionRange.unbounded());
+
+        assertRejected(
+                campaignId,
+                new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.2"),
+                NOW,
+                CampaignErrorCode.NOT_UPDATE_TARGET);
+    }
+
+    @Test
     @DisplayName("MANIFEST-POL-001: 체크인처럼 목표 버전을 숫자 자리로 읽을 수 없으면 NOT_UPDATE_TARGET")
     void rejectsUnparsableTargetVersion() {
         Long campaignId = register("1.0.1-beta", VersionRange.unbounded());
@@ -221,14 +251,15 @@ class CampaignQueryServiceTest {
     }
 
     @Test
-    @DisplayName("캠페인 진행 현황: 후보 중 대상 조건에 맞고 아직 목표 버전이 아닌 차량만 센다")
+    @DisplayName("캠페인 진행 현황: 후보 중 대상 조건에 맞고 현재 버전이 목표 버전보다 낮은 차량만 센다")
     void countsPendingTargets() {
         Long campaignId = register("1.0.1", VersionRange.unbounded());
         List<TargetVehicleCriteria> candidates = List.of(
                 VEHICLE,
                 new TargetVehicleCriteria("model-a", "hw-1", "KR", "0.9.0"),
                 new TargetVehicleCriteria("model-a", "hw-9", "KR", "1.0.0"),
-                new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.1"));
+                new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.1"),
+                new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.2"));
 
         assertThat(countPendingTargets(campaignId, candidates)).isEqualTo(2);
     }

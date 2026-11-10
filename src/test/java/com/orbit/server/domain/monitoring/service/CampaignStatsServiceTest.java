@@ -66,7 +66,8 @@ class CampaignStatsServiceTest {
         insertResult(insertVehicle("failed-2", "hw-1", "1.0.0"), "FAILED", "INSTALL_FAILED");
         insertResult(insertVehicle("failed-3", "hw-1", "1.0.0"), "FAILED", "INSTALL_FAILED");
         insertVehicle("pending-1", "hw-1", "1.0.0");
-        insertVehicle("pending-2", "hw-1", "1.0.5");
+        // 1.0 은 1.0.0 과 같아 목표 버전 1.0.1 보다 낮다
+        insertVehicle("pending-2", "hw-1", "1.0");
 
         CampaignStats stats = campaignStatsService.getStats(campaignId);
 
@@ -82,11 +83,13 @@ class CampaignStatsServiceTest {
     }
 
     @Test
-    @DisplayName("캠페인 진행 현황: 결과를 보고하지 않았어도 조건 밖이거나 이미 목표 버전인 차량은 진행 중이 아니다")
+    @DisplayName("캠페인 진행 현황: 결과를 보고하지 않았어도 조건 밖이거나 이미 목표 버전 이상인 차량은 진행 중이 아니다")
     void excludesUnreportedNonTargets() {
         insertVehicle("other-hw", "hw-9", "1.0.0");
         insertVehicle("out-of-range", "hw-1", "0.9.0");
         insertVehicle("already-installed", "hw-1", "1.0.1");
+        // 버전 범위(1.0.0 ~ 1.0.9) 안이지만 목표 버전 1.0.1 보다 높다
+        insertVehicle("above-target", "hw-1", "1.0.5");
 
         CampaignStats stats = campaignStatsService.getStats(campaignId);
 

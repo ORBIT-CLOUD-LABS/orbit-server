@@ -4,7 +4,7 @@ import java.util.Comparator;
 import java.util.Objects;
 
 /**
- * 차량이 대상 조건을 만족한 캠페인과 그 목표 버전. 여러 캠페인이 맞을 때 하나를 고르는 데 쓴다. (VEHICLE-POL-001)
+ * 차량이 대상 조건을 만족한 캠페인과 그 목표 버전. 여러 캠페인이 맞을 때 하나를 고르는 데 쓴다.
  *
  * @param campaignId 캠페인 ID. null 불가
  * @param targetVersion 캠페인이 배포하는 파일의 버전. null 불가
@@ -21,12 +21,17 @@ public record TargetCampaign(Long campaignId, DottedVersion targetVersion) {
     }
 
     /**
-     * 차량의 현재 버전이 이미 목표 버전인지 판정한다. 이미 설치한 버전은 다시 배포하지 않는다. (VEHICLE-POL-001)
+     * 차량의 현재 버전이 목표 버전보다 낮아 이 캠페인으로 올려야 하는지 판정한다. 이미 목표 버전 이상이면 배포하지 않는다.
+     *
+     * <p>차량은 같은 버전은 설치하지 않고, 낮은 버전이나 읽을 수 없는 버전은 다운그레이드로 보고 거부한다. 서버도 같은 숫자 자리 비교로
+     * 판정해, 차량이 거부할 파일을 체크인마다 내려줘 다운로드와 실패 보고가 반복되지 않게 한다.
      *
      * @param currentVersion 차량의 현재 버전
-     * @return 숫자 자리로 비교해 목표 버전과 같으면 true
+     * @return 숫자 자리로 비교해 목표 버전보다 낮으면 true. 숫자 자리로 읽을 수 없으면 비교할 수 없으므로 false
      */
-    public boolean isInstalledOn(String currentVersion) {
-        return DottedVersion.parse(currentVersion).filter(targetVersion::equals).isPresent();
+    public boolean upgrades(String currentVersion) {
+        return DottedVersion.parse(currentVersion)
+                .filter(current -> current.compareTo(targetVersion) < 0)
+                .isPresent();
     }
 }
