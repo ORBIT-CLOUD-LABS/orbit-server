@@ -37,4 +37,20 @@ class ArtifactReleaseTest {
     void rejectsNonDottedVersion(String version) {
         assertThatThrownBy(() -> new ArtifactRelease("model-a", version)).isInstanceOf(InvalidValueException.class);
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"1.0.0", "1.0", "1", "01.0.0", "1.00"})
+    @DisplayName("ORIGIN-POL-001: 표기가 달라도 숫자 자리로 같은 버전이면 같은 버전으로 본다")
+    void treatsEquivalentNotationAsSameVersion(String registeredVersion) {
+        assertThat(new ArtifactRelease("model-a", "1.0.0").isSameVersionAs(registeredVersion))
+                .isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"1.0.1", "1.0.0.1", "10", "0.1"})
+    @DisplayName("ORIGIN-POL-001: 숫자 자리로 다른 버전은 다른 버전으로 본다")
+    void treatsDifferentVersionAsNew(String registeredVersion) {
+        assertThat(new ArtifactRelease("model-a", "1.0.0").isSameVersionAs(registeredVersion))
+                .isFalse();
+    }
 }

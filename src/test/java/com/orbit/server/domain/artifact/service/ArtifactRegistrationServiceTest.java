@@ -23,6 +23,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -86,16 +88,27 @@ class ArtifactRegistrationServiceTest {
         verify(artifactRepository, never()).save(any());
     }
 
-    @Test
-    @DisplayName("ORIGIN-POL-001: 같은 차종·버전이 있으면 409 ARTIFACT_VERSION_EXISTS 이고 기존 Origin 파일을 덮어쓰지 않는다")
-    void rejectsExistingRelease() {
-        given(artifactRepository.existsByRelease(RELEASE)).willReturn(true);
+    @ParameterizedTest
+    @ValueSource(strings = {"1.0.0", "1.0", "01.0.0"})
+    @DisplayName("ORIGIN-POL-001: 같은 차종에 비교 규칙상 같은 버전이 있으면 409 ARTIFACT_VERSION_EXISTS 이고 Origin 에 올리지 않는다")
+    void rejectsExistingRelease(String registeredVersion) {
+        given(artifactRepository.findVersionsByModel(RELEASE.model())).willReturn(List.of("0.9", registeredVersion));
 
         assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.ARTIFACT_VERSION_EXISTS);
         assertThat(originStorage.uploaded).isEmpty();
         verify(artifactRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 같은 차종의 다른 버전만 있으면 등록한다")
+    void registersNewVersionOfModel() {
+        given(artifactRepository.findVersionsByModel(RELEASE.model())).willReturn(List.of("0.9", "1.0.0.1"));
+
+        service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null));
+
+        verify(artifactRepository).save(any());
     }
 
     @Test

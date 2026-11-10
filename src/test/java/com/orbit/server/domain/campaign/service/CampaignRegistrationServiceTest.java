@@ -67,6 +67,15 @@ class CampaignRegistrationServiceTest {
     }
 
     @Test
+    @DisplayName("VEHICLE-POL-001: 목표 버전 표기가 파일 버전과 달라도 비교 규칙상 같으면 등록한다")
+    void registersCampaignWithEquivalentTargetVersion() {
+        Long campaignId = service.register(commandOf(ARTIFACT_ID, new TargetRelease("model-a", "1.0.1.0")));
+
+        assertThat(campaignId).isEqualTo(1L);
+        verify(campaignRepository).save(any());
+    }
+
+    @Test
     @DisplayName("CAMPAIGN-REQ-001: 파일이 없으면 404 ARTIFACT_NOT_FOUND 이고 저장하지 않는다")
     void rejectsMissingArtifact() {
         RegisterCampaignCommand command = commandOf(MISSING_ARTIFACT_ID, new TargetRelease("model-a", "1.0.1"));
