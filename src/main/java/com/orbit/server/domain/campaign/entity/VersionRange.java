@@ -11,8 +11,8 @@ import jakarta.persistence.Embeddable;
  *
  * <p>버전은 문자열이라 사전순 비교가 틀린다({@code "1.0.10" < "1.0.9"}). 범위 비교는 판정 로직에서 버전 규칙으로 한다.
  *
- * @param min 최소 버전(포함). null 이면 제한 없음, 50자 이하, 점으로 나눈 숫자 형식
- * @param max 최대 버전(포함). null 이면 제한 없음, 50자 이하, 점으로 나눈 숫자 형식
+ * @param min 최소 버전(포함). null·공백이면 제한 없음(null 로 저장), 50자 이하, 점으로 나눈 숫자 형식
+ * @param max 최대 버전(포함). null·공백이면 제한 없음(null 로 저장), 50자 이하, 점으로 나눈 숫자 형식
  */
 @Embeddable
 public record VersionRange(
@@ -27,7 +27,10 @@ public record VersionRange(
     /**
      * @throws InvalidValueException 버전이 50자를 넘거나 점으로 나눈 숫자 형식이 아닌 경우
      */
+    // 화면에서 비워 둔 입력칸은 빈 문자열로 올 수 있다. 대상 조건의 다른 필드(hwVersions·regions)처럼 비어 있으면 제한 없음으로 본다
     public VersionRange {
+        min = blankToNull(min);
+        max = blankToNull(max);
         requireBound(min, MIN_NAME);
         requireBound(max, MAX_NAME);
     }
@@ -49,6 +52,13 @@ public record VersionRange(
     boolean contains(String currentVersion) {
         DottedVersion current = DottedVersion.of(currentVersion, CURRENT_NAME);
         return isAtLeastMin(current) && isAtMostMax(current);
+    }
+
+    private static String blankToNull(String bound) {
+        if (bound == null || bound.isBlank()) {
+            return null;
+        }
+        return bound;
     }
 
     // 생략한 쪽(null)은 제한이 없으므로 검사하지 않는다

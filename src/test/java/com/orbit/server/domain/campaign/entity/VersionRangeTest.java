@@ -42,7 +42,15 @@ class VersionRangeTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"v1.0", "1.0.0-rc1", "1..0", ""})
+    @ValueSource(strings = {"", " "})
+    @DisplayName("VEHICLE-POL-001: 비워 둔 쪽은 생략한 것으로 보아 제한하지 않는다")
+    void treatsBlankBoundAsOmitted(String bound) {
+        assertThat(new VersionRange(bound, bound)).isEqualTo(VersionRange.unbounded());
+        assertThat(new VersionRange(bound, "2.0").contains("0.1")).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"v1.0", "1.0.0-rc1", "1..0"})
     @DisplayName("VEHICLE-POL-001: 범위의 버전이 점으로 나눈 숫자 형식이 아니면 비교할 수 없어 거부한다")
     void rejectsNonDottedBound(String bound) {
         assertThatThrownBy(() -> new VersionRange(bound, null)).isInstanceOf(InvalidValueException.class);
