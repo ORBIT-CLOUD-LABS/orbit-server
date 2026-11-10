@@ -27,23 +27,15 @@ class DottedVersionTest {
     }
 
     @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = {"1.0-beta", "v1.0", "1..0", "1.0.", ".1", "-1.0", "1.9999999999"})
-    @DisplayName("VEHICLE-POL-001: 숫자 자리로 읽을 수 없는 버전은 빈 값이다")
-    void parsesNothingFromNonNumericVersion(String value) {
-        assertThat(DottedVersion.parse(value)).isEmpty();
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"1", "1.0", "1.0.1", "10.20.300"})
+    @CsvSource({"1, 1", "1.0.1, 1.0.1", "10.20.300, 10.20.300", "1.0.0, 1"})
     @DisplayName("VEHICLE-POL-001: 점으로 나눈 숫자 형식의 입력은 버전으로 읽는다")
-    void createsFromDottedNumbers(String value) {
-        assertThat(DottedVersion.of(value, "버전")).isEqualTo(parse(value));
+    void createsFromDottedNumbers(String value, String expected) {
+        assertThat(parse(value)).hasToString(expected);
     }
 
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {"1.0-beta", "v1.0", "1.0.1-rc1", "1..0", "1.0.", " 1.0", "1.9999999999"})
+    @ValueSource(strings = {"1.0-beta", "v1.0", "1.0.1-rc1", "1..0", "1.0.", ".1", "-1.0", " 1.0", "1.9999999999"})
     @DisplayName("VEHICLE-POL-001: 점으로 나눈 숫자 형식이 아닌 입력은 거부한다")
     void rejectsNonDottedInput(String value) {
         assertThatThrownBy(() -> DottedVersion.of(value, "버전"))
@@ -52,6 +44,6 @@ class DottedVersionTest {
     }
 
     private DottedVersion parse(String value) {
-        return DottedVersion.parse(value).orElseThrow();
+        return DottedVersion.of(value, "버전");
     }
 }
