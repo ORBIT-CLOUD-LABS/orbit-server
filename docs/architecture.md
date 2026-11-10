@@ -20,7 +20,8 @@ com.orbit.server
 │   │   ├── repository/         # Spring Data Repository 인터페이스
 │   │   ├── entity/             # 엔티티, 값 객체, enum, 도메인 이벤트
 │   │   └── exception/          # 에러 코드, 커스텀 예외
-│   └── campaign/
+│   ├── campaign/
+│   └── shared/                 # Shared Kernel: 여러 컨텍스트가 같은 의미로 쓰는 값 객체 (하위 패키지 없음)
 └── global/                     # 도메인과 무관한 전역 설정·공통 기반
     ├── config/                 # Spring 설정 (JPA, Web, Swagger 등)
     ├── error/                  # 공통 예외 계층, 전역 예외 핸들러, 에러 응답
@@ -43,6 +44,18 @@ com.orbit.server
   - 예외: `global/external` 은 `domain` 의 `service` 에 있는 포트(예: `OriginStorage`)를 구현하므로 그 포트와 포트가 쓰는 타입에 의존할 수 있다.
 - 두 컨텍스트가 같은 개념을 쓴다고 `global` 로 올리지 않는다. 컨텍스트 경계를 먼저 다시 검토한다.
 
+### Shared Kernel (`domain/shared`)
+
+여러 컨텍스트가 **같은 의미와 같은 규칙**으로 쓰는 도메인 개념을 둔다. (예: 점으로 나눈 숫자 버전 `DottedVersion`)
+비즈니스 규칙이라 `global` 에는 둘 수 없고, 한 컨텍스트의 `entity` 에 두면 다른 컨텍스트가 참조할 수 없기 때문이다.
+
+- 상태 없는 값 객체만 둔다. 엔티티·Repository·서비스는 두지 않는다.
+- 하위 패키지를 만들지 않는다. 바운디드 컨텍스트가 아니므로 계층으로 나누지 않는다.
+- 다른 컨텍스트에 의존하지 않는다. `global` 에만 의존할 수 있다.
+- 모든 컨텍스트의 `entity` 를 포함해 어느 계층에서나 쓸 수 있다.
+- 바꾸면 모든 컨텍스트에 영향을 주므로 작게 유지한다. 두 컨텍스트가 비슷한 개념을 쓴다는 이유만으로 옮기지 않는다.
+  이름이 같아도 컨텍스트마다 규칙(길이 제한 등)이 다르면 각 컨텍스트의 값 객체에 두고, 같은 부분만 Shared Kernel 을 쓴다.
+
 ## 의존 방향
 
 ```
@@ -52,6 +65,7 @@ global/external → service   (포트 구현)
 ```
 
 - `entity` 는 다른 패키지를 모른다. Spring 에 의존하지 않는다. (JPA 매핑 어노테이션만 예외, 아래 참고)
+  - 예외: Shared Kernel(`domain/shared`)의 값 객체는 쓸 수 있다.
 - `service` 는 외부 시스템을 포트(인터페이스)로만 쓴다. 구현은 `global/external` 에 둔다.
 - 목록·검색·대시보드처럼 필요한 컬럼만 읽는 조회는 Repository 의 `@Query` 에서 JPQL 생성자 표현식으로 조회 결과(`XxxSummary` 등)를 바로 만든다.
   조회 결과 타입은 `service` 에 두므로, 이때만 `repository → service` 의존을 허용한다. (예: `ArtifactRepository.findAllSummaries()`)
