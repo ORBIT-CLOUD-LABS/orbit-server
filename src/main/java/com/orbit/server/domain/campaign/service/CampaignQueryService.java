@@ -25,15 +25,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CampaignQueryService {
 
+    private static final String TARGET_VERSION_NAME = "목표 버전";
+
     private final CampaignRepository campaignRepository;
     private final ArtifactQueryService artifactQueryService;
 
     /**
      * 차종으로 좁힌 활성 캠페인 중 조건을 모두 만족하고 차량의 현재 버전보다 높은 버전을 배포하는 캠페인을 고른다. 여러 개면 목표 버전이
      * 가장 높은 것, 같으면 나중에 등록한 것을 고른다.
-     *
-     * <p>목표 버전을 숫자 자리로 읽을 수 없는 캠페인은 순서를 정할 수 없으므로 고르지 않는다. 차량의 현재 버전을 숫자 자리로 읽을 수
-     * 없으면 더 높은 버전인지 알 수 없으므로 대상이 아니다.
      *
      * @param criteria 판정할 차량
      * @param now 판정 시각
@@ -45,7 +44,7 @@ public class CampaignQueryService {
         TargetVehicle vehicle = criteria.toTargetVehicle();
         return campaignRepository.findAllActiveByModel(vehicle.model()).stream()
                 .filter(campaign -> campaign.targets(vehicle, now))
-                .flatMap(campaign -> toTargetCampaign(campaign).stream())
+                .map(this::toTargetCampaign)
                 .filter(target -> target.upgrades(vehicle.currentVersion()))
                 .max(TargetCampaign.PRIORITY)
                 .map(TargetCampaign::campaignId);
@@ -86,7 +85,8 @@ public class CampaignQueryService {
             throw new BusinessException(CampaignErrorCode.NOT_UPDATE_TARGET);
         }
         ArtifactSummary artifact = artifactQueryService.getById(campaign.getArtifactId());
-        if (!isDeliverable(campaign, artifact, vehicle)) {
+        // 체크인과 같게, 현재 버전이 목표 버전 이상이면 배포하지 않는다
+        if (!toTargetCampaign(campaign, artifact).upgrades(vehicle.currentVersion())) {
             throw new BusinessException(CampaignErrorCode.NOT_UPDATE_TARGET);
         }
         return artifact;
@@ -96,8 +96,7 @@ public class CampaignQueryService {
      * 결과를 아직 보고하지 않은 후보 차량 중 이 캠페인으로 업데이트할 차량 수를 센다. 진행 현황의 진행 중 차량 수다.
      *
      * <p>대상 조건(차종·HW·지역·현재 버전 범위)에 맞고 현재 버전이 목표 버전보다 낮은 차량을 센다. 활성 여부·적용 기간은 보지 않아, 배포를
-     * 중지했거나 기간이 끝난 캠페인에서도 끝내지 못한 차량이 드러나게 한다. 목표 버전을 숫자 자리로 읽을 수 없으면 체크인에서 고르지 않는
-     * 캠페인이므로 0 이다.
+     * 중지했거나 기간이 끝난 캠페인에서도 끝내지 못한 차량이 드러나게 한다.
      *
      * @param campaignId 캠페인 ID
      * @param candidates 이 캠페인에 결과를 보고하지 않은 차량. 결과를 보고한 차량은 호출하는 쪽이 뺀다
@@ -108,9 +107,7 @@ public class CampaignQueryService {
     @Transactional(readOnly = true)
     public long countPendingTargets(Long campaignId, List<TargetVehicleCriteria> candidates) {
         Campaign campaign = getCampaign(campaignId);
-        return toTargetCampaign(campaign)
-                .map(target -> countPending(campaign, target, candidates))
-                .orElse(0L);
+        return countPending(campaign, toTargetCampaign(campaign), candidates);
     }
 
     private long countPending(Campaign campaign, TargetCampaign target, List<TargetVehicleCriteria> candidates) {
@@ -135,18 +132,11 @@ public class CampaignQueryService {
         return campaign;
     }
 
-    // 체크인과 같게, 목표 버전을 읽을 수 없거나 현재 버전이 목표 버전 이상이면 배포하지 않는다
-    private boolean isDeliverable(Campaign campaign, ArtifactSummary artifact, TargetVehicle vehicle) {
-        return toTargetCampaign(campaign, artifact)
-                .filter(target -> target.upgrades(vehicle.currentVersion()))
-                .isPresent();
-    }
-
-    private Optional<TargetCampaign> toTargetCampaign(Campaign campaign) {
+    private TargetCampaign toTargetCampaign(Campaign campaign) {
         return toTargetCampaign(campaign, artifactQueryService.getById(campaign.getArtifactId()));
     }
 
-    private Optional<TargetCampaign> toTargetCampaign(Campaign campaign, ArtifactSummary artifact) {
-        return DottedVersion.parse(artifact.version()).map(version -> new TargetCampaign(campaign.getId(), version));
+    private TargetCampaign toTargetCampaign(Campaign campaign, ArtifactSummary artifact) {
+        return new TargetCampaign(campaign.getId(), DottedVersion.of(artifact.version(), TARGET_VERSION_NAME));
     }
 }
