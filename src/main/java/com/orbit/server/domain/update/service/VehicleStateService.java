@@ -30,7 +30,7 @@ public class VehicleStateService {
      *
      * @param vehicleId 차량 ID
      * @param currentVersion 차량이 보낸 현재 버전
-     * @throws InvalidValueException 버전이 비어 있거나 50자를 넘는 경우
+     * @throws InvalidValueException 버전이 비어 있거나 50자를 넘거나 점으로 나눈 숫자 형식이 아닌 경우
      */
     // 조회한 상태를 변경 감지로 덮어쓰므로 조회부터 저장까지 한 트랜잭션으로 묶는다
     @Transactional
@@ -48,7 +48,7 @@ public class VehicleStateService {
      *
      * @param vehicleId 차량 ID
      * @param currentVersion 차량이 보낸 현재 버전
-     * @throws InvalidValueException 버전이 비어 있거나 50자를 넘는 경우
+     * @throws InvalidValueException 버전이 비어 있거나 50자를 넘거나 점으로 나눈 숫자 형식이 아닌 경우
      * @throws IllegalStateException 차량의 상태가 없는 경우
      */
     // 등록할 때 상태를 함께 만들므로 체크인한 차량에 상태가 없다면 데이터가 어긋난 것이라 서버 오류로 본다

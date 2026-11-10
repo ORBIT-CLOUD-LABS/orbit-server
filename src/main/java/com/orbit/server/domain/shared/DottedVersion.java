@@ -1,14 +1,14 @@
-package com.orbit.server.domain.campaign.entity;
+package com.orbit.server.domain.shared;
 
+import com.orbit.server.global.error.InvalidValueException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
- * 점으로 나눈 숫자 자리로 비교하는 버전. 문자열 순서로는 {@code "1.0.10" < "1.0.9"} 가 되므로 대상 판정의 버전 비교는 이
- * 타입으로 한다. (VEHICLE-POL-001)
+ * 점으로 나눈 숫자 자리로 비교하는 버전. 문자열 순서로는 {@code "1.0.10" < "1.0.9"} 가 되므로 버전 비교는 이 타입으로 한다.
+ * 차량·파일·캠페인이 같은 형식과 비교 규칙을 쓰도록 Shared Kernel 에 둔다. (VEHICLE-POL-001)
  *
  * <p>빈 자리는 0 으로 보므로 {@code 1.0} 과 {@code 1.0.0} 은 같은 버전이다.
  */
@@ -26,21 +26,24 @@ public final class DottedVersion implements Comparable<DottedVersion> {
     }
 
     /**
-     * 버전 문자열을 읽는다. 등록된 데이터에 형식이 다른 버전이 있어도 체크인이 실패하지 않도록 예외 대신 빈 값을 돌려준다.
+     * 버전 문자열을 읽는다. 형식이 다른 버전이 저장되면 대상 판정에서 비교할 수 없으므로, 입력 단계에서 이 메서드로 거부한다. 저장된 버전은
+     * 입력 단계에서 검증했으므로 같은 메서드로 읽는다.
      *
      * @param value 버전 문자열. 예: {@code 1.0.10}
-     * @return 숫자 자리로 읽을 수 없으면 빈 값
+     * @param name 오류 메시지에 쓸 값 이름
+     * @return 읽은 버전
+     * @throws InvalidValueException 점으로 나눈 숫자 형식이 아니거나 한 자리가 9자를 넘는 경우
      */
-    public static Optional<DottedVersion> parse(String value) {
+    public static DottedVersion of(String value, String name) {
         if (value == null || !FORMAT.matcher(value).matches()) {
-            return Optional.empty();
+            throw new InvalidValueException(name + " 은(는) 점으로 나눈 숫자 형식이어야 합니다. (예: 1.0.1)");
         }
         List<Integer> segments = new ArrayList<>(
                 Arrays.stream(value.split(SEPARATOR)).map(Integer::valueOf).toList());
         while (segments.getLast() == 0 && segments.size() > 1) {
             segments.removeLast();
         }
-        return Optional.of(new DottedVersion(segments));
+        return new DottedVersion(segments);
     }
 
     @Override

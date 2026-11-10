@@ -93,15 +93,6 @@ class CampaignQueryServiceTest {
     }
 
     @Test
-    @DisplayName("VEHICLE-POL-001: 현재 버전을 숫자 자리로 읽을 수 없으면 목표 버전보다 낮은지 알 수 없으므로 대상이 아니다")
-    void findsNothingWhenCurrentVersionIsUnparsable() {
-        register("1.0.1", VersionRange.unbounded());
-
-        assertThat(findTarget(new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.0-rc1")))
-                .isEmpty();
-    }
-
-    @Test
     @DisplayName("VEHICLE-POL-001: 여러 캠페인이 맞으면 목표 버전이 숫자로 가장 높은 캠페인을 고른다")
     void prefersHighestTargetVersion() {
         Long higher = register("1.0.10", VersionRange.unbounded());
@@ -118,14 +109,6 @@ class CampaignQueryServiceTest {
         Long later = register(artifactId, new VersionRange("1.0.0", null));
 
         assertThat(findTarget(VEHICLE)).contains(later);
-    }
-
-    @Test
-    @DisplayName("VEHICLE-POL-001: 목표 버전을 숫자 자리로 읽을 수 없는 캠페인은 고르지 않는다")
-    void skipsCampaignWithUnparsableTargetVersion() {
-        register("1.0.1-beta", VersionRange.unbounded());
-
-        assertThat(findTarget(VEHICLE)).isEmpty();
     }
 
     @Test
@@ -243,14 +226,6 @@ class CampaignQueryServiceTest {
     }
 
     @Test
-    @DisplayName("MANIFEST-POL-001: 체크인처럼 목표 버전을 숫자 자리로 읽을 수 없으면 NOT_UPDATE_TARGET")
-    void rejectsUnparsableTargetVersion() {
-        Long campaignId = register("1.0.1-beta", VersionRange.unbounded());
-
-        assertRejected(campaignId, VEHICLE, NOW, CampaignErrorCode.NOT_UPDATE_TARGET);
-    }
-
-    @Test
     @DisplayName("캠페인 진행 현황: 후보 중 대상 조건에 맞고 현재 버전이 목표 버전보다 낮은 차량만 센다")
     void countsPendingTargets() {
         Long campaignId = register("1.0.1", VersionRange.unbounded());
@@ -271,14 +246,6 @@ class CampaignQueryServiceTest {
         deactivate(campaignId);
 
         assertThat(countPendingTargets(campaignId, List.of(VEHICLE))).isEqualTo(1);
-    }
-
-    @Test
-    @DisplayName("캠페인 진행 현황: 체크인처럼 목표 버전을 숫자 자리로 읽을 수 없으면 진행할 차량이 없다")
-    void countsNoPendingTargetsWithUnparsableTargetVersion() {
-        Long campaignId = register("1.0.1-beta", VersionRange.unbounded());
-
-        assertThat(countPendingTargets(campaignId, List.of(VEHICLE))).isZero();
     }
 
     @Test

@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.orbit.server.global.error.InvalidValueException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ArtifactReleaseTest {
 
@@ -27,5 +29,12 @@ class ArtifactReleaseTest {
     @DisplayName("ORIGIN-POL-001: 버전에 '/' 가 있으면 다른 조합과 경로가 겹칠 수 있어 거부한다")
     void rejectsSlashInVersion() {
         assertThatThrownBy(() -> new ArtifactRelease("model-a", "1.0/0")).isInstanceOf(InvalidValueException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"v1.0.0", "1.0.0-rc1", "1..0"})
+    @DisplayName("VEHICLE-POL-001: 버전이 점으로 나눈 숫자 형식이 아니면 대상 판정에서 비교할 수 없어 거부한다")
+    void rejectsNonDottedVersion(String version) {
+        assertThatThrownBy(() -> new ArtifactRelease("model-a", version)).isInstanceOf(InvalidValueException.class);
     }
 }

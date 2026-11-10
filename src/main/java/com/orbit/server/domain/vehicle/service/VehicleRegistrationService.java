@@ -36,7 +36,7 @@ public class VehicleRegistrationService {
      *
      * @param command 등록 요청
      * @return 등록 결과와 새 토큰 원문
-     * @throws InvalidValueException 현재 버전이 비어 있거나 50자를 넘는 경우
+     * @throws InvalidValueException 현재 버전이 비어 있거나 50자를 넘거나 점으로 나눈 숫자 형식이 아닌 경우
      * @throws DataIntegrityViolationException 같은 차량의 최초 등록이 동시에 들어온 경우
      */
     // 차량 잠금을 토큰 발급·커밋까지 유지하고, 중간에 실패하면 차량·상태·토큰을 함께 되돌리기 위해 한 트랜잭션으로 묶는다

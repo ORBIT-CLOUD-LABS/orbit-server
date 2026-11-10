@@ -38,7 +38,7 @@ public class CheckInService {
      *
      * @param command 체크인 요청
      * @return 대상 캠페인과 다음 체크인까지의 시간
-     * @throws InvalidValueException 현재 버전이 비어 있거나 50자를 넘는 경우, 업데이트 결과의 형식이 틀린 경우
+     * @throws InvalidValueException 현재 버전이 비어 있거나 50자를 넘거나 점으로 나눈 숫자 형식이 아닌 경우, 업데이트 결과의 형식이 틀린 경우
      */
     // 상태와 결과를 한 트랜잭션에서 기록해 결과가 들어오면 vehicle_state.updated_at 도 함께 바뀌어 SSE 변경분에 잡힌다.
     // 중간에 실패하면 모두 되돌려, 차량이 다음 주기에 다시 보낸 체크인으로 한 번에 반영되게 한다

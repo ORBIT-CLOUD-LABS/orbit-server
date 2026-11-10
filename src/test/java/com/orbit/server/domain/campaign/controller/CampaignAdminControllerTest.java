@@ -287,6 +287,22 @@ class CampaignAdminControllerTest {
     }
 
     @Test
+    @DisplayName("CAMPAIGN-REQ-001: 현재 버전 범위가 점으로 나눈 숫자 형식이 아니면 400 INVALID_INPUT 이고 등록하지 않는다")
+    void rejectsNonDottedVersionRange() throws Exception {
+        String body = """
+                {"name": "campaign", "artifactId": 1, "targetVersion": "1.0.1",
+                 "target": {"model": "model-a", "hwVersions": ["hw-1"], "regions": ["KR"],
+                            "currentVersionMin": "v1.0.0"},
+                 "startAt": "%s", "endAt": "%s"}""".formatted(START_AT, END_AT);
+
+        perform(body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+
+        verify(campaignRegistrationService, never()).register(any());
+    }
+
+    @Test
     @DisplayName("CAMPAIGN-REQ-001: 파일이 없으면 404 ARTIFACT_NOT_FOUND 로 응답한다")
     void respondsArtifactNotFound() throws Exception {
         given(campaignRegistrationService.register(any()))
