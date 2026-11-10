@@ -157,6 +157,15 @@ class ArtifactAdminControllerTest {
     }
 
     @Test
+    @DisplayName("ORIGIN-REQ-001: 버전이 점으로 나눈 숫자 형식이 아니면 400 INVALID_INPUT 으로 응답한다")
+    void rejectsNonDottedVersion() throws Exception {
+        mockMvc.perform(multipart(URL).file(FILE).param("model", "model-a").param("version", "v1.0.0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+        verify(artifactRegistrationService, never()).register(any());
+    }
+
+    @Test
     @DisplayName("ORIGIN-REQ-001: SHA-256 형식이 틀리면 해시 불일치가 아닌 400 INVALID_INPUT 으로 응답한다")
     void rejectsMalformedSha256() throws Exception {
         mockMvc.perform(validRequest().param("sha256", "abc"))

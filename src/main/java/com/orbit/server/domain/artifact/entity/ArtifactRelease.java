@@ -1,5 +1,6 @@
 package com.orbit.server.domain.artifact.entity;
 
+import com.orbit.server.domain.shared.DottedVersion;
 import com.orbit.server.global.common.Preconditions;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;
@@ -9,7 +10,7 @@ import jakarta.persistence.Embeddable;
  * 업데이트 파일이 어떤 차종의 어떤 버전인지 나타낸다. 차종과 버전 조합은 Artifact 마다 유일하다.
  *
  * @param model 차종. 공백 불가, 50자 이하, '/' 불가
- * @param version 소프트웨어 버전. 공백 불가, 50자 이하, '/' 불가
+ * @param version 소프트웨어 버전. 공백 불가, 50자 이하, 점으로 나눈 숫자 형식 (예: {@code 1.0.1})
  */
 @Embeddable
 public record ArtifactRelease(
@@ -21,11 +22,13 @@ public record ArtifactRelease(
     private static final String ORIGIN_PATH_FORMAT = "/firmware/%s/%s/firmware.bin";
 
     /**
-     * @throws InvalidValueException 차종이나 버전이 비어 있거나 50자를 넘거나 '/' 를 포함하는 경우
+     * @throws InvalidValueException 차종이나 버전이 비어 있거나 50자를 넘는 경우, 차종이 '/' 를 포함하는 경우, 버전이 점으로 나눈 숫자
+     *     형식이 아닌 경우
      */
+    // 버전은 숫자와 점만 허용하므로 '/' 검사를 따로 하지 않아도 Origin 경로가 겹치지 않는다
     public ArtifactRelease {
         requirePathSegment(Preconditions.requireText(model, MAX_LENGTH, "차종"), "차종");
-        requirePathSegment(Preconditions.requireText(version, MAX_LENGTH, "버전"), "버전");
+        DottedVersion.of(Preconditions.requireText(version, MAX_LENGTH, "버전"), "버전");
     }
 
     /**

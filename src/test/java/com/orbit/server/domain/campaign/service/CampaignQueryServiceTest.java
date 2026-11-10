@@ -121,14 +121,6 @@ class CampaignQueryServiceTest {
     }
 
     @Test
-    @DisplayName("VEHICLE-POL-001: 목표 버전을 숫자 자리로 읽을 수 없는 캠페인은 고르지 않는다")
-    void skipsCampaignWithUnparsableTargetVersion() {
-        register("1.0.1-beta", VersionRange.unbounded());
-
-        assertThat(findTarget(VEHICLE)).isEmpty();
-    }
-
-    @Test
     @DisplayName("UPDATE-REQ-001: 등록한 캠페인이면 있다고 확인한다")
     void confirmsRegisteredCampaign() {
         Long campaignId = register("1.0.1", VersionRange.unbounded());
@@ -243,14 +235,6 @@ class CampaignQueryServiceTest {
     }
 
     @Test
-    @DisplayName("MANIFEST-POL-001: 체크인처럼 목표 버전을 숫자 자리로 읽을 수 없으면 NOT_UPDATE_TARGET")
-    void rejectsUnparsableTargetVersion() {
-        Long campaignId = register("1.0.1-beta", VersionRange.unbounded());
-
-        assertRejected(campaignId, VEHICLE, NOW, CampaignErrorCode.NOT_UPDATE_TARGET);
-    }
-
-    @Test
     @DisplayName("캠페인 진행 현황: 후보 중 대상 조건에 맞고 현재 버전이 목표 버전보다 낮은 차량만 센다")
     void countsPendingTargets() {
         Long campaignId = register("1.0.1", VersionRange.unbounded());
@@ -271,14 +255,6 @@ class CampaignQueryServiceTest {
         deactivate(campaignId);
 
         assertThat(countPendingTargets(campaignId, List.of(VEHICLE))).isEqualTo(1);
-    }
-
-    @Test
-    @DisplayName("캠페인 진행 현황: 체크인처럼 목표 버전을 숫자 자리로 읽을 수 없으면 진행할 차량이 없다")
-    void countsNoPendingTargetsWithUnparsableTargetVersion() {
-        Long campaignId = register("1.0.1-beta", VersionRange.unbounded());
-
-        assertThat(countPendingTargets(campaignId, List.of(VEHICLE))).isZero();
     }
 
     @Test
