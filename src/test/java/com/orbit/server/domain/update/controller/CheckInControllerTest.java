@@ -165,6 +165,15 @@ class CheckInControllerTest {
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"v1.0.0", "1.0.0-rc1", "1..0"})
+    @DisplayName("VEHICLE-REQ-001: 현재 버전이 점으로 나눈 숫자 형식이 아니면 400 INVALID_INPUT 으로 응답한다")
+    void rejectsNonDottedCurrentVersion(String currentVersion) throws Exception {
+        checkIn(VEHICLE_ID, token, currentVersion)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+    }
+
     @Test
     @DisplayName("VEHICLE-REQ-001: 위치를 보내면 기록하고 체크인에 응답한다")
     void recordsLocation() throws Exception {

@@ -13,6 +13,8 @@ import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.security.AuthErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -98,6 +100,19 @@ class VehicleControllerTest {
     void rejectsMissingField() throws Exception {
         String body = """
                 {"vehicleId": "vehicle-001", "model": "model-a", "hwVersion": "hw-1", "region": "KR"}""";
+
+        register(ENROLLMENT_KEY, body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"v1.0.0", "1.0.0-rc1", "1..0"})
+    @DisplayName("VEHICLE-REQ-002: 현재 버전이 점으로 나눈 숫자 형식이 아니면 400 INVALID_INPUT 으로 응답한다")
+    void rejectsNonDottedCurrentVersion(String currentVersion) throws Exception {
+        String body = """
+                {"vehicleId": "vehicle-001", "model": "model-a", "hwVersion": "hw-1",
+                 "region": "KR", "currentVersion": "%s"}""".formatted(currentVersion);
 
         register(ENROLLMENT_KEY, body)
                 .andExpect(status().isBadRequest())
