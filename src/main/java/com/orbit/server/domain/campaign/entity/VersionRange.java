@@ -1,5 +1,6 @@
 package com.orbit.server.domain.campaign.entity;
 
+import com.orbit.server.domain.shared.DottedVersion;
 import com.orbit.server.global.common.Preconditions;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.Column;

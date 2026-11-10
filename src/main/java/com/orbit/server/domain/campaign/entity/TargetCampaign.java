@@ -1,5 +1,6 @@
 package com.orbit.server.domain.campaign.entity;
 
+import com.orbit.server.domain.shared.DottedVersion;
 import java.util.Comparator;
 import java.util.Objects;
 

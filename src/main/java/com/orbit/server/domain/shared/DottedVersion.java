@@ -1,4 +1,4 @@
-package com.orbit.server.domain.campaign.entity;
+package com.orbit.server.domain.shared;
 
 import java.util.ArrayList;
 import java.util.Arrays;
