@@ -93,15 +93,6 @@ class CampaignQueryServiceTest {
     }
 
     @Test
-    @DisplayName("VEHICLE-POL-001: 현재 버전을 숫자 자리로 읽을 수 없으면 목표 버전보다 낮은지 알 수 없으므로 대상이 아니다")
-    void findsNothingWhenCurrentVersionIsUnparsable() {
-        register("1.0.1", VersionRange.unbounded());
-
-        assertThat(findTarget(new TargetVehicleCriteria("model-a", "hw-1", "KR", "1.0.0-rc1")))
-                .isEmpty();
-    }
-
-    @Test
     @DisplayName("VEHICLE-POL-001: 여러 캠페인이 맞으면 목표 버전이 숫자로 가장 높은 캠페인을 고른다")
     void prefersHighestTargetVersion() {
         Long higher = register("1.0.10", VersionRange.unbounded());

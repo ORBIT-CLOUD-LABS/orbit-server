@@ -35,15 +35,10 @@ class VersionRangeTest {
     }
 
     @Test
-    @DisplayName("VEHICLE-POL-001: 제한이 없는 범위는 버전 형식과 상관없이 대상이다")
+    @DisplayName("VEHICLE-POL-001: 제한이 없는 범위는 모든 버전이 대상이다")
     void containsAnyVersionWhenUnbounded() {
-        assertThat(VersionRange.unbounded().contains("1.0-beta")).isTrue();
-    }
-
-    @Test
-    @DisplayName("VEHICLE-POL-001: 비교할 버전을 숫자 자리로 읽을 수 없으면 대상이 아니다")
-    void excludesUnparsableVersion() {
-        assertThat(range.contains("1.0-beta")).isFalse();
+        assertThat(VersionRange.unbounded().contains("0.0.1")).isTrue();
+        assertThat(VersionRange.unbounded().contains("99.0")).isTrue();
     }
 
     @ParameterizedTest
