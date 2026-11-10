@@ -43,6 +43,24 @@ class ArtifactRepositoryTest {
     }
 
     @Test
+    @DisplayName("ORIGIN-POL-001: 차종에 등록된 버전을 입력한 표기 그대로 읽는다")
+    void findsVersionsOfModelAsEntered() {
+        artifactRepository.save(artifactOf(RELEASE));
+        artifactRepository.save(artifactOf(new ArtifactRelease("model-a", "1.0")));
+        artifactRepository.save(artifactOf(new ArtifactRelease("model-b", "2.0.0")));
+
+        assertThat(artifactRepository.findVersionsByModel("model-a")).containsExactlyInAnyOrder("1.0.0", "1.0");
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 차종에 등록된 버전이 없으면 빈 목록이다")
+    void findsNoVersionsOfUnknownModel() {
+        artifactRepository.save(artifactOf(RELEASE));
+
+        assertThat(artifactRepository.findVersionsByModel("model-z")).isEmpty();
+    }
+
+    @Test
     @DisplayName("CAMPAIGN-POL-001: 저장된 파일을 잠그면 그 ID 를 돌려준다")
     void locksSavedArtifact() {
         Artifact artifact = artifactRepository.save(artifactOf(RELEASE));

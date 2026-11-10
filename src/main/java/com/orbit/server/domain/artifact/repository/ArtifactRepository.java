@@ -28,6 +28,16 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
     boolean existsByRelease(ArtifactRelease release);
 
     /**
+     * 차종에 등록된 버전을 입력한 표기 그대로 읽는다. 표기가 달라도 비교 규칙상 같은 버전({@code 1.0}·{@code 1.0.0})은 문자열 조건으로
+     * 찾을 수 없으므로, 차종의 버전을 모두 읽어 등록 전 중복 확인에 쓴다. 차종마다 버전 수만큼만 쌓이므로 전체를 읽는다.
+     *
+     * @param model 차종
+     * @return 이 차종에 등록된 버전. 없으면 빈 목록
+     */
+    @Query("select a.release.version from Artifact a where a.release.model = :model")
+    List<String> findVersionsByModel(@Param("model") String model);
+
+    /**
      * 파일 행을 트랜잭션이 끝날 때까지 잠근다. 같은 파일로 캠페인을 동시에 등록하는 요청을 순서대로 처리하기 위해 쓴다.
      * (CAMPAIGN-POL-001)
      *
