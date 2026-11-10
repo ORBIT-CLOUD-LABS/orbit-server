@@ -11,8 +11,8 @@ import jakarta.persistence.Embeddable;
  *
  * <p>버전은 문자열이라 사전순 비교가 틀린다({@code "1.0.10" < "1.0.9"}). 범위 비교는 판정 로직에서 버전 규칙으로 한다.
  *
- * @param min 최소 버전(포함). null 이면 제한 없음, 50자 이하
- * @param max 최대 버전(포함). null 이면 제한 없음, 50자 이하
+ * @param min 최소 버전(포함). null 이면 제한 없음, 50자 이하, 점으로 나눈 숫자 형식
+ * @param max 최대 버전(포함). null 이면 제한 없음, 50자 이하, 점으로 나눈 숫자 형식
  */
 @Embeddable
 public record VersionRange(
@@ -20,13 +20,15 @@ public record VersionRange(
         @Column(name = "current_version_max") String max) {
 
     private static final int MAX_LENGTH = 50;
+    private static final String MIN_NAME = "최소 버전";
+    private static final String MAX_NAME = "최대 버전";
 
     /**
-     * @throws InvalidValueException 버전이 50자를 넘는 경우
+     * @throws InvalidValueException 버전이 50자를 넘거나 점으로 나눈 숫자 형식이 아닌 경우
      */
     public VersionRange {
-        Preconditions.requireMaxLength(min, MAX_LENGTH, "최소 버전");
-        Preconditions.requireMaxLength(max, MAX_LENGTH, "최대 버전");
+        requireBound(min, MIN_NAME);
+        requireBound(max, MAX_NAME);
     }
 
     /**
@@ -51,6 +53,14 @@ public record VersionRange(
         return DottedVersion.parse(currentVersion)
                 .map(current -> isAtLeastMin(current) && isAtMostMax(current))
                 .orElse(false);
+    }
+
+    // 생략한 쪽(null)은 제한이 없으므로 검사하지 않는다
+    private static void requireBound(String bound, String name) {
+        if (bound == null) {
+            return;
+        }
+        DottedVersion.of(Preconditions.requireMaxLength(bound, MAX_LENGTH, name), name);
     }
 
     private boolean isAtLeastMin(DottedVersion current) {

@@ -1,7 +1,9 @@
 package com.orbit.server.domain.campaign.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.global.error.InvalidValueException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,6 +44,13 @@ class VersionRangeTest {
     @DisplayName("VEHICLE-POL-001: 비교할 버전을 숫자 자리로 읽을 수 없으면 대상이 아니다")
     void excludesUnparsableVersion() {
         assertThat(range.contains("1.0-beta")).isFalse();
-        assertThat(new VersionRange("v1.0", null).contains("1.0")).isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"v1.0", "1.0.0-rc1", "1..0", ""})
+    @DisplayName("VEHICLE-POL-001: 범위의 버전이 점으로 나눈 숫자 형식이 아니면 비교할 수 없어 거부한다")
+    void rejectsNonDottedBound(String bound) {
+        assertThatThrownBy(() -> new VersionRange(bound, null)).isInstanceOf(InvalidValueException.class);
+        assertThatThrownBy(() -> new VersionRange(null, bound)).isInstanceOf(InvalidValueException.class);
     }
 }
