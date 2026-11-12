@@ -2,7 +2,6 @@ package com.orbit.server.global.external.cdn;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Instant;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,13 +32,13 @@ class UrlSigningPropertiesTest {
     @DisplayName("설정한 비밀 값으로 서명하는 서명 계산기를 만든다")
     void createsSignerWithConfiguredSecret() {
         String path = "/firmware/MODEL-A/1.1.0/firmware.bin";
-        Instant expiresAt = Instant.ofEpochSecond(1761649200);
+        long expires = 1761649200L;
 
         contextRunner
                 .withPropertyValues(KEY_ID + "v1", SECRET + VALID_SECRET)
                 .run(context -> assertThat(
-                                context.getBean(SecureLinkSigner.class).sign(path, expiresAt))
-                        .isEqualTo(new SecureLinkSigner(VALID_SECRET).sign(path, expiresAt)));
+                                context.getBean(SecureLinkSigner.class).sign(path, expires))
+                        .isEqualTo(new SecureLinkSigner(VALID_SECRET).sign(path, expires)));
     }
 
     @Test

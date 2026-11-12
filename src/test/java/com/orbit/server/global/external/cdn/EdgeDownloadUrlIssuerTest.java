@@ -59,6 +59,6 @@ class EdgeDownloadUrlIssuerTest {
 
         assertThat(issuer.issue(URI.create("http://cdn.test"), path, EXPIRES_AT))
                 .isEqualTo("http://cdn.test/firmware/%s/1.0.1/firmware.bin?md5=%s&expires=1793185200&kid=v1"
-                        .formatted(encodedModel, signer.sign(path, EXPIRES_AT)));
+                        .formatted(encodedModel, signer.sign(path, EXPIRES_AT.getEpochSecond())));
     }
 }

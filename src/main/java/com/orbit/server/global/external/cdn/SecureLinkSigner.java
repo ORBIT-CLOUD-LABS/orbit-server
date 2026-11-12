@@ -3,7 +3,6 @@ package com.orbit.server.global.external.cdn;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.util.Base64;
 
 /**
@@ -33,11 +32,12 @@ final class SecureLinkSigner {
      * 만료 시각과 경로에 대한 서명을 만든다.
      *
      * @param path Origin 경로. nginx {@code $uri} 가 디코딩된 경로이므로 URL 인코딩하지 않은 값을 넘긴다
-     * @param expiresAt URL 만료 시각. Edge 가 초 단위로 비교하므로 초 아래는 버린다
+     * @param expires URL 만료 시각(Unix 초). URL 의 {@code expires} 쿼리와 한 글자라도 다르면 서명이 맞지 않으므로, 쿼리에 넣는 바로 그
+     *     값을 받는다
      * @return 쿼리 {@code md5} 에 그대로 넣을 수 있는 base64url 서명(패딩 없음)
      */
-    String sign(String path, Instant expiresAt) {
-        String signed = expiresAt.getEpochSecond() + path + SECRET_SEPARATOR + secret;
+    String sign(String path, long expires) {
+        String signed = expires + path + SECRET_SEPARATOR + secret;
         byte[] digest = newDigest().digest(signed.getBytes(StandardCharsets.UTF_8));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
     }

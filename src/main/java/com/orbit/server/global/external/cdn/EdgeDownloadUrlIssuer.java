@@ -32,11 +32,13 @@ class EdgeDownloadUrlIssuer implements DownloadUrlIssuer {
     // Edge 는 디코딩한 경로로 검증하므로 서명은 인코딩하기 전 경로로 만든다
     @Override
     public String issue(URI edgeBaseUrl, String path, Instant expiresAt) {
+        // 서명에 넣는 값과 쿼리에 넣는 값이 어긋나지 않도록 한 번만 구해 함께 쓴다
+        long expires = expiresAt.getEpochSecond();
         return SIGNED_URL_FORMAT.formatted(
                 withoutTrailingSlashes(edgeBaseUrl),
                 UriUtils.encodePath(path, StandardCharsets.UTF_8),
-                signer.sign(path, expiresAt),
-                expiresAt.getEpochSecond(),
+                signer.sign(path, expires),
+                expires,
                 properties.keyId());
     }
 
