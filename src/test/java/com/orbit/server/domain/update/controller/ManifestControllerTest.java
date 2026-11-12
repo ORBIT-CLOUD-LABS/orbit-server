@@ -1,5 +1,6 @@
 package com.orbit.server.domain.update.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
@@ -59,6 +60,7 @@ class ManifestControllerTest {
     private static final String VEHICLE_ID = "vehicle-001";
     private static final String SHA256 = "a".repeat(64);
     private static final long FILE_SIZE = 1024;
+    private static final String UTC_SECONDS = "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z";
 
     @Autowired
     private MockMvc mockMvc;
@@ -98,8 +100,24 @@ class ManifestControllerTest {
 
         // 위치를 보낸 적이 없으므로 application-test.yml 의 기본 Edge(edge-seoul) 주소다
         requestManifest(VEHICLE_ID, campaignId, token)
-                .andExpect(jsonPath("$.data.downloadUrl").value(signedUrlOf("http://cdn.test:30081")))
-                .andExpect(jsonPath("$.data.urlExpiresAt").doesNotExist());
+                .andExpect(jsonPath("$.data.downloadUrl").value(signedUrlOf("http://cdn.test:30081")));
+    }
+
+    @Test
+    @DisplayName("DOWNLOAD-POL-001: urlExpiresAt 은 초 단위 UTC 시각이고 다운로드 URL 의 expires 와 같은 시각이다")
+    void respondsUrlExpiresAtMatchingExpiresQuery() throws Exception {
+        Long campaignId = registerCampaign("1.0.1", "hw-1", periodAroundNow());
+
+        String response = requestManifest(VEHICLE_ID, campaignId, token)
+                .andExpect(jsonPath("$.data.urlExpiresAt").value(matchesPattern(UTC_SECONDS)))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String urlExpiresAt = JsonPath.read(response, "$.data.urlExpiresAt");
+        String downloadUrl = JsonPath.read(response, "$.data.downloadUrl");
+        assertThat(downloadUrl)
+                .contains("&expires=" + Instant.parse(urlExpiresAt).getEpochSecond() + "&");
     }
 
     @Test

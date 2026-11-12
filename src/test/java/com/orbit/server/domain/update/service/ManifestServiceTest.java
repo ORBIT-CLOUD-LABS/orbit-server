@@ -101,6 +101,7 @@ class ManifestServiceTest {
                 .containsExactly(
                         new FallbackUrl("edge-daejeon", "http://cdn.test:30082" + SIGNED_PATH),
                         new FallbackUrl("edge-busan", "http://cdn.test:30083" + SIGNED_PATH));
+        assertThat(result.urlExpiresAt()).isEqualTo(NOW.plus(Duration.ofHours(1)));
     }
 
     @Test
