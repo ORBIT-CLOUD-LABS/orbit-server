@@ -12,6 +12,7 @@ import com.orbit.server.domain.vehicle.entity.VehicleSpec;
 import com.orbit.server.domain.vehicle.repository.VehicleRepository;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 class EdgeAssignerTest {
 
     private static final String PATH = "/firmware/model-a/1.0.1/firmware.bin";
+    private static final Instant ISSUED_AT = Instant.parse("2026-10-28T10:00:00Z");
     // 울산 근처: 부산 → 대전 → 서울 순으로 가깝다
     private static final VehicleLocation NEAR_BUSAN = new VehicleLocation(35.5384, 129.3114);
 
@@ -106,8 +108,16 @@ class EdgeAssignerTest {
         assertThat(assignedEdgeId()).isEqualTo("edge-busan");
     }
 
+    @Test
+    @DisplayName("DOWNLOAD-POL-001: URL 만료 시각은 발급 시각에 유효 기간(기본 1시간)을 더한 시각이다")
+    void expiresUrlsAfterTtl() {
+        EdgeAssignment assignment = assign();
+
+        assertThat(assignment.urlExpiresAt()).isEqualTo(ISSUED_AT.plus(Duration.ofHours(1)));
+    }
+
     private EdgeAssignment assign() {
-        return edgeAssigner.assign(vehicleStateService.getManifestState(vehicleId), PATH);
+        return edgeAssigner.assign(vehicleStateService.getManifestState(vehicleId), PATH, ISSUED_AT);
     }
 
     private void moveLocationUpdatedAtBack(Duration duration) {
