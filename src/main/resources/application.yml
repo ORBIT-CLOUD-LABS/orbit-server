@@ -62,6 +62,11 @@ orbit:
     fallback-count: ${CDN_FALLBACK_COUNT:2}
     # Edge 선택 규칙: 이보다 오래된 차량 위치는 Edge 선택에 쓰지 않는다
     location-max-age: ${CDN_LOCATION_MAX_AGE:30m}
+    url-signing:
+      # 다운로드 URL 서명(nginx secure_link)에 쓰는 비밀 값과 그 버전(URL 의 kid). Edge 가 같은 kid 로 같은 비밀 값을 갖고 있어야 한다
+      # 환경 변수가 없으면 플레이스홀더 원문이 그대로 값이 되므로, 빈 기본값을 줘서 검증으로 앱이 뜨지 않게 한다
+      key-id: ${CDN_URL_SIGNING_KEY_ID:}
+      secret: ${CDN_URL_SIGNING_SECRET:}
     # default-edge-id 와 edges 는 기본값을 두지 않는다. 배포 환경마다 Edge 구성이 다르기 때문이다.
     # edges 는 중첩 리스트라 환경 변수가 아니라 외부 YAML 파일(spring.config.import)로 넣는다
     health-check:

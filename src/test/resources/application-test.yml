@@ -11,6 +11,9 @@ orbit:
     token: test-admin-token
   cdn:
     default-edge-id: edge-seoul
+    url-signing:
+      key-id: test
+      secret: test-url-signing-secret-0123456789
     # Edge 주소는 접속되지 않는 가짜 주소다. 테스트에서는 AlwaysUpEdgeHealthProbe 가 헬스체크를 대신해 모든 Edge 를 정상으로 본다
     # flow.md 의 Edge 3개 예시와 같은 구성. Edge 선택 테스트가 가까운 순서와 기본 Edge 를 구분하는 데 쓴다
     edges:
