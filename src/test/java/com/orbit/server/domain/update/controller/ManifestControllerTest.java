@@ -1,6 +1,7 @@
 package com.orbit.server.domain.update.controller;
 
 import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,6 +29,8 @@ import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.regex.Pattern;
+import org.hamcrest.Matcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,14 +92,13 @@ class ManifestControllerTest {
     }
 
     @Test
-    @DisplayName("DOWNLOAD-POL-001: 다운로드 URL 은 고른 Edge 주소 뒤에 Origin 경로를 붙인 URL 이고 서명 전이라 만료 시각은 없다")
-    void respondsEdgeDownloadUrl() throws Exception {
+    @DisplayName("DOWNLOAD-POL-001: 다운로드 URL 은 고른 Edge 주소 뒤에 Origin 경로와 URL 서명(md5, expires, kid)을 붙인 URL 이다")
+    void respondsSignedEdgeDownloadUrl() throws Exception {
         Long campaignId = registerCampaign("1.0.1", "hw-1", periodAroundNow());
 
         // 위치를 보낸 적이 없으므로 application-test.yml 의 기본 Edge(edge-seoul) 주소다
         requestManifest(VEHICLE_ID, campaignId, token)
-                .andExpect(jsonPath("$.data.downloadUrl")
-                        .value("http://cdn.test:30081/firmware/model-a/1.0.1/firmware.bin"))
+                .andExpect(jsonPath("$.data.downloadUrl").value(signedUrlOf("http://cdn.test:30081")))
                 .andExpect(jsonPath("$.data.urlExpiresAt").doesNotExist());
     }
 
@@ -110,8 +112,7 @@ class ManifestControllerTest {
                 .andExpect(jsonPath("$.data.edge.distanceKm").value(nullValue()))
                 .andExpect(jsonPath("$.data.fallbackUrls.length()").value(2))
                 .andExpect(jsonPath("$.data.fallbackUrls[0].edgeId").value("edge-daejeon"))
-                .andExpect(jsonPath("$.data.fallbackUrls[0].url")
-                        .value("http://cdn.test:30082/firmware/model-a/1.0.1/firmware.bin"))
+                .andExpect(jsonPath("$.data.fallbackUrls[0].url").value(signedUrlOf("http://cdn.test:30082")))
                 .andExpect(jsonPath("$.data.fallbackUrls[1].edgeId").value("edge-busan"));
     }
 
@@ -125,8 +126,7 @@ class ManifestControllerTest {
         requestManifest(VEHICLE_ID, campaignId, token)
                 .andExpect(jsonPath("$.data.edge.edgeId").value("edge-busan"))
                 .andExpect(jsonPath("$.data.edge.distanceKm").value(closeTo(50.0, 5.0)))
-                .andExpect(jsonPath("$.data.downloadUrl")
-                        .value("http://cdn.test:30083/firmware/model-a/1.0.1/firmware.bin"))
+                .andExpect(jsonPath("$.data.downloadUrl").value(signedUrlOf("http://cdn.test:30083")))
                 .andExpect(jsonPath("$.data.fallbackUrls[0].edgeId").value("edge-daejeon"))
                 .andExpect(jsonPath("$.data.fallbackUrls[1].edgeId").value("edge-seoul"));
     }
@@ -264,6 +264,12 @@ class ManifestControllerTest {
     }
 
     // 실제 시계로 판정하므로 지금을 포함하는 기간으로 등록한다
+    // 만료 시각이 요청 시각에 따라 달라 서명 값을 고정할 수 없으므로 형식만 본다. 서명 값은 EdgeDownloadUrlIssuerTest 가 검증한다
+    private static Matcher<String> signedUrlOf(String edgeBaseUrl) {
+        return matchesPattern(Pattern.quote(edgeBaseUrl + "/firmware/model-a/1.0.1/firmware.bin")
+                + "\\?md5=[A-Za-z0-9_-]{22}&expires=\\d+&kid=test");
+    }
+
     private static CampaignPeriod periodAroundNow() {
         Instant now = Instant.now();
         return new CampaignPeriod(now.minus(Duration.ofHours(1)), now.plus(Duration.ofHours(1)));

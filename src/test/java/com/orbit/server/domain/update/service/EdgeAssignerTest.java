@@ -23,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * application-test.yml 의 Edge 3개(서울·대전·부산, 기본 Edge 서울)와 Edge 선택 규칙 기본값(fallback 2개, 위치 유효 시간 30분)을
+ * application-test.yml 의 Edge 3개(서울·대전·부산, 기본 Edge 서울)와 Edge 선택 규칙 기본값(fallback 2개, 위치 유효 시간 30분), URL 서명 설정(비밀 값, 키 버전, 유효 기간 1시간)을
  * 전제로 한다.
  */
 @SpringBootTest
@@ -34,6 +34,8 @@ class EdgeAssignerTest {
 
     private static final String PATH = "/firmware/model-a/1.0.1/firmware.bin";
     private static final Instant ISSUED_AT = Instant.parse("2026-10-28T10:00:00Z");
+    // 만료 시각은 발급 1시간 뒤(Unix 초 1793185200)이고, 서명은 application-test.yml 의 비밀 값과 키 버전으로 만든 값이다
+    private static final String SIGNED_PATH = PATH + "?md5=UrX2rg5FUHyLdqOf28iyRQ&expires=1793185200&kid=test";
     // 울산 근처: 부산 → 대전 → 서울 순으로 가깝다
     private static final VehicleLocation NEAR_BUSAN = new VehicleLocation(35.5384, 129.3114);
 
@@ -67,11 +69,11 @@ class EdgeAssignerTest {
 
         assertThat(assignment.edge().edgeId()).isEqualTo("edge-busan");
         assertThat(assignment.edge().distanceKm()).hasValueCloseTo(50.0, within(5.0));
-        assertThat(assignment.downloadUrl()).isEqualTo("http://cdn.test:30083" + PATH);
+        assertThat(assignment.downloadUrl()).isEqualTo("http://cdn.test:30083" + SIGNED_PATH);
         assertThat(assignment.fallbackUrls())
                 .containsExactly(
-                        new FallbackUrl("edge-daejeon", "http://cdn.test:30082" + PATH),
-                        new FallbackUrl("edge-seoul", "http://cdn.test:30081" + PATH));
+                        new FallbackUrl("edge-daejeon", "http://cdn.test:30082" + SIGNED_PATH),
+                        new FallbackUrl("edge-seoul", "http://cdn.test:30081" + SIGNED_PATH));
     }
 
     @Test
@@ -81,7 +83,7 @@ class EdgeAssignerTest {
 
         assertThat(assignment.edge().edgeId()).isEqualTo("edge-seoul");
         assertThat(assignment.edge().distanceKm()).isEmpty();
-        assertThat(assignment.downloadUrl()).isEqualTo("http://cdn.test:30081" + PATH);
+        assertThat(assignment.downloadUrl()).isEqualTo("http://cdn.test:30081" + SIGNED_PATH);
         assertThat(assignment.fallbackUrls())
                 .extracting(FallbackUrl::edgeId)
                 .containsExactly("edge-daejeon", "edge-busan");
