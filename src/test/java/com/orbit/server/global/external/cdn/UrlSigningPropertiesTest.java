@@ -3,11 +3,13 @@ package com.orbit.server.global.external.cdn;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.core.env.MapPropertySource;
 
 class UrlSigningPropertiesTest {
 
@@ -62,6 +64,27 @@ class UrlSigningPropertiesTest {
     void failsWithShortSecret(String secret) {
         contextRunner
                 .withPropertyValues(KEY_ID + "v1", SECRET + secret)
+                .run(context -> assertThat(context).hasFailed());
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                VALID_SECRET + "\n",
+                VALID_SECRET + " ",
+                " " + VALID_SECRET,
+                "local-url-signing secret-0123456789"
+            })
+    @DisplayName("비밀 값에 공백이나 개행이 섞이면 Edge 의 비밀 값과 달라져 서명이 맞지 않으므로 앱을 띄우지 않는다")
+    void failsWithWhitespaceInSecret(String secret) {
+        // withPropertyValues 는 값 앞뒤 공백을 떼어 내므로, 환경 변수처럼 값을 그대로 전달하도록 프로퍼티 소스를 직접 넣는다
+        Map<String, Object> properties =
+                Map.of("orbit.cdn.url-signing.key-id", "v1", "orbit.cdn.url-signing.secret", secret);
+
+        contextRunner
+                .withInitializer(context -> context.getEnvironment()
+                        .getPropertySources()
+                        .addFirst(new MapPropertySource("untrimmed", properties)))
                 .run(context -> assertThat(context).hasFailed());
     }
 

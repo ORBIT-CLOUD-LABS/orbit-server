@@ -16,15 +16,19 @@ import org.springframework.validation.annotation.Validated;
  *
  * @param keyId 비밀 값의 버전. URL 의 {@code kid} 쿼리에 그대로 넣으므로 인코딩이 필요 없는 문자만 받는다. 환경 변수 {@code
  *     CDN_URL_SIGNING_KEY_ID} 로 넣는다
- * @param secret 서명 비밀 값. 짧으면 추측하기 쉬워 최소 길이를 둔다. 환경 변수 {@code CDN_URL_SIGNING_SECRET} 로 넣는다
+ * @param secret 서명 비밀 값. 짧으면 추측하기 쉬워 최소 길이를 둔다. Secret 을 만들 때 끝에 개행이 붙으면 Edge 의 값과 달라져 모든 서명이
+ *     틀리는데 기동 때는 드러나지 않으므로 공백 문자를 받지 않는다. 환경 변수 {@code CDN_URL_SIGNING_SECRET} 로 넣는다
  */
 @Validated
 @ConfigurationProperties("orbit.cdn.url-signing")
 record UrlSigningProperties(
         @NotNull @Pattern(regexp = KEY_ID_PATTERN) String keyId,
-        @NotNull @Size(min = MIN_SECRET_LENGTH) String secret) {
+
+        @NotNull @Size(min = MIN_SECRET_LENGTH) @Pattern(regexp = NO_WHITESPACE_PATTERN)
+        String secret) {
 
     private static final String KEY_ID_PATTERN = "[A-Za-z0-9_-]+";
+    private static final String NO_WHITESPACE_PATTERN = "\\S*";
     private static final int MIN_SECRET_LENGTH = 32;
     private static final String MASKED = "****";
 
