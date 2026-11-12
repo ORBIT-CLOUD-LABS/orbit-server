@@ -26,4 +26,11 @@ record UrlSigningProperties(
 
     private static final String KEY_ID_PATTERN = "[A-Za-z0-9_-]+";
     private static final int MIN_SECRET_LENGTH = 32;
+    private static final String MASKED = "****";
+
+    // record 가 만들어 주는 toString 은 비밀 값을 그대로 담아, 이 객체가 로그나 예외 메시지에 찍히면 비밀 값이 남는다
+    @Override
+    public String toString() {
+        return "UrlSigningProperties[keyId=%s, secret=%s]".formatted(keyId, MASKED);
+    }
 }

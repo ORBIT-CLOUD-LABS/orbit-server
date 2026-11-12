@@ -41,6 +41,14 @@ class UrlSigningPropertiesTest {
     }
 
     @Test
+    @DisplayName("로그나 예외 메시지에 남지 않도록 문자열로 바꿀 때 비밀 값을 가린다")
+    void masksSecretInToString() {
+        UrlSigningProperties properties = new UrlSigningProperties("v1", VALID_SECRET);
+
+        assertThat(properties.toString()).contains("v1").doesNotContain(VALID_SECRET);
+    }
+
+    @Test
     @DisplayName("비밀 값이 없으면 앱을 띄우지 않는다")
     void failsWithoutSecret() {
         contextRunner
