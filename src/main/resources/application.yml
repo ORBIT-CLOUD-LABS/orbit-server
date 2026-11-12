@@ -62,6 +62,8 @@ orbit:
     fallback-count: ${CDN_FALLBACK_COUNT:2}
     # Edge 선택 규칙: 이보다 오래된 차량 위치는 Edge 선택에 쓰지 않는다
     location-max-age: ${CDN_LOCATION_MAX_AGE:30m}
+    # 다운로드 URL 서명의 유효 기간(update 컨텍스트 SignedUrlProperties). 재시도와 예비 Edge 까지 포함해 다운로드가 끝날 시간보다 길게 둔다
+    signed-url-ttl: ${CDN_SIGNED_URL_TTL:1h}
     url-signing:
       # 다운로드 URL 서명(nginx secure_link)에 쓰는 비밀 값과 그 버전(URL 의 kid). Edge 가 같은 kid 로 같은 비밀 값을 갖고 있어야 한다
       # 환경 변수가 없으면 플레이스홀더 원문이 그대로 값이 되므로, 빈 기본값을 줘서 검증으로 앱이 뜨지 않게 한다
