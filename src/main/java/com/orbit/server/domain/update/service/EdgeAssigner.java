@@ -44,24 +44,25 @@ public class EdgeAssigner {
                 .map(location -> edgeSelector.select(observed(location)))
                 .orElseGet(edgeSelector::selectDefault);
         vehicleStateService.assignEdge(vehicle.vehicleId(), selection.primary().edgeId());
+        Instant expiresAt = signedUrlProperties.expiresAt(issuedAt);
         return new EdgeAssignment(
                 selection.primary(),
-                urlOf(selection.primary(), path),
-                fallbackUrlsOf(selection, path),
-                signedUrlProperties.expiresAt(issuedAt));
+                urlOf(selection.primary(), path, expiresAt),
+                fallbackUrlsOf(selection, path, expiresAt),
+                expiresAt);
     }
 
     private static ObservedLocation observed(LastLocation last) {
         return new ObservedLocation(last.location().latitude(), last.location().longitude(), last.age());
     }
 
-    private List<FallbackUrl> fallbackUrlsOf(EdgeSelection selection, String path) {
+    private List<FallbackUrl> fallbackUrlsOf(EdgeSelection selection, String path, Instant expiresAt) {
         return selection.fallbacks().stream()
-                .map(edge -> new FallbackUrl(edge.edgeId(), urlOf(edge, path)))
+                .map(edge -> new FallbackUrl(edge.edgeId(), urlOf(edge, path, expiresAt)))
                 .toList();
     }
 
-    private String urlOf(SelectedEdge edge, String path) {
-        return downloadUrlIssuer.issue(edge.baseUrl(), path);
+    private String urlOf(SelectedEdge edge, String path, Instant expiresAt) {
+        return downloadUrlIssuer.issue(edge.baseUrl(), path, expiresAt);
     }
 }

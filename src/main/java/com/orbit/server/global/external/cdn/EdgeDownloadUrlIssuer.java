@@ -3,6 +3,7 @@ package com.orbit.server.global.external.cdn;
 import com.orbit.server.domain.update.service.DownloadUrlIssuer;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriUtils;
 
@@ -18,7 +19,7 @@ class EdgeDownloadUrlIssuer implements DownloadUrlIssuer {
 
     // 차종·버전은 '/' 만 막으므로 '#', '?' 같은 문자가 fragment·쿼리로 해석되지 않게 경로를 인코딩한다. '/' 는 그대로 둔다
     @Override
-    public String issue(URI edgeBaseUrl, String path) {
+    public String issue(URI edgeBaseUrl, String path, Instant expiresAt) {
         return withoutTrailingSlashes(edgeBaseUrl) + UriUtils.encodePath(path, StandardCharsets.UTF_8);
     }
 
