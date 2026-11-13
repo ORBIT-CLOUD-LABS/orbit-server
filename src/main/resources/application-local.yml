@@ -19,6 +19,9 @@ orbit:
   cdn:
     # 로컬에는 Edge 가 없으므로 Edge 선택 확인용 임시 목록. 좌표는 flow.md 의 서울·대전·부산 Edge 와 같다
     default-edge-id: edge-seoul
+    url-signing:
+      key-id: ${CDN_URL_SIGNING_KEY_ID:local}
+      secret: ${CDN_URL_SIGNING_SECRET:local-url-signing-secret-0123456789}
     edges:
       - id: edge-seoul
         name: 서울

@@ -53,6 +53,8 @@ class ManifestServiceTest {
     private static final String SHA256 = "a".repeat(64);
     private static final long FILE_SIZE = 1024;
     private static final String PATH = "/firmware/model-a/1.0.1/firmware.bin";
+    // 만료 시각은 NOW 의 1시간 뒤(Unix 초 1790859600)이고, 서명은 application-test.yml 의 비밀 값과 키 버전으로 만든 값이다
+    private static final String SIGNED_PATH = PATH + "?md5=U3VCafgUdJHZwHsc5prjFw&expires=1790859600&kid=test";
     // 울산 근처: application-test.yml 의 Edge 중 부산이 가장 가깝다
     private static final VehicleLocation NEAR_BUSAN = new VehicleLocation(35.5384, 129.3114);
 
@@ -94,11 +96,12 @@ class ManifestServiceTest {
         // 위치를 보낸 적이 없으므로 기본 Edge(서울)이고 나머지는 설정 순서다
         assertThat(result.edge().edgeId()).isEqualTo("edge-seoul");
         assertThat(result.edge().distanceKm()).isEmpty();
-        assertThat(result.downloadUrl()).isEqualTo("http://cdn.test:30081" + PATH);
+        assertThat(result.downloadUrl()).isEqualTo("http://cdn.test:30081" + SIGNED_PATH);
         assertThat(result.fallbackUrls())
                 .containsExactly(
-                        new FallbackUrl("edge-daejeon", "http://cdn.test:30082" + PATH),
-                        new FallbackUrl("edge-busan", "http://cdn.test:30083" + PATH));
+                        new FallbackUrl("edge-daejeon", "http://cdn.test:30082" + SIGNED_PATH),
+                        new FallbackUrl("edge-busan", "http://cdn.test:30083" + SIGNED_PATH));
+        assertThat(result.urlExpiresAt()).isEqualTo(NOW.plus(Duration.ofHours(1)));
     }
 
     @Test
@@ -111,7 +114,7 @@ class ManifestServiceTest {
 
         assertThat(result.edge().edgeId()).isEqualTo("edge-busan");
         assertThat(result.edge().distanceKm()).isPresent();
-        assertThat(result.downloadUrl()).isEqualTo("http://cdn.test:30083" + PATH);
+        assertThat(result.downloadUrl()).isEqualTo("http://cdn.test:30083" + SIGNED_PATH);
         assertThat(assignedEdgeId()).isEqualTo("edge-busan");
     }
 

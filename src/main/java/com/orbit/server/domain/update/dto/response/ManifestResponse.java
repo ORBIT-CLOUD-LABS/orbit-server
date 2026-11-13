@@ -3,12 +3,14 @@ package com.orbit.server.domain.update.dto.response;
 import com.orbit.server.domain.edge.service.SelectedEdge;
 import com.orbit.server.domain.update.service.EdgeAssignment.FallbackUrl;
 import com.orbit.server.domain.update.service.ManifestResult;
+import java.time.Instant;
 import java.util.List;
 
 /**
  * 매니페스트 응답. 차량은 {@code downloadUrl} 로 파일을 받고, 실패하면 {@code fallbackUrls} 를 순서대로 시도하며, 크기와 해시로 검증한다.
  *
- * <p>URL 서명(#38) 전이라 만료 시각({@code urlExpiresAt})은 응답하지 않는다.
+ * <p>URL 에는 서명이 붙어 있어 {@code urlExpiresAt} 이 지나면 Edge 가 거부한다. 차량은 다운로드 전에 이 시각이 지났으면 매니페스트를 다시
+ * 요청한다.
  *
  * @param campaignId 캠페인 ID
  * @param targetVersion 설치할 버전
@@ -17,6 +19,7 @@ import java.util.List;
  * @param edge 다운로드 URL 을 만든 Edge
  * @param downloadUrl 파일을 먼저 받을 Edge 의 URL
  * @param fallbackUrls 예비 Edge 의 URL 목록. 없으면 빈 배열
+ * @param urlExpiresAt {@code downloadUrl} 과 {@code fallbackUrls} 가 함께 만료되는 시각(UTC, 초 단위)
  */
 public record ManifestResponse(
         Long campaignId,
@@ -25,7 +28,8 @@ public record ManifestResponse(
         String sha256,
         EdgeResponse edge,
         String downloadUrl,
-        List<FallbackUrlResponse> fallbackUrls) {
+        List<FallbackUrlResponse> fallbackUrls,
+        Instant urlExpiresAt) {
 
     public static ManifestResponse from(ManifestResult result) {
         return new ManifestResponse(
@@ -35,7 +39,8 @@ public record ManifestResponse(
                 result.sha256(),
                 EdgeResponse.from(result.edge()),
                 result.downloadUrl(),
-                result.fallbackUrls().stream().map(FallbackUrlResponse::from).toList());
+                result.fallbackUrls().stream().map(FallbackUrlResponse::from).toList(),
+                result.urlExpiresAt());
     }
 
     /**

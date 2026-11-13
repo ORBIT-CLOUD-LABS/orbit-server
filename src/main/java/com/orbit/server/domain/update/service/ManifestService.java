@@ -7,6 +7,7 @@ import com.orbit.server.domain.vehicle.service.VehicleProfile;
 import com.orbit.server.domain.vehicle.service.VehicleQueryService;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Clock;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +50,10 @@ public class ManifestService {
                 vehicle.hwVersion(),
                 vehicle.region(),
                 state.currentVersion().value());
-        ArtifactSummary artifact = campaignQueryService.getTargetArtifact(campaignId, target, clock.instant());
-        EdgeAssignment assignment = edgeAssigner.assign(state, artifact.path());
+        // 적용 기간 판정과 URL 만료 시각이 같은 시각을 기준으로 하도록 한 번만 읽는다
+        Instant now = clock.instant();
+        ArtifactSummary artifact = campaignQueryService.getTargetArtifact(campaignId, target, now);
+        EdgeAssignment assignment = edgeAssigner.assign(state, artifact.path(), now);
         return ManifestResult.of(campaignId, artifact, assignment);
     }
 }

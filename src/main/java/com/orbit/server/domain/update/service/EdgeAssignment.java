@@ -1,6 +1,7 @@
 package com.orbit.server.domain.update.service;
 
 import com.orbit.server.domain.edge.service.SelectedEdge;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -9,8 +10,10 @@ import java.util.List;
  * @param edge 다운로드 URL 을 만든 Edge. 거리는 차량 위치를 모르면 빈 값
  * @param downloadUrl 차량이 먼저 시도할 다운로드 URL
  * @param fallbackUrls 다운로드가 실패하면 순서대로 시도할 예비 Edge 의 URL. 없으면 빈 목록
+ * @param urlExpiresAt 다운로드 URL 과 예비 URL 이 함께 만료되는 시각
  */
-public record EdgeAssignment(SelectedEdge edge, String downloadUrl, List<FallbackUrl> fallbackUrls) {
+public record EdgeAssignment(
+        SelectedEdge edge, String downloadUrl, List<FallbackUrl> fallbackUrls, Instant urlExpiresAt) {
 
     public EdgeAssignment {
         fallbackUrls = List.copyOf(fallbackUrls);

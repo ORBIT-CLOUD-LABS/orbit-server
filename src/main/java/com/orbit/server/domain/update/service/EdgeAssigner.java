@@ -7,6 +7,7 @@ import com.orbit.server.domain.edge.service.SelectedEdge;
 import com.orbit.server.domain.update.service.EdgeAssignment.FallbackUrl;
 import com.orbit.server.domain.update.service.ManifestVehicleState.LastLocation;
 import com.orbit.server.global.error.BusinessException;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,36 +25,44 @@ public class EdgeAssigner {
     private final VehicleStateService vehicleStateService;
     private final EdgeSelector edgeSelector;
     private final DownloadUrlIssuer downloadUrlIssuer;
+    private final SignedUrlProperties signedUrlProperties;
 
     /**
      * 위치가 있으면 그 위치로, 없으면 기본 Edge 우선으로 고른다. 고른 Edge 는 차량 상태에 기록한다.
      *
+     * <p>차량이 만료 시각 하나만 보고 다시 요청할지 정하므로, 다운로드 URL 과 예비 URL 의 만료 시각을 한 번만 정해 함께 쓴다.
+     *
      * @param vehicle 매니페스트를 요청한 차량의 상태
      * @param path 받을 파일의 Origin 경로
-     * @return 배정한 Edge 와 다운로드·예비 URL
+     * @param issuedAt 매니페스트를 발급하는 시각. URL 만료 시각의 기준이다
+     * @return 배정한 Edge 와 다운로드·예비 URL, URL 만료 시각
      * @throws BusinessException 정상인 Edge 가 하나도 없으면 NO_AVAILABLE_EDGE
      * @throws IllegalStateException 차량의 상태가 없는 경우
      */
-    public EdgeAssignment assign(ManifestVehicleState vehicle, String path) {
+    public EdgeAssignment assign(ManifestVehicleState vehicle, String path, Instant issuedAt) {
         EdgeSelection selection = vehicle.lastLocation()
                 .map(location -> edgeSelector.select(observed(location)))
                 .orElseGet(edgeSelector::selectDefault);
         vehicleStateService.assignEdge(vehicle.vehicleId(), selection.primary().edgeId());
+        Instant expiresAt = signedUrlProperties.expiresAt(issuedAt);
         return new EdgeAssignment(
-                selection.primary(), urlOf(selection.primary(), path), fallbackUrlsOf(selection, path));
+                selection.primary(),
+                urlOf(selection.primary(), path, expiresAt),
+                fallbackUrlsOf(selection, path, expiresAt),
+                expiresAt);
     }
 
     private static ObservedLocation observed(LastLocation last) {
         return new ObservedLocation(last.location().latitude(), last.location().longitude(), last.age());
     }
 
-    private List<FallbackUrl> fallbackUrlsOf(EdgeSelection selection, String path) {
+    private List<FallbackUrl> fallbackUrlsOf(EdgeSelection selection, String path, Instant expiresAt) {
         return selection.fallbacks().stream()
-                .map(edge -> new FallbackUrl(edge.edgeId(), urlOf(edge, path)))
+                .map(edge -> new FallbackUrl(edge.edgeId(), urlOf(edge, path, expiresAt)))
                 .toList();
     }
 
-    private String urlOf(SelectedEdge edge, String path) {
-        return downloadUrlIssuer.issue(edge.baseUrl(), path);
+    private String urlOf(SelectedEdge edge, String path, Instant expiresAt) {
+        return downloadUrlIssuer.issue(edge.baseUrl(), path, expiresAt);
     }
 }

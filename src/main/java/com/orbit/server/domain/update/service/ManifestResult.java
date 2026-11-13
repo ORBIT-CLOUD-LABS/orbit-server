@@ -3,6 +3,7 @@ package com.orbit.server.domain.update.service;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
 import com.orbit.server.domain.edge.service.SelectedEdge;
 import com.orbit.server.domain.update.service.EdgeAssignment.FallbackUrl;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -15,6 +16,7 @@ import java.util.List;
  * @param edge 다운로드 URL 을 만든 Edge. 거리는 차량 위치를 모르면 빈 값
  * @param downloadUrl 파일을 먼저 받을 Edge 의 URL
  * @param fallbackUrls 다운로드가 실패하면 순서대로 시도할 예비 Edge 의 URL. 없으면 빈 목록
+ * @param urlExpiresAt 다운로드 URL 과 예비 URL 이 함께 만료되는 시각
  */
 public record ManifestResult(
         Long campaignId,
@@ -23,13 +25,14 @@ public record ManifestResult(
         String sha256,
         SelectedEdge edge,
         String downloadUrl,
-        List<FallbackUrl> fallbackUrls) {
+        List<FallbackUrl> fallbackUrls,
+        Instant urlExpiresAt) {
 
     /**
      * @param campaignId 캠페인 ID
      * @param artifact 캠페인이 배포하는 파일
-     * @param assignment 차량에 배정한 Edge 와 다운로드 URL
-     * @return 파일의 버전·크기·해시와 Edge 별 다운로드 URL 을 담은 매니페스트
+     * @param assignment 차량에 배정한 Edge 와 다운로드 URL, URL 만료 시각
+     * @return 파일의 버전·크기·해시와 Edge 별 다운로드 URL, URL 만료 시각을 담은 매니페스트
      */
     public static ManifestResult of(Long campaignId, ArtifactSummary artifact, EdgeAssignment assignment) {
         return new ManifestResult(
@@ -39,6 +42,7 @@ public record ManifestResult(
                 artifact.sha256(),
                 assignment.edge(),
                 assignment.downloadUrl(),
-                assignment.fallbackUrls());
+                assignment.fallbackUrls(),
+                assignment.urlExpiresAt());
     }
 }
