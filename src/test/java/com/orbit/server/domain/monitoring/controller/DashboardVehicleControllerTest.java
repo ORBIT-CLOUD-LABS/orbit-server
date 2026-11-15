@@ -74,7 +74,10 @@ class DashboardVehicleControllerTest {
                 Instant.parse(UPDATED_AT),
                 1L,
                 "FAILED",
-                "HASH_MISMATCH");
+                "HASH_MISMATCH",
+                null,
+                null,
+                null);
         given(vehicleStatusQueryService.getSnapshot())
                 .willReturn(new VehicleStatusSnapshot(Instant.parse(AS_OF), List.of(vehicle)));
 
@@ -97,8 +100,8 @@ class DashboardVehicleControllerTest {
     @Test
     @DisplayName("MONITORING-REQ-004: 업데이트 결과가 없는 차량은 결과 필드를 null 로 응답한다")
     void respondsNullResultFieldsWithoutUpdateResult() throws Exception {
-        VehicleStatus vehicle =
-                new VehicleStatus("vehicle-001", "model-a", "1.0.0", null, Instant.parse(UPDATED_AT), null, null, null);
+        VehicleStatus vehicle = new VehicleStatus(
+                "vehicle-001", "model-a", "1.0.0", null, Instant.parse(UPDATED_AT), null, null, null, null, null, null);
         given(vehicleStatusQueryService.getSnapshot())
                 .willReturn(new VehicleStatusSnapshot(Instant.parse(AS_OF), List.of(vehicle)));
 

@@ -29,7 +29,8 @@ final class VehicleStatusFixture {
      * @return 업데이트 결과가 없고 버전을 지정한 차량 상태
      */
     static VehicleStatus withVersion(String vehicleId, String currentVersion, Instant updatedAt) {
-        return new VehicleStatus(vehicleId, MODEL, currentVersion, updatedAt, updatedAt, null, null, null);
+        return new VehicleStatus(
+                vehicleId, MODEL, currentVersion, updatedAt, updatedAt, null, null, null, null, null, null);
     }
 
     /**
@@ -46,6 +47,9 @@ final class VehicleStatusFixture {
                 updatedAt,
                 FAILED_CAMPAIGN_ID,
                 FAILED_RESULT,
-                FAILURE_REASON);
+                FAILURE_REASON,
+                null,
+                null,
+                null);
     }
 }
