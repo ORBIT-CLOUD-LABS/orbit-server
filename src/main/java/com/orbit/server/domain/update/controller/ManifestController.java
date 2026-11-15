@@ -27,7 +27,7 @@ public class ManifestController {
     /**
      * 요청 시점에 대상 여부를 다시 확인하고 파일 정보와 가까운 Edge 의 다운로드 URL 을 응답한다.
      *
-     * <p>차량 토큰과 경로 {@code vehicleId} 확인은 이 경로에 건 인터셉터가 먼저 한다.
+     * <p>차량 토큰과 경로 {@code vehicleId} 확인은 이 경로에 건 보안 필터가 먼저 한다.
      *
      * @param vehicleId 차량 식별자
      * @param campaignId 체크인에서 받은 캠페인 ID

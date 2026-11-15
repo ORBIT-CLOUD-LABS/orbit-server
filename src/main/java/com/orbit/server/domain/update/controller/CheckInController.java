@@ -28,7 +28,7 @@ public class CheckInController {
     /**
      * 차량의 현재 버전을 기록하고 업데이트할 캠페인이 있는지 응답한다. (VEHICLE-REQ-001 / VEHICLE-POL-001)
      *
-     * <p>차량 토큰과 경로 {@code vehicleId} 확인은 이 경로에 건 인터셉터가 먼저 한다.
+     * <p>차량 토큰과 경로 {@code vehicleId} 확인은 이 경로에 건 보안 필터가 먼저 한다.
      *
      * @param vehicleId 차량 식별자
      * @param request 현재 버전
