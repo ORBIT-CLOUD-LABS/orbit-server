@@ -2,6 +2,7 @@
 orbit:
   origin:
     endpoint: http://localhost:8333
+    region: us-east-1
     bucket: test-bucket
     access-key: test-access-key
     secret-key: test-secret-key

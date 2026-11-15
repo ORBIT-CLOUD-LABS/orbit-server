@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-/** S3 API 로 Origin File Server(SeaweedFS)에 파일을 올린다. */
+/** S3 API 로 Origin 저장소(운영은 AWS S3, 로컬 시험은 SeaweedFS)에 파일을 올린다. */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -35,7 +35,6 @@ class S3OriginStorage implements OriginStorage {
     @Override
     public void upload(ArtifactFile file, InputStreamSource content) {
         try (InputStream in = content.getInputStream()) {
-            // S3 putObject로 SeaweedFS에 업로드
             s3Client.putObject(requestOf(file), RequestBody.fromInputStream(in, file.sizeBytes()));
         } catch (S3Exception e) {
             throw translate(file, e);

@@ -9,6 +9,8 @@ spring:
 orbit:
   origin:
     endpoint: ${ORIGIN_ENDPOINT:http://localhost:8333}
+    # S3 호환 서버(SeaweedFS)는 리전을 검사하지 않으므로 SDK 기본값으로 둔다
+    region: ${ORIGIN_REGION:us-east-1}
     bucket: ${ORIGIN_BUCKET:orbit-firmware}
     access-key: ${ORIGIN_ACCESS_KEY:local-access-key}
     secret-key: ${ORIGIN_SECRET_KEY:local-secret-key}
