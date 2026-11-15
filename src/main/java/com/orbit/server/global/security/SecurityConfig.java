@@ -52,6 +52,7 @@ class SecurityConfig {
             VehicleTokenAuthenticator vehicleTokenAuthenticator,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver)
             throws Exception {
+        SecurityErrorResponder errorResponder = new SecurityErrorResponder(exceptionResolver);
         PathPatternRequestMatcher.Builder paths = PathPatternRequestMatcher.withDefaults();
         RequestMatcher registerPaths = paths.matcher(REGISTER_PATHS);
         // 등록 영역도 차량 토큰 경로 패턴에 맞으므로 빼 둔다. 등록 요청은 아직 차량 토큰이 없다
@@ -72,8 +73,8 @@ class SecurityConfig {
                                 vehicleTokenPaths, vehicleTokenAuthenticator, exceptionResolver),
                         AnonymousAuthenticationFilter.class)
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(
-                                new ErrorResponseAuthenticationEntryPoint(exceptionResolver))
-                        .accessDeniedHandler(new ErrorResponseAccessDeniedHandler(exceptionResolver)))
+                                new ErrorResponseAuthenticationEntryPoint(errorResponder))
+                        .accessDeniedHandler(new ErrorResponseAccessDeniedHandler(errorResponder)))
                 .authorizeHttpRequests(requests -> requests
                         // 이미 인가를 통과한 요청의 오류 응답을 만들거나(ERROR) 비동기 응답을 마무리하는(ASYNC, SSE 등)
                         // 내부 재요청이므로 다시 막지 않는다. 관리자 토큰 필터는 ASYNC dispatch 를 건너뛰어 막으면 401 이 된다

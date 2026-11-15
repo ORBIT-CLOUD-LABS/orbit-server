@@ -65,7 +65,8 @@ class ErrorResponseAuthenticationEntryPointTest {
     private MockHttpServletResponse commence(MockHttpServletRequest request, BadCredentialsException exception)
             throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();
-        new ErrorResponseAuthenticationEntryPoint(exceptionResolver).commence(request, response, exception);
+        new ErrorResponseAuthenticationEntryPoint(new SecurityErrorResponder(exceptionResolver))
+                .commence(request, response, exception);
         return response;
     }
 

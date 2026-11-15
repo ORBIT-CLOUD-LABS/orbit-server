@@ -38,7 +38,7 @@ class ErrorResponseAccessDeniedHandlerTest {
     void respondsAccessDenied() throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        new ErrorResponseAccessDeniedHandler(exceptionResolver)
+        new ErrorResponseAccessDeniedHandler(new SecurityErrorResponder(exceptionResolver))
                 .handle(new MockHttpServletRequest(), response, new AccessDeniedException("거부"));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
