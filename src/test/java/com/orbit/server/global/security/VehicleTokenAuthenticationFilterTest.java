@@ -183,7 +183,8 @@ class VehicleTokenAuthenticationFilterTest {
 
     private VehicleTokenAuthenticationFilter filterOn(String pattern) {
         RequestMatcher vehiclePaths = PathPatternRequestMatcher.withDefaults().matcher(pattern);
-        return new VehicleTokenAuthenticationFilter(vehiclePaths, authenticator, exceptionResolver);
+        return new VehicleTokenAuthenticationFilter(
+                vehiclePaths, authenticator, new SecurityErrorResponder(exceptionResolver));
     }
 
     private MockHttpServletRequest checkInRequest(String authorization) {

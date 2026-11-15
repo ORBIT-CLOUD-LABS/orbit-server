@@ -36,7 +36,7 @@ class EnrollmentKeyAuthenticationFilterTest {
     private final EnrollmentKeyAuthenticationFilter filter = new EnrollmentKeyAuthenticationFilter(
             PathPatternRequestMatcher.withDefaults().matcher(REGISTER_PATH),
             new EnrollmentProperties(ENROLLMENT_KEY),
-            exceptionResolver);
+            new SecurityErrorResponder(exceptionResolver));
 
     @AfterEach
     void clearContext() {

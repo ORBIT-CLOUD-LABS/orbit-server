@@ -66,11 +66,11 @@ class SecurityConfig {
                 .addFilterBefore(
                         new AdminTokenAuthenticationFilter(adminProperties), AnonymousAuthenticationFilter.class)
                 .addFilterBefore(
-                        new EnrollmentKeyAuthenticationFilter(registerPaths, enrollmentProperties, exceptionResolver),
+                        new EnrollmentKeyAuthenticationFilter(registerPaths, enrollmentProperties, errorResponder),
                         AnonymousAuthenticationFilter.class)
                 .addFilterBefore(
                         new VehicleTokenAuthenticationFilter(
-                                vehicleTokenPaths, vehicleTokenAuthenticator, exceptionResolver),
+                                vehicleTokenPaths, vehicleTokenAuthenticator, errorResponder),
                         AnonymousAuthenticationFilter.class)
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(
                                 new ErrorResponseAuthenticationEntryPoint(errorResponder))

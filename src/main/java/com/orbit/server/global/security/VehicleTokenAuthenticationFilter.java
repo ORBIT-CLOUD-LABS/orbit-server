@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * 차량 API 요청의 {@code Authorization: Bearer {vehicle-token}} 이 경로의 {@code vehicleId} 에 발급한 유효 토큰이면 요청을
@@ -19,7 +18,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * 정하므로, 인가 단계의 공통 코드(AUTHENTICATION_REQUIRED)로 바뀌면 안 되기 때문이다.
  *
  * <p>필터에서 난 오류는 {@code @RestControllerAdvice} 를 거치지 않으므로, {@link ErrorResponseAuthenticationEntryPoint} 와
- * 같은 이유로 {@link HandlerExceptionResolver} 를 통해 전역 예외 처리기로 넘긴다.
+ * 같은 이유로 {@link SecurityErrorResponder} 를 통해 전역 예외 처리기로 넘긴다.
  */
 class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
 
@@ -28,21 +27,21 @@ class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final RequestMatcher vehiclePaths;
     private final VehicleTokenAuthenticator authenticator;
-    private final HandlerExceptionResolver exceptionResolver;
+    private final SecurityErrorResponder errorResponder;
 
     /**
      * @param vehiclePaths 차량 토큰으로 인증할 경로. 경로별 인증 규칙을 한 곳에서 관리하도록 보안 설정이 정해 넘기며, 경로 변수
      *     {@code vehicleId} 를 추출할 수 있어야 한다
      * @param authenticator 차량 토큰 확인 포트
-     * @param exceptionResolver 전역 예외 처리기로 위임하는 MVC 예외 해석기
+     * @param errorResponder 전역 예외 처리기로 오류 응답을 위임하는 응답기
      */
     VehicleTokenAuthenticationFilter(
             RequestMatcher vehiclePaths,
             VehicleTokenAuthenticator authenticator,
-            HandlerExceptionResolver exceptionResolver) {
+            SecurityErrorResponder errorResponder) {
         this.vehiclePaths = vehiclePaths;
         this.authenticator = authenticator;
-        this.exceptionResolver = exceptionResolver;
+        this.errorResponder = errorResponder;
     }
 
     @Override
@@ -57,8 +56,8 @@ class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
             authenticate(request);
         } catch (RuntimeException e) {
             // 필터 밖으로 던지면 공통 오류 형식을 벗어나므로, 인증 실패뿐 아니라 경로 vehicleId 형식 오류(400)나 저장소
-            // 장애(500)도 종류를 가리지 않고 전역 예외 처리기에 넘긴다
-            exceptionResolver.resolveException(request, response, null, e);
+            // 장애(500)도 종류를 가리지 않고 넘긴다. 예외별 상태는 컨트롤러에서 났을 때와 같이 전역 예외 처리기가 정한다
+            errorResponder.respond(request, response, e);
             return;
         }
         chain.doFilter(request, response);

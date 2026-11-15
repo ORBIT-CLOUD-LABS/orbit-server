@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * 차량 등록 요청의 {@code Authorization: Bearer {enrollment-key}} 가 공통 등록 키와 같으면 요청을 등록 권한으로 인증한다.
@@ -20,7 +19,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * 이 코드를 받으면 재시도하지 않고 종료하므로, 인가 단계의 공통 코드(AUTHENTICATION_REQUIRED)로 바뀌면 안 되기 때문이다.
  *
  * <p>필터에서 난 오류는 {@code @RestControllerAdvice} 를 거치지 않으므로, {@link ErrorResponseAuthenticationEntryPoint} 와
- * 같은 이유로 {@link HandlerExceptionResolver} 를 통해 전역 예외 처리기로 넘긴다.
+ * 같은 이유로 {@link SecurityErrorResponder} 를 통해 전역 예외 처리기로 넘긴다.
  */
 class EnrollmentKeyAuthenticationFilter extends OncePerRequestFilter {
 
@@ -30,18 +29,18 @@ class EnrollmentKeyAuthenticationFilter extends OncePerRequestFilter {
 
     private final RequestMatcher registerPath;
     private final byte[] enrollmentKey;
-    private final HandlerExceptionResolver exceptionResolver;
+    private final SecurityErrorResponder errorResponder;
 
     /**
      * @param registerPath 차량 등록 경로. 경로별 인증 규칙을 한 곳에서 관리하도록 보안 설정이 정해 넘긴다
      * @param properties 공통 등록 키 설정
-     * @param exceptionResolver 전역 예외 처리기로 위임하는 MVC 예외 해석기
+     * @param errorResponder 전역 예외 처리기로 오류 응답을 위임하는 응답기
      */
     EnrollmentKeyAuthenticationFilter(
-            RequestMatcher registerPath, EnrollmentProperties properties, HandlerExceptionResolver exceptionResolver) {
+            RequestMatcher registerPath, EnrollmentProperties properties, SecurityErrorResponder errorResponder) {
         this.registerPath = registerPath;
         this.enrollmentKey = properties.key().getBytes(StandardCharsets.UTF_8);
-        this.exceptionResolver = exceptionResolver;
+        this.errorResponder = errorResponder;
     }
 
     @Override
@@ -53,8 +52,7 @@ class EnrollmentKeyAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         if (BearerTokenExtractor.extract(request).filter(this::isEnrollmentKey).isEmpty()) {
-            exceptionResolver.resolveException(
-                    request, response, null, new BusinessException(AuthErrorCode.INVALID_ENROLLMENT_KEY));
+            errorResponder.respond(request, response, new BusinessException(AuthErrorCode.INVALID_ENROLLMENT_KEY));
             return;
         }
         RoleAuthentication.establish(ENROLLMENT_PRINCIPAL, ENROLLMENT_ROLE);
