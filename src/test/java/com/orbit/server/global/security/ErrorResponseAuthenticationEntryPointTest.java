@@ -32,7 +32,7 @@ class ErrorResponseAuthenticationEntryPointTest {
     @Qualifier("handlerExceptionResolver")
     private HandlerExceptionResolver exceptionResolver;
 
-    // @WebMvcTest 가 차량 토큰 인터셉터 설정도 올리므로 포트 구현 대신 넣는다
+    // 보안 설정이 차량 토큰 필터에 넘길 포트를 요구하는데 슬라이스에는 구현(차량 도메인 서비스)이 없어 대신 넣는다
     @MockitoBean
     private VehicleTokenAuthenticator vehicleTokenAuthenticator;
 
