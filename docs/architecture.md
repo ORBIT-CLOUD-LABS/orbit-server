@@ -28,7 +28,7 @@ com.orbit.server
     ├── security/               # 인증·인가
     ├── common/                 # BaseTimeEntity 등 공통 상위 타입
     └── external/               # 외부 시스템 연동 구현 (시스템별 하위 패키지)
-        └── origin/             # Origin File Server(S3 호환)
+        └── origin/             # Origin 저장소 (AWS S3, 로컬은 S3 호환 SeaweedFS)
 ```
 
 - 컨텍스트 이름은 [요구사항](requirements.md)의 용어(유비쿼터스 언어)를 따른다.
