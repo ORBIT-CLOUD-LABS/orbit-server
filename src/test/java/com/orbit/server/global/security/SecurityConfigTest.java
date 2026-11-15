@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.global.error.CommonErrorCode;
 import jakarta.servlet.DispatcherType;
@@ -23,9 +24,11 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 /** 보안 필터 체인부터 컨트롤러까지 실제 요청 흐름으로 경로별 인증 규칙을 검증한다. */
 @SpringBootTest
@@ -43,7 +46,11 @@ class SecurityConfigTest {
     private static final String ADMIN_URL = "/api/v1/admin/artifacts";
     private static final String DASHBOARD_URL = "/api/v1/dashboard/unknown";
     private static final String SNAPSHOT_URL = "/api/v1/dashboard/vehicles";
-    private static final String CHECK_IN_URL = "/api/v1/vehicles/vehicle-001/check-in";
+    private static final String VEHICLE_ID = "vehicle-001";
+    private static final String REGISTER_URL = "/api/v1/vehicles/register";
+    private static final String CHECK_IN_URL = "/api/v1/vehicles/" + VEHICLE_ID + "/check-in";
+    private static final String UNKNOWN_VEHICLE_URL = "/api/v1/vehicles/" + VEHICLE_ID + "/unknown";
+    private static final String VEHICLES_ROOT_URL = "/api/v1/vehicles";
     private static final String UNKNOWN_URL = "/api/v1/unknown";
     private static final String PROMETHEUS_URL = "/actuator/prometheus";
 
@@ -153,13 +160,89 @@ class SecurityConfigTest {
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.RESOURCE_NOT_FOUND.getCode()));
     }
 
-    // 관리자 인증 대상이면 AUTHENTICATION_REQUIRED 가 나므로, 차량 토큰 인터셉터의 오류 코드로 필터를 통과했는지 확인한다
+    // 인가 단계에서 막히면 AUTHENTICATION_REQUIRED 가 나므로, 차량 토큰 필터의 오류 코드로 그 필터가 거부했는지 확인한다
     @Test
-    @DisplayName("차량 API 는 관리자 인증 대상이 아니고 차량 토큰 인증을 거친다")
-    void leavesVehicleApiToVehicleAuthentication() throws Exception {
+    @DisplayName("차량 토큰이 없으면 차량 API 에 401 UNAUTHORIZED 로 응답한다")
+    void rejectsVehicleApiWithoutToken() throws Exception {
         mockMvc.perform(post(CHECK_IN_URL))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value(AuthErrorCode.UNAUTHORIZED.getCode()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {ADMIN_TOKEN, ENROLLMENT_KEY})
+    @DisplayName("관리자 토큰과 등록 키는 차량 API 에서 401 UNAUTHORIZED 로 거부한다")
+    void rejectsVehicleApiWithOtherCredential(String credential) throws Exception {
+        mockMvc.perform(post(CHECK_IN_URL).header(HttpHeaders.AUTHORIZATION, bearer(credential)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.UNAUTHORIZED.getCode()));
+    }
+
+    @Test
+    @DisplayName("등록 키가 없으면 차량 등록 API 에 401 INVALID_ENROLLMENT_KEY 로 응답한다")
+    void rejectsRegisterWithoutKey() throws Exception {
+        mockMvc.perform(post(REGISTER_URL))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.INVALID_ENROLLMENT_KEY.getCode()));
+    }
+
+    @Test
+    @DisplayName("관리자 토큰은 차량 등록 API 에서 401 INVALID_ENROLLMENT_KEY 로 거부한다")
+    void rejectsRegisterWithAdminToken() throws Exception {
+        mockMvc.perform(post(REGISTER_URL).header(HttpHeaders.AUTHORIZATION, bearer(ADMIN_TOKEN)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.INVALID_ENROLLMENT_KEY.getCode()));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("차량 토큰은 차량 등록 API 에서 401 INVALID_ENROLLMENT_KEY 로 거부한다")
+    void rejectsRegisterWithVehicleToken() throws Exception {
+        String vehicleToken = registerVehicle();
+
+        mockMvc.perform(post(REGISTER_URL).header(HttpHeaders.AUTHORIZATION, bearer(vehicleToken)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.INVALID_ENROLLMENT_KEY.getCode()));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("차량 토큰은 관리자 API 에서 401 AUTHENTICATION_REQUIRED 로 거부한다")
+    void rejectsAdminApiWithVehicleToken() throws Exception {
+        String vehicleToken = registerVehicle();
+
+        mockMvc.perform(get(ADMIN_URL).header(HttpHeaders.AUTHORIZATION, bearer(vehicleToken)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.AUTHENTICATION_REQUIRED.getCode()));
+    }
+
+    // 컨트롤러가 없는 차량 경로로, 인증을 통과해 MVC 까지 가서 404 가 나는지로 확인한다
+    @Test
+    @Transactional
+    @DisplayName("차량 토큰이 맞으면 차량 경로의 인증을 통과한다")
+    void allowsVehiclePathWithValidToken() throws Exception {
+        String vehicleToken = registerVehicle();
+
+        mockMvc.perform(get(UNKNOWN_VEHICLE_URL).header(HttpHeaders.AUTHORIZATION, bearer(vehicleToken)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.RESOURCE_NOT_FOUND.getCode()));
+    }
+
+    @Test
+    @DisplayName("컨트롤러가 없는 차량 경로도 차량 토큰이 없으면 401 UNAUTHORIZED 로 응답한다")
+    void rejectsUnknownVehiclePathWithoutToken() throws Exception {
+        mockMvc.perform(get(UNKNOWN_VEHICLE_URL))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.UNAUTHORIZED.getCode()));
+    }
+
+    // 차량 토큰 필터가 걸리지 않는 경로라 필터가 인증하지 않는다. 인가 규칙이 차량 권한을 요구해 열리지 않는지 확인한다
+    @Test
+    @DisplayName("vehicleId 가 없는 차량 경로는 401 AUTHENTICATION_REQUIRED 로 거부한다")
+    void rejectsVehiclePathWithoutVehicleId() throws Exception {
+        mockMvc.perform(get(VEHICLES_ROOT_URL))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.AUTHENTICATION_REQUIRED.getCode()));
     }
 
     @Test
@@ -177,6 +260,21 @@ class SecurityConfigTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.ACCESS_DENIED.getCode()))
                 .andExpect(jsonPath("$.message").value(CommonErrorCode.ACCESS_DENIED.getMessage()));
+    }
+
+    // 차량 토큰은 등록으로만 발급되므로 실제 등록 요청으로 받는다. 호출한 테스트의 트랜잭션과 함께 롤백된다
+    private String registerVehicle() throws Exception {
+        String body = """
+                {"vehicleId": "%s", "model": "model-a", "hwVersion": "hw-1", "region": "KR", "currentVersion": "1.0.0"}""".formatted(VEHICLE_ID);
+        String response = mockMvc.perform(post(REGISTER_URL)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(ENROLLMENT_KEY))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return JsonPath.read(response, "$.data.vehicleToken");
     }
 
     private static String bearer(String token) {
