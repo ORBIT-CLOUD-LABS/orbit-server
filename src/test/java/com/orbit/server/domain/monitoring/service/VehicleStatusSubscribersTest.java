@@ -15,8 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 class VehicleStatusSubscribersTest {
 
     private static final Instant AS_OF = Instant.parse("2026-10-01T12:00:00.123Z");
-    private static final VehicleStatus VEHICLE =
-            new VehicleStatus("vehicle-001", "model-a", "1.0.0", AS_OF, AS_OF, null, null, null);
+    private static final VehicleStatus VEHICLE = VehicleStatusFixture.withoutResult("vehicle-001", AS_OF);
     private static final VehicleStatusChanges CHANGES = new VehicleStatusChanges(AS_OF, List.of(VEHICLE));
 
     private final VehicleStatusSubscribers subscribers = new VehicleStatusSubscribers();
