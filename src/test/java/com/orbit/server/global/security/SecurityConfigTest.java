@@ -216,6 +216,39 @@ class SecurityConfigTest {
                 .andExpect(jsonPath("$.code").value(CommonErrorCode.AUTHENTICATION_REQUIRED.getCode()));
     }
 
+    // 차량은 UNAUTHORIZED 를 재등록 신호로 쓰므로, 등록 URL 을 잘못 쓴 요청에 차량 토큰용 코드가 나가면 재등록을 반복한다.
+    // register 가 vehicleId 로 해석되지 않고 등록 키 인증을 거치는지 확인한다
+    @ParameterizedTest
+    @ValueSource(strings = {REGISTER_URL + "/", REGISTER_URL + "/extra"})
+    @DisplayName("등록 경로에 끝 슬래시나 하위 경로가 붙어도 등록 키가 없으면 401 INVALID_ENROLLMENT_KEY 로 응답한다")
+    void rejectsRegisterSubPathWithoutKey(String url) throws Exception {
+        mockMvc.perform(post(url))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.INVALID_ENROLLMENT_KEY.getCode()));
+    }
+
+    @ParameterizedTest
+    @Transactional
+    @ValueSource(strings = {REGISTER_URL + "/", REGISTER_URL + "/extra"})
+    @DisplayName("등록 경로에 끝 슬래시나 하위 경로가 붙으면 차량 토큰이 맞아도 401 INVALID_ENROLLMENT_KEY 로 응답한다")
+    void rejectsRegisterSubPathWithVehicleToken(String url) throws Exception {
+        String vehicleToken = registerVehicle();
+
+        mockMvc.perform(post(url).header(HttpHeaders.AUTHORIZATION, bearer(vehicleToken)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(AuthErrorCode.INVALID_ENROLLMENT_KEY.getCode()));
+    }
+
+    // 등록 API 는 정확한 경로에만 있으므로, 등록 키 인증을 통과해 MVC 까지 가서 404 가 나는지로 확인한다
+    @ParameterizedTest
+    @ValueSource(strings = {REGISTER_URL + "/", REGISTER_URL + "/extra"})
+    @DisplayName("등록 경로에 끝 슬래시나 하위 경로가 붙으면 등록 키가 맞아도 404 로 응답한다")
+    void respondsNotFoundForRegisterSubPathWithValidKey(String url) throws Exception {
+        mockMvc.perform(post(url).header(HttpHeaders.AUTHORIZATION, bearer(ENROLLMENT_KEY)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.RESOURCE_NOT_FOUND.getCode()));
+    }
+
     // 컨트롤러가 없는 차량 경로로, 인증을 통과해 MVC 까지 가서 404 가 나는지로 확인한다
     @Test
     @Transactional

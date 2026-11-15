@@ -32,7 +32,9 @@ class SecurityConfig {
 
     static final String HEALTH_PATHS = "/actuator/health/**";
     static final String PROMETHEUS_PATH = "/actuator/prometheus";
-    static final String REGISTER_PATH = "/api/v1/vehicles/register";
+    // 등록 API 는 정확히 이 경로 하나지만 끝 슬래시·하위 경로까지 등록 영역으로 묶는다. 차량 경로 패턴이 register 를
+    // vehicleId 로 읽으면 잘못 쓴 등록 URL 에 차량 토큰용 UNAUTHORIZED 가 나가, 차량이 이를 재등록 신호로 받아 반복한다
+    static final String REGISTER_PATHS = "/api/v1/vehicles/register/**";
     static final String VEHICLE_PATHS = "/api/v1/vehicles/**";
     static final String ADMIN_PATHS = "/api/v1/admin/**";
     static final String DASHBOARD_PATHS = "/api/v1/dashboard/**";
@@ -51,10 +53,10 @@ class SecurityConfig {
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver)
             throws Exception {
         PathPatternRequestMatcher.Builder paths = PathPatternRequestMatcher.withDefaults();
-        RequestMatcher registerPath = paths.matcher(REGISTER_PATH);
-        // 등록 경로도 차량 토큰 경로 패턴에 맞으므로 빼 둔다. 등록 요청은 아직 차량 토큰이 없다
+        RequestMatcher registerPaths = paths.matcher(REGISTER_PATHS);
+        // 등록 영역도 차량 토큰 경로 패턴에 맞으므로 빼 둔다. 등록 요청은 아직 차량 토큰이 없다
         RequestMatcher vehicleTokenPaths =
-                new AndRequestMatcher(paths.matcher(VEHICLE_TOKEN_PATHS), new NegatedRequestMatcher(registerPath));
+                new AndRequestMatcher(paths.matcher(VEHICLE_TOKEN_PATHS), new NegatedRequestMatcher(registerPaths));
         return http.csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -63,7 +65,7 @@ class SecurityConfig {
                 .addFilterBefore(
                         new AdminTokenAuthenticationFilter(adminProperties), AnonymousAuthenticationFilter.class)
                 .addFilterBefore(
-                        new EnrollmentKeyAuthenticationFilter(registerPath, enrollmentProperties, exceptionResolver),
+                        new EnrollmentKeyAuthenticationFilter(registerPaths, enrollmentProperties, exceptionResolver),
                         AnonymousAuthenticationFilter.class)
                 .addFilterBefore(
                         new VehicleTokenAuthenticationFilter(
@@ -86,8 +88,8 @@ class SecurityConfig {
                         .requestMatchers(API_DOCS_PATHS)
                         .permitAll()
                         // 차량 API 는 등록 키·차량 토큰 필터가 준 권한을 요구해, 필터가 빠지거나 경로가 어긋나도 열리지 않게 한다.
-                        // 등록 경로는 차량 경로 패턴에도 맞으므로 먼저 둔다
-                        .requestMatchers(REGISTER_PATH)
+                        // 등록 영역은 차량 경로 패턴에도 맞으므로 먼저 둔다
+                        .requestMatchers(REGISTER_PATHS)
                         .hasRole(EnrollmentKeyAuthenticationFilter.ENROLLMENT_ROLE)
                         .requestMatchers(VEHICLE_PATHS)
                         .hasRole(VehicleTokenAuthenticationFilter.VEHICLE_ROLE)

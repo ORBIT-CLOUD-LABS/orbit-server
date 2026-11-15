@@ -35,10 +35,10 @@ class OpenApiSecurityConfig {
 
     private static final String BEARER = "bearer";
 
-    // 위에서부터 처음 맞는 규칙을 쓴다. 등록 경로는 차량 경로 패턴에도 맞으므로 먼저 둔다.
+    // 위에서부터 처음 맞는 규칙을 쓴다. 등록 영역은 차량 경로 패턴에도 맞으므로 먼저 둔다.
     // 인증 실패 코드는 실제로 거부하는 필터의 코드다
     private static final List<SchemeRule> RULES = List.of(
-            SchemeRule.of(SecurityConfig.REGISTER_PATH, ENROLLMENT_KEY, AuthErrorCode.INVALID_ENROLLMENT_KEY),
+            SchemeRule.of(SecurityConfig.REGISTER_PATHS, ENROLLMENT_KEY, AuthErrorCode.INVALID_ENROLLMENT_KEY),
             SchemeRule.of(SecurityConfig.VEHICLE_PATHS, VEHICLE_TOKEN, AuthErrorCode.UNAUTHORIZED),
             SchemeRule.of(SecurityConfig.ADMIN_PATHS, ADMIN_TOKEN, CommonErrorCode.AUTHENTICATION_REQUIRED),
             SchemeRule.of(SecurityConfig.DASHBOARD_PATHS, ADMIN_TOKEN, CommonErrorCode.AUTHENTICATION_REQUIRED));
