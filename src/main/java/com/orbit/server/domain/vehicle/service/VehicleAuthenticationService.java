@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 차량 API 요청의 토큰이 경로 차량에 발급한 유효 토큰인지 확인한다. (VEHICLE-POL-003)
  *
- * <p>인터셉터가 {@link VehicleTokenAuthenticator} 로 호출한다.
+ * <p>차량 토큰 인증 필터가 {@link VehicleTokenAuthenticator} 로 호출한다.
  */
 @Service
 @RequiredArgsConstructor
