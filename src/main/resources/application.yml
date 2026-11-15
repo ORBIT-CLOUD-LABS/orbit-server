@@ -30,9 +30,10 @@ spring:
 
 orbit:
   origin:
-    endpoint: ${ORIGIN_ENDPOINT}
-    # S3 호환 서버(SeaweedFS)는 리전을 검사하지 않으므로 SDK 기본값으로 둔다
-    region: ${ORIGIN_REGION:us-east-1}
+    # 비우면 AWS S3 기본 엔드포인트로 접속한다. S3 호환 서버(SeaweedFS)로 시험할 때만 주소를 넣는다
+    endpoint: ${ORIGIN_ENDPOINT:}
+    # AWS 는 리전으로 엔드포인트를 정하므로 잘못된 기본값으로 뜨지 않도록 빈 기본값을 줘서 @NotBlank 검증에 걸리게 한다
+    region: ${ORIGIN_REGION:}
     bucket: ${ORIGIN_BUCKET}
     access-key: ${ORIGIN_ACCESS_KEY}
     secret-key: ${ORIGIN_SECRET_KEY}
