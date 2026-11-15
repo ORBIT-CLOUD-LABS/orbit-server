@@ -17,8 +17,7 @@ import org.junit.jupiter.api.Test;
 class VehicleStatusQueryServiceTest {
 
     private static final Instant AS_OF = Instant.parse("2026-10-01T12:00:00Z");
-    private static final VehicleStatus VEHICLE =
-            new VehicleStatus("vehicle-001", "model-a", "1.0.0", AS_OF, AS_OF, 1L, "FAILED", "HASH_MISMATCH");
+    private static final VehicleStatus VEHICLE = VehicleStatusFixture.withFailedResult("vehicle-001", AS_OF);
 
     @Test
     @DisplayName("MONITORING-REQ-004: 기준 시각과 전체 차량 상태를 스냅샷으로 조회한다")

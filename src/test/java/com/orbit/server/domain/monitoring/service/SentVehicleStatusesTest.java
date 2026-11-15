@@ -50,8 +50,7 @@ class SentVehicleStatusesTest {
     @DisplayName("MONITORING-REQ-001: 변경 시각이 같아도 내용이 다르면 남긴다")
     void keepsDifferentStatusWithSameUpdatedAt() {
         sentStatuses.keepUnsent(SINCE, changes(status("vehicle-001", FIRST)));
-        VehicleStatus sameTimeNewVersion =
-                new VehicleStatus("vehicle-001", "model-a", "1.0.1", FIRST, FIRST, null, null, null);
+        VehicleStatus sameTimeNewVersion = VehicleStatusFixture.withVersion("vehicle-001", "1.0.1", FIRST);
 
         VehicleStatusChanges unsent = sentStatuses.keepUnsent(SINCE, changes(sameTimeNewVersion));
 
@@ -85,6 +84,6 @@ class SentVehicleStatusesTest {
     }
 
     private VehicleStatus status(String vehicleId, Instant updatedAt) {
-        return new VehicleStatus(vehicleId, "model-a", "1.0.0", updatedAt, updatedAt, null, null, null);
+        return VehicleStatusFixture.withoutResult(vehicleId, updatedAt);
     }
 }
