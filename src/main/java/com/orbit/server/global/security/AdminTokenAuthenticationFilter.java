@@ -7,13 +7,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -26,11 +19,9 @@ class AdminTokenAuthenticationFilter extends OncePerRequestFilter {
 
     static final String ADMIN_ROLE = "ADMIN";
 
-    private static final String BEARER_PREFIX = "Bearer ";
     private static final String ADMIN_PRINCIPAL = "admin";
 
     private final byte[] adminToken;
-    private final SecurityContextHolderStrategy contextHolder = SecurityContextHolder.getContextHolderStrategy();
 
     /**
      * @param properties 관리자 토큰 설정
@@ -42,27 +33,14 @@ class AdminTokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        if (isAdmin(request.getHeader(HttpHeaders.AUTHORIZATION))) {
-            authenticateAsAdmin();
+        if (BearerTokenExtractor.extract(request).filter(this::isAdminToken).isPresent()) {
+            RoleAuthentication.establish(ADMIN_PRINCIPAL, ADMIN_ROLE);
         }
         chain.doFilter(request, response);
     }
 
-    private boolean isAdmin(String authorization) {
-        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
-            return false;
-        }
-        byte[] presented = authorization.substring(BEARER_PREFIX.length()).getBytes(StandardCharsets.UTF_8);
-        // 응답 시간 차이로 토큰을 한 글자씩 맞혀 볼 수 없도록 일치하는 길이와 상관없이 같은 시간에 비교한다
-        return MessageDigest.isEqual(presented, adminToken);
-    }
-
-    // 인증 정보에 토큰 원문을 담지 않아 SecurityContext 가 로그·디버그 출력에 찍혀도 토큰이 남지 않는다
-    private void authenticateAsAdmin() {
-        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
-                ADMIN_PRINCIPAL, null, AuthorityUtils.createAuthorityList("ROLE_" + ADMIN_ROLE));
-        SecurityContext context = contextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        contextHolder.setContext(context);
+    // 응답 시간 차이로 토큰을 한 글자씩 맞혀 볼 수 없도록 일치하는 길이와 상관없이 같은 시간에 비교한다
+    private boolean isAdminToken(String presented) {
+        return MessageDigest.isEqual(presented.getBytes(StandardCharsets.UTF_8), adminToken);
     }
 }

@@ -6,13 +6,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -33,12 +26,9 @@ class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
     static final String VEHICLE_ROLE = "VEHICLE";
     static final String VEHICLE_ID = "vehicleId";
 
-    private static final String BEARER_PREFIX = "Bearer ";
-
     private final RequestMatcher vehiclePaths;
     private final VehicleTokenAuthenticator authenticator;
     private final HandlerExceptionResolver exceptionResolver;
-    private final SecurityContextHolderStrategy contextHolder = SecurityContextHolder.getContextHolderStrategy();
 
     /**
      * @param vehiclePaths 차량 토큰으로 인증할 경로. 경로별 인증 규칙을 한 곳에서 관리하도록 보안 설정이 정해 넘기며, 경로 변수
@@ -75,17 +65,11 @@ class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void authenticate(HttpServletRequest request) {
-        String token = bearerToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+        String token = BearerTokenExtractor.extract(request)
+                .orElseThrow(() -> new BusinessException(AuthErrorCode.UNAUTHORIZED));
         String vehicleId = vehicleId(request);
         authenticator.authenticate(token, vehicleId);
-        authenticateAsVehicle(vehicleId);
-    }
-
-    private String bearerToken(String authorization) {
-        if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
-            throw new BusinessException(AuthErrorCode.UNAUTHORIZED);
-        }
-        return authorization.substring(BEARER_PREFIX.length());
+        RoleAuthentication.establish(vehicleId, VEHICLE_ROLE);
     }
 
     // 토큰 차량과 비교할 대상이 없으면 아무 차량의 토큰이나 통과하게 되므로, vehicleId 없는 경로에 이 필터를 건 설정 실수를
@@ -96,14 +80,5 @@ class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
             throw new IllegalStateException("차량 토큰 인증 경로에는 {" + VEHICLE_ID + "} 가 있어야 합니다.");
         }
         return vehicleId;
-    }
-
-    // 인증 정보에 토큰 원문을 담지 않아 SecurityContext 가 로그·디버그 출력에 찍혀도 토큰이 남지 않는다
-    private void authenticateAsVehicle(String vehicleId) {
-        Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
-                vehicleId, null, AuthorityUtils.createAuthorityList("ROLE_" + VEHICLE_ROLE));
-        SecurityContext context = contextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        contextHolder.setContext(context);
     }
 }
