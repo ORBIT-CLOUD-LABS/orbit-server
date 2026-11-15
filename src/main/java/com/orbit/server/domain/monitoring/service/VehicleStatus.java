@@ -36,7 +36,7 @@ public record VehicleStatus(
     /**
      * 뷰의 컬럼을 그대로 받는 JPQL 생성자 표현식용 생성자. 위치가 없으면 null 로 둔다.
      *
-     * <p>위도·경도·위치 시각은 DB 제약(ck_vehicle_state_location)으로 함께 있거나 함께 없다. 그래서 위도로 위치가 있는지 판단한다.
+     * <p>위치가 있는지는 {@link VehicleLastLocation#of} 가 판단한다.
      */
     public VehicleStatus(
             String vehicleId,
@@ -61,7 +61,7 @@ public record VehicleStatus(
                 campaignId,
                 lastResult,
                 failureReason,
-                latitude == null ? null : new VehicleLastLocation(latitude, longitude, locationUpdatedAt),
+                VehicleLastLocation.of(latitude, longitude, locationUpdatedAt).orElse(null),
                 assignedEdgeId,
                 downloadedEdgeId);
     }
