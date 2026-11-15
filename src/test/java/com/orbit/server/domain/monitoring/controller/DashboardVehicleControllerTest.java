@@ -64,7 +64,7 @@ class DashboardVehicleControllerTest {
     }
 
     @Test
-    @DisplayName("MONITORING-REQ-004: 기준 시각과 업데이트 결과가 있는 차량 상태를 200 으로 응답한다")
+    @DisplayName("MONITORING-REQ-004: 기준 시각과 업데이트 결과·위치·Edge 가 있는 차량 상태를 200 으로 응답한다")
     void respondsSnapshotWithUpdateResult() throws Exception {
         VehicleStatus vehicle = new VehicleStatus(
                 "vehicle-001",
@@ -75,9 +75,9 @@ class DashboardVehicleControllerTest {
                 1L,
                 "FAILED",
                 "HASH_MISMATCH",
-                null,
-                null,
-                null);
+                new VehicleLastLocation(37.5665, 126.978, Instant.parse(LAST_SEEN_AT)),
+                "edge-seoul",
+                "edge-daejeon");
         given(vehicleStatusQueryService.getSnapshot())
                 .willReturn(new VehicleStatusSnapshot(Instant.parse(AS_OF), List.of(vehicle)));
 
@@ -94,12 +94,17 @@ class DashboardVehicleControllerTest {
                 .andExpect(jsonPath("$.data.vehicles[0].updatedAt").value(UPDATED_AT))
                 .andExpect(jsonPath("$.data.vehicles[0].campaignId").value(1))
                 .andExpect(jsonPath("$.data.vehicles[0].lastResult").value("FAILED"))
-                .andExpect(jsonPath("$.data.vehicles[0].failureReason").value("HASH_MISMATCH"));
+                .andExpect(jsonPath("$.data.vehicles[0].failureReason").value("HASH_MISMATCH"))
+                .andExpect(jsonPath("$.data.vehicles[0].location.latitude").value(37.5665))
+                .andExpect(jsonPath("$.data.vehicles[0].location.longitude").value(126.978))
+                .andExpect(jsonPath("$.data.vehicles[0].location.updatedAt").value(LAST_SEEN_AT))
+                .andExpect(jsonPath("$.data.vehicles[0].assignedEdgeId").value("edge-seoul"))
+                .andExpect(jsonPath("$.data.vehicles[0].downloadedEdgeId").value("edge-daejeon"));
     }
 
     @Test
-    @DisplayName("MONITORING-REQ-004: 업데이트 결과가 없는 차량은 결과 필드를 null 로 응답한다")
-    void respondsNullResultFieldsWithoutUpdateResult() throws Exception {
+    @DisplayName("MONITORING-REQ-004: 업데이트 결과·위치·Edge 가 없는 차량은 해당 필드를 null 로 응답한다")
+    void respondsNullFieldsWithoutUpdateResultAndLocation() throws Exception {
         VehicleStatus vehicle = new VehicleStatus(
                 "vehicle-001", "model-a", "1.0.0", null, Instant.parse(UPDATED_AT), null, null, null, null, null, null);
         given(vehicleStatusQueryService.getSnapshot())
@@ -110,7 +115,10 @@ class DashboardVehicleControllerTest {
                 .andExpect(jsonPath("$.data.vehicles[0].lastSeenAt").value(nullValue()))
                 .andExpect(jsonPath("$.data.vehicles[0].campaignId").value(nullValue()))
                 .andExpect(jsonPath("$.data.vehicles[0].lastResult").value(nullValue()))
-                .andExpect(jsonPath("$.data.vehicles[0].failureReason").value(nullValue()));
+                .andExpect(jsonPath("$.data.vehicles[0].failureReason").value(nullValue()))
+                .andExpect(jsonPath("$.data.vehicles[0].location").value(nullValue()))
+                .andExpect(jsonPath("$.data.vehicles[0].assignedEdgeId").value(nullValue()))
+                .andExpect(jsonPath("$.data.vehicles[0].downloadedEdgeId").value(nullValue()));
     }
 
     @Test
