@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Edge 별 헬스체크 결과를 Pod 메모리에 두고, 매니페스트의 Edge 선택 후보가 될 정상 Edge 를 알려 준다.
+ * Edge 별 헬스체크 결과를 Pod 메모리에 두고, 매니페스트의 Edge 선택 후보가 될 정상 Edge 와 대시보드에 보여 줄 Edge 별 상태를 알려 준다.
  *
  * <p>결과를 Pod 사이에 맞추려면 공유 저장소나 리더 선출이 필요해 Phase2 에서는 Pod 마다 따로 둔다(#84). 그래서 장애 직후에는 Pod 마다 판정이
  * 잠깐 다를 수 있고, 차량은 fallbackUrls 로 버틴다.
@@ -35,6 +35,17 @@ public class EdgeHealthBoard {
      */
     public List<Edge> healthyEdges() {
         return catalog.edges().all().stream().filter(this::isHealthy).toList();
+    }
+
+    /**
+     * 대시보드처럼 비정상인 Edge 도 함께 보여 줘야 하는 곳에서 쓴다.
+     *
+     * @return 설정의 모든 Edge 의 위치와 정상 여부. 설정 순서를 따르고, 비정상인 Edge 도 빼지 않는다
+     */
+    public List<EdgeStatus> statuses() {
+        return catalog.edges().all().stream()
+                .map(edge -> EdgeStatus.of(edge, isHealthy(edge)))
+                .toList();
     }
 
     /**

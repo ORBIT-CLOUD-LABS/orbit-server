@@ -14,6 +14,7 @@ public final class ApiTags {
     public static final String ADMIN_ARTIFACT = "관리자 · 업데이트 파일";
     public static final String ADMIN_CAMPAIGN = "관리자 · 캠페인";
     public static final String DASHBOARD_VEHICLE = "대시보드 · 차량 상태";
+    public static final String DASHBOARD_CDN_EDGE = "대시보드 · CDN Edge 상태";
     public static final String VEHICLE_REGISTRATION = "차량 · 등록";
     public static final String VEHICLE_UPDATE = "차량 · 업데이트";
 
@@ -21,6 +22,7 @@ public final class ApiTags {
             new Definition(ADMIN_ARTIFACT, "Origin 에 올린 업데이트 파일(Artifact) 등록·조회"),
             new Definition(ADMIN_CAMPAIGN, "업데이트 캠페인 등록·조회"),
             new Definition(DASHBOARD_VEHICLE, "차량 상태 스냅샷 조회와 변경분 SSE 스트림"),
+            new Definition(DASHBOARD_CDN_EDGE, "Edge 별 위치·정상 여부와 배정 차량 수, 캠페인별 다운로드 성공·실패 수 조회"),
             new Definition(VEHICLE_REGISTRATION, "차량 등록과 차량별 토큰 발급"),
             new Definition(VEHICLE_UPDATE, "체크인으로 업데이트 대상을 확인하고 매니페스트로 다운로드 정보를 받는다"));
 

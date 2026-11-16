@@ -35,4 +35,8 @@ public class CampaignResultRecord {
 
     @Column(name = "failure_reason")
     private String failureReason;
+
+    // 차량이 실제로 파일을 받은 Edge. 다운로드 전에 실패했거나 Phase1 에서 기록한 결과에는 없다
+    @Column(name = "edge_id")
+    private String edgeId;
 }
