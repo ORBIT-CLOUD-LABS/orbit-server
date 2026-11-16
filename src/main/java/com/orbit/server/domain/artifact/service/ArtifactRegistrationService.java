@@ -3,6 +3,8 @@ package com.orbit.server.domain.artifact.service;
 import com.orbit.server.domain.artifact.entity.Artifact;
 import com.orbit.server.domain.artifact.entity.ArtifactFile;
 import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import com.orbit.server.domain.artifact.entity.ArtifactSignature;
+import com.orbit.server.domain.artifact.entity.FirmwareSignaturePayload;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.repository.ArtifactRepository;
@@ -22,15 +24,16 @@ public class ArtifactRegistrationService {
 
     private final ArtifactRepository artifactRepository;
     private final OriginStorage originStorage;
+    private final FirmwareSignatureVerifier signatureVerifier;
 
     /**
-     * 중복 확인 → 해시 계산·비교 → Origin 업로드 → 저장 순서로 등록한다. 어느 단계에서든 실패하면 Artifact 를 저장하지 않으므로
-     * 캠페인에 연결할 수 없다.
+     * 중복 확인 → 해시 계산·비교 → 펌웨어 서명 검증 → Origin 업로드 → 저장 순서로 등록한다. 어느 단계에서든 실패하면 Artifact 를 저장하지
+     * 않으므로 캠페인에 연결할 수 없다.
      *
      * @param command 등록 요청
      * @return 등록한 Artifact 의 ID 와 파일 정보
      * @throws BusinessException 같은 차종에 비교 규칙상 같은 버전({@code 1.0}·{@code 1.0.0})이 있으면 ARTIFACT_VERSION_EXISTS,
-     *     해시가 다르면 HASH_MISMATCH
+     *     해시가 다르면 HASH_MISMATCH, 서명·키 버전이 없거나 서명이 맞지 않으면 SIGNATURE_INVALID
      * @throws OriginUploadException Origin 업로드에 실패한 경우
      */
     public ArtifactRegistrationResult register(RegisterArtifactCommand command) {
@@ -39,9 +42,17 @@ public class ArtifactRegistrationService {
         requireNewRelease(release);
         ArtifactFile file = digest(command);
         requireSameSha256(file, command);
+        // 서명은 서버가 계산한 해시·크기로 검증한다. 잘못 서명된 파일이 Origin 에 올라가 Edge 캐시로 퍼지지 않게 업로드 전에 한다
+        ArtifactSignature signature = verifySignature(release, file, command);
         originStorage.upload(file, command.content());
-        Artifact artifact = saveOrDiscardUpload(new Artifact(release, file), file);
+        Artifact artifact = saveOrDiscardUpload(new Artifact(release, file, signature), file);
         return ArtifactRegistrationResult.of(artifact.getId(), file);
+    }
+
+    private ArtifactSignature verifySignature(
+            ArtifactRelease release, ArtifactFile file, RegisterArtifactCommand command) {
+        FirmwareSignaturePayload payload = new FirmwareSignaturePayload(release, file);
+        return signatureVerifier.verify(payload, command.signature(), command.keyId());
     }
 
     // 저장에 실패한 파일이 Origin 에 남으면 같은 경로 조건부 쓰기에 걸려 이 버전을 다시 등록할 수 없으므로 지운다
