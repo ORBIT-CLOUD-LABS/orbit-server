@@ -12,10 +12,18 @@ import java.time.Instant;
  * @param fileSize 파일 크기(byte)
  * @param sha256 파일의 SHA-256
  * @param path Origin 경로
+ * @param keyId 서명 키 버전. 서명({@code signature})은 매니페스트로만 내려주므로 넣지 않는다
  * @param createdAt 등록 시각
  */
 public record ArtifactSummaryResponse(
-        Long artifactId, String model, String version, long fileSize, String sha256, String path, Instant createdAt) {
+        Long artifactId,
+        String model,
+        String version,
+        long fileSize,
+        String sha256,
+        String path,
+        String keyId,
+        Instant createdAt) {
 
     static ArtifactSummaryResponse from(ArtifactSummary summary) {
         return new ArtifactSummaryResponse(
@@ -25,6 +33,7 @@ public record ArtifactSummaryResponse(
                 summary.fileSize(),
                 summary.sha256(),
                 summary.path(),
+                summary.keyId(),
                 summary.createdAt());
     }
 }

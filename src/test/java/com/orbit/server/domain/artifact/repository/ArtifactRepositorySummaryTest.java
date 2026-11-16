@@ -1,5 +1,6 @@
 package com.orbit.server.domain.artifact.repository;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
@@ -52,7 +53,7 @@ class ArtifactRepositorySummaryTest {
     }
 
     @Test
-    @DisplayName("ORIGIN-REQ-001: 조회 결과에 파일 정보와 등록 시각을 담는다")
+    @DisplayName("ORIGIN-REQ-001: 조회 결과에 파일 정보와 펌웨어 서명, 등록 시각을 담는다")
     void summaryContainsFileInfo() {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.0");
         Artifact artifact = save(release);
@@ -63,7 +64,15 @@ class ArtifactRepositorySummaryTest {
                 .usingRecursiveComparison()
                 .ignoringFields("createdAt")
                 .isEqualTo(new ArtifactSummary(
-                        artifact.getId(), "model-a", "1.0.0", SIZE_BYTES, SHA256, release.originPath(), null));
+                        artifact.getId(),
+                        "model-a",
+                        "1.0.0",
+                        SIZE_BYTES,
+                        SHA256,
+                        release.originPath(),
+                        SIGNATURE.signature(),
+                        SIGNATURE.keyId(),
+                        null));
         assertThat(summary.createdAt()).isNotNull();
     }
 
@@ -118,6 +127,6 @@ class ArtifactRepositorySummaryTest {
 
     private Artifact save(ArtifactRelease release) {
         return artifactRepository.save(
-                new Artifact(release, new ArtifactFile(SHA256, SIZE_BYTES, release.originPath())));
+                new Artifact(release, new ArtifactFile(SHA256, SIZE_BYTES, release.originPath()), SIGNATURE));
     }
 }

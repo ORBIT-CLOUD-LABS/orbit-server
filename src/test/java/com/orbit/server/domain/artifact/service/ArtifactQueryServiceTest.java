@@ -103,6 +103,7 @@ class ArtifactQueryServiceTest {
     }
 
     private static ArtifactSummary summaryOf(Long id, String model) {
-        return new ArtifactSummary(id, model, "1.0.0", 1, "a".repeat(64), "/firmware/" + model, Instant.EPOCH);
+        return new ArtifactSummary(
+                id, model, "1.0.0", 1, "a".repeat(64), "/firmware/" + model, "signature", "v1", Instant.EPOCH);
     }
 }

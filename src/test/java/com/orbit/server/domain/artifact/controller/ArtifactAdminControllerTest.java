@@ -61,11 +61,9 @@ class ArtifactAdminControllerTest {
     }
 
     @Test
-    @DisplayName("ORIGIN-REQ-001: 차종으로 필터링한 파일 목록을 200 으로 응답한다")
+    @DisplayName("ORIGIN-REQ-001: 차종으로 필터링한 파일 목록을 키 버전과 함께 200 으로 응답하고 서명은 응답하지 않는다")
     void respondsArtifactsOfModel() throws Exception {
-        given(artifactQueryService.findAll("model-a"))
-                .willReturn(List.of(
-                        new ArtifactSummary(1L, "model-a", "1.0.0", 1, SHA256, PATH, Instant.parse(CREATED_AT))));
+        given(artifactQueryService.findAll("model-a")).willReturn(List.of(summary()));
 
         mockMvc.perform(get(URL).param("model", "model-a"))
                 .andExpect(status().isOk())
@@ -76,6 +74,8 @@ class ArtifactAdminControllerTest {
                 .andExpect(jsonPath("$.data.artifacts[0].fileSize").value(1))
                 .andExpect(jsonPath("$.data.artifacts[0].sha256").value(SHA256))
                 .andExpect(jsonPath("$.data.artifacts[0].path").value(PATH))
+                .andExpect(jsonPath("$.data.artifacts[0].keyId").value("v1"))
+                .andExpect(jsonPath("$.data.artifacts[0].signature").doesNotExist())
                 .andExpect(jsonPath("$.data.artifacts[0].createdAt").value(CREATED_AT));
     }
 
@@ -92,10 +92,9 @@ class ArtifactAdminControllerTest {
 
     // 보조 API(제안)라 요구사항 ID 가 없다
     @Test
-    @DisplayName("Origin 파일 상세: 파일 한 건의 해시·경로를 200 으로 응답한다")
+    @DisplayName("Origin 파일 상세: 파일 한 건의 해시·경로·키 버전을 200 으로 응답하고 서명은 응답하지 않는다")
     void respondsArtifactDetail() throws Exception {
-        given(artifactQueryService.getById(1L))
-                .willReturn(new ArtifactSummary(1L, "model-a", "1.0.0", 1, SHA256, PATH, Instant.parse(CREATED_AT)));
+        given(artifactQueryService.getById(1L)).willReturn(summary());
 
         mockMvc.perform(get(URL + "/{artifactId}", 1L))
                 .andExpect(status().isOk())
@@ -107,6 +106,8 @@ class ArtifactAdminControllerTest {
                 .andExpect(jsonPath("$.data.fileSize").value(1))
                 .andExpect(jsonPath("$.data.sha256").value(SHA256))
                 .andExpect(jsonPath("$.data.path").value(PATH))
+                .andExpect(jsonPath("$.data.keyId").value("v1"))
+                .andExpect(jsonPath("$.data.signature").doesNotExist())
                 .andExpect(jsonPath("$.data.createdAt").value(CREATED_AT));
     }
 
@@ -239,6 +240,10 @@ class ArtifactAdminControllerTest {
         mockMvc.perform(validRequest())
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.code").value(ArtifactErrorCode.ORIGIN_UPLOAD_FAILED.getCode()));
+    }
+
+    private static ArtifactSummary summary() {
+        return new ArtifactSummary(1L, "model-a", "1.0.0", 1, SHA256, PATH, SIGNATURE, "v1", Instant.parse(CREATED_AT));
     }
 
     private MockMultipartHttpServletRequestBuilder validRequest() {

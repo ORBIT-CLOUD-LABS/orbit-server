@@ -13,7 +13,17 @@ import java.time.Instant;
  * @param fileSize 파일 크기(byte)
  * @param sha256 파일의 SHA-256
  * @param path Origin 경로
+ * @param signature 등록 때 검증한 펌웨어 서명(64바이트의 base64). 매니페스트로만 내려주고 관리자 목록·상세 응답에는 넣지 않는다
+ * @param keyId 서명 키 버전
  * @param createdAt 등록 시각
  */
 public record ArtifactSummary(
-        Long artifactId, String model, String version, long fileSize, String sha256, String path, Instant createdAt) {}
+        Long artifactId,
+        String model,
+        String version,
+        long fileSize,
+        String sha256,
+        String path,
+        String signature,
+        String keyId,
+        Instant createdAt) {}
