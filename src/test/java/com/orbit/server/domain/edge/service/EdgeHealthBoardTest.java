@@ -1,6 +1,7 @@
 package com.orbit.server.domain.edge.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.orbit.server.domain.edge.entity.Coordinates;
 import com.orbit.server.domain.edge.entity.Edge;
@@ -71,6 +72,36 @@ class EdgeHealthBoardTest {
         failTimes(BUSAN, THRESHOLD);
 
         assertThat(board.healthyEdges()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("첫 확인 전에는 설정의 모든 Edge 를 설정 순서대로 정상 상태로 돌려준다")
+    void startsWithAllStatusesHealthy() {
+        assertThat(board.statuses())
+                .containsExactly(
+                        new EdgeStatus("edge-seoul", "서울", 37.5665, 126.9780, true),
+                        new EdgeStatus("edge-daejeon", "대전", 36.3504, 127.3845, true),
+                        new EdgeStatus("edge-busan", "부산", 35.1796, 129.0756, true));
+    }
+
+    @Test
+    @DisplayName("비정상인 Edge 도 상태 목록에서 빼지 않고 제자리에 비정상으로 돌려준다")
+    void keepsUnhealthyEdgeInStatuses() {
+        failTimes(DAEJEON, THRESHOLD);
+
+        assertThat(board.statuses())
+                .extracting(EdgeStatus::edgeId, EdgeStatus::healthy)
+                .containsExactly(tuple("edge-seoul", true), tuple("edge-daejeon", false), tuple("edge-busan", true));
+    }
+
+    @Test
+    @DisplayName("비정상이던 Edge 가 한 번 성공하면 상태 목록에서도 정상으로 돌아온다")
+    void restoresStatusAfterOneSuccess() {
+        failTimes(DAEJEON, THRESHOLD);
+
+        board.recordSuccess(DAEJEON);
+
+        assertThat(board.statuses()).extracting(EdgeStatus::healthy).containsExactly(true, true, true);
     }
 
     @Test
