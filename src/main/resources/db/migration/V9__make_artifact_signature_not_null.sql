@@ -8,7 +8,10 @@
 --   2. 그 artifact 를 참조하는 캠페인을 지운다. 캠페인의 대상 조건·결과·이벤트(campaign_target_*, update_result, vehicle_event)는
 --      ON DELETE CASCADE 로 함께 지워진다.
 --   3. 서명 없는 artifact 를 지운다.
---   4. 파일을 Vault 로 서명해 다시 등록하고, 필요하면 캠페인을 다시 만든다.
+--   4. 이미 이 마이그레이션이 한 번 실패했다면 실패 기록이 남아 서버가 계속 뜨지 않는다. MySQL 은 DDL 을 트랜잭션으로 되돌리지 않아
+--      Flyway 가 실패를 기록하기 때문이다. 이 ALTER 는 실패하면 컬럼을 바꾸지 않으므로 기록만 지우면 된다.
+--        DELETE FROM flyway_schema_history WHERE version = '9' AND success = 0;   (또는 flyway repair)
+--   5. 서버를 다시 띄워 이 마이그레이션을 적용한 뒤, 파일을 Vault 로 서명해 다시 등록하고 필요하면 캠페인을 다시 만든다.
 -- 마이그레이션이 행을 지우지 않는 이유: campaign 이 artifact 를 FK 로 참조해 캠페인과 그 결과까지 지워야 하기 때문이다.
 --
 -- 타입은 V5 와 같고 NULL 허용만 바꾼다. V5 의 CHECK 제약은 그대로 둔다.
