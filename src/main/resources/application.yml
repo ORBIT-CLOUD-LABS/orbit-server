@@ -45,6 +45,10 @@ orbit:
     # 환경 변수가 없으면 플레이스홀더 원문(${ADMIN_TOKEN})이 그대로 토큰이 되므로,
     # 빈 기본값을 줘서 @NotBlank 검증으로 앱이 뜨지 않게 한다
     token: ${ADMIN_TOKEN:}
+  # 펌웨어 서명 공개 키(artifact 컨텍스트 SigningProperties): orbit.signing.public-keys.{키 버전} = Vault
+  # transit/keys/firmware-signing 의 public_key(raw 32바이트의 base64). 비밀이 아니라 ConfigMap 으로 넣는다.
+  # 키 버전이 배포 환경마다 달라 기본값을 두지 않는다. 없거나 잘못되면 앱이 뜨지 않는다.
+  # 환경 변수로 넣을 때는 ORBIT_SIGNING_PUBLICKEYS_V1 처럼 키 버전을 이름 끝에 붙인다
   check-in:
     # 기본값은 요구사항 예시(30초). 데모처럼 빠른 반응이 필요하면 환경 변수로 줄인다
     interval-seconds: ${CHECK_IN_INTERVAL_SECONDS:30}

@@ -10,6 +10,11 @@ orbit:
     key: test-enrollment-key
   admin:
     token: test-admin-token
+  signing:
+    # RFC 8032 7.1 TEST 1 의 공개 키. 공개된 시험 벡터라 개인 키도 알려져 있으므로 테스트 외에는 쓰지 않는다.
+    # 서명 검증 테스트는 실행 중에 키 쌍을 만들어 쓰고, 여기서는 컨텍스트가 뜨도록 올바른 공개 키 하나만 둔다
+    public-keys:
+      v1: 11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
   cdn:
     default-edge-id: edge-seoul
     url-signing:
