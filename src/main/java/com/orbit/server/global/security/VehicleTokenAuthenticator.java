@@ -5,7 +5,7 @@ import com.orbit.server.global.error.BusinessException;
 /**
  * 차량 API 요청의 토큰을 확인한다. (VEHICLE-POL-003)
  *
- * <p>토큰 저장소는 차량 도메인에 있고 {@code global} 은 {@code domain} 에 의존하지 않으므로, 인터셉터는 이 포트만 알고 구현은
+ * <p>토큰 저장소는 차량 도메인에 있고 {@code global} 은 {@code domain} 에 의존하지 않으므로, 인증 필터는 이 포트만 알고 구현은
  * 차량 도메인이 제공한다.
  */
 public interface VehicleTokenAuthenticator {

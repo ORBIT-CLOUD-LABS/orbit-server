@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 등록 키 인터셉터부터 저장까지 실제 요청 흐름으로 검증한다. */
+/** 등록 키 필터부터 저장까지 실제 요청 흐름으로 검증한다. */
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc

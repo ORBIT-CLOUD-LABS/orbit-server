@@ -10,34 +10,54 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * 요청 인증의 공통 기반인 Spring Security 필터 체인을 구성하고 경로별 인증 규칙을 정한다.
  *
  * <p>모든 호출 주체(차량·관리자)가 요청마다 {@code Authorization: Bearer} 토큰을 보내는 API 서버이므로 세션·CSRF·폼 로그인·HTTP
- * Basic 을 쓰지 않는다.
+ * Basic 을 쓰지 않는다. 같은 헤더에 오는 값이 경로마다 달라(등록 키, 차량 토큰, 관리자 토큰) 인증 수단마다 필터를 두고, 어느 경로에
+ * 어느 인증을 요구할지는 여기 한 곳에서 정한다.
  *
  * <p>{@code @WebMvcTest} 는 이 설정을 자동으로 올리지 않으므로 Spring Boot 기본 보안 설정(HTTP Basic)이 대신 걸린다. 슬라이스
  * 테스트에서는 {@code @Import} 로 넣는다.
  */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(AdminProperties.class)
+@EnableConfigurationProperties({AdminProperties.class, EnrollmentProperties.class})
 class SecurityConfig {
 
     static final String HEALTH_PATHS = "/actuator/health/**";
     static final String PROMETHEUS_PATH = "/actuator/prometheus";
+    // 등록 API 는 정확히 이 경로 하나지만 끝 슬래시·하위 경로까지 등록 영역으로 묶는다. 차량 경로 패턴이 register 를
+    // vehicleId 로 읽으면 잘못 쓴 등록 URL 에 차량 토큰용 UNAUTHORIZED 가 나가, 차량이 이를 재등록 신호로 받아 반복한다
+    static final String REGISTER_PATHS = "/api/v1/vehicles/register/**";
     static final String VEHICLE_PATHS = "/api/v1/vehicles/**";
     static final String ADMIN_PATHS = "/api/v1/admin/**";
     static final String DASHBOARD_PATHS = "/api/v1/dashboard/**";
     static final String[] API_DOCS_PATHS = {"/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html"};
 
+    // 차량 토큰 필터가 토큰 차량과 비교할 vehicleId 를 경로에서 꺼낼 수 있도록 변수로 둔다
+    private static final String VEHICLE_TOKEN_PATHS =
+            "/api/v1/vehicles/{" + VehicleTokenAuthenticationFilter.VEHICLE_ID + "}/**";
+
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AdminProperties adminProperties,
+            EnrollmentProperties enrollmentProperties,
+            VehicleTokenAuthenticator vehicleTokenAuthenticator,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver)
             throws Exception {
+        SecurityErrorResponder errorResponder = new SecurityErrorResponder(exceptionResolver);
+        PathPatternRequestMatcher.Builder paths = PathPatternRequestMatcher.withDefaults();
+        RequestMatcher registerPaths = paths.matcher(REGISTER_PATHS);
+        // 등록 영역도 차량 토큰 경로 패턴에 맞으므로 빼 둔다. 등록 요청은 아직 차량 토큰이 없다
+        RequestMatcher vehicleTokenPaths =
+                new AndRequestMatcher(paths.matcher(VEHICLE_TOKEN_PATHS), new NegatedRequestMatcher(registerPaths));
         return http.csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -45,9 +65,16 @@ class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(
                         new AdminTokenAuthenticationFilter(adminProperties), AnonymousAuthenticationFilter.class)
+                .addFilterBefore(
+                        new EnrollmentKeyAuthenticationFilter(registerPaths, enrollmentProperties, errorResponder),
+                        AnonymousAuthenticationFilter.class)
+                .addFilterBefore(
+                        new VehicleTokenAuthenticationFilter(
+                                vehicleTokenPaths, vehicleTokenAuthenticator, errorResponder),
+                        AnonymousAuthenticationFilter.class)
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(
-                                new ErrorResponseAuthenticationEntryPoint(exceptionResolver))
-                        .accessDeniedHandler(new ErrorResponseAccessDeniedHandler(exceptionResolver)))
+                                new ErrorResponseAuthenticationEntryPoint(errorResponder))
+                        .accessDeniedHandler(new ErrorResponseAccessDeniedHandler(errorResponder)))
                 .authorizeHttpRequests(requests -> requests
                         // 이미 인가를 통과한 요청의 오류 응답을 만들거나(ERROR) 비동기 응답을 마무리하는(ASYNC, SSE 등)
                         // 내부 재요청이므로 다시 막지 않는다. 관리자 토큰 필터는 ASYNC dispatch 를 건너뛰어 막으면 401 이 된다
@@ -61,9 +88,12 @@ class SecurityConfig {
                         // API 문서 노출 여부는 springdoc 설정으로 정한다. 꺼져 있으면 경로가 없어 404 가 된다
                         .requestMatchers(API_DOCS_PATHS)
                         .permitAll()
-                        // 차량 API 는 등록 키·차량 토큰 인터셉터가 인증하므로 관리자 인증 대상에서 뺀다
+                        // 차량 API 는 등록 키·차량 토큰 필터가 준 권한을 요구해, 필터가 빠지거나 경로가 어긋나도 열리지 않게 한다.
+                        // 등록 영역은 차량 경로 패턴에도 맞으므로 먼저 둔다
+                        .requestMatchers(REGISTER_PATHS)
+                        .hasRole(EnrollmentKeyAuthenticationFilter.ENROLLMENT_ROLE)
                         .requestMatchers(VEHICLE_PATHS)
-                        .permitAll()
+                        .hasRole(VehicleTokenAuthenticationFilter.VEHICLE_ROLE)
                         .requestMatchers(ADMIN_PATHS, DASHBOARD_PATHS)
                         .hasRole(AdminTokenAuthenticationFilter.ADMIN_ROLE)
                         // 새 API 가 규칙 없이 열리지 않도록 규칙에 없는 경로는 거부한다

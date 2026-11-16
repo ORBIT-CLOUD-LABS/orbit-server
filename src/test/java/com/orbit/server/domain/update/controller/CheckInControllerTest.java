@@ -42,7 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 차량 등록으로 받은 토큰으로 인터셉터부터 대상 판정까지 실제 요청 흐름으로 검증한다. */
+/** 차량 등록으로 받은 토큰으로 보안 필터부터 대상 판정까지 실제 요청 흐름으로 검증한다. */
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc

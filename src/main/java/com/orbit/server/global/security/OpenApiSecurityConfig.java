@@ -23,9 +23,8 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * API 문서에 경로별 인증 방식을 표시한다.
  *
  * <p>세 인증 모두 {@code Authorization: Bearer} 헤더를 쓰지만 넣는 값과 적용 경로가 달라 스키마를 나눈다. 경로 기준은 실제 인증을 거는
- * {@link SecurityConfig}, {@link VehicleTokenWebConfig}, {@link EnrollmentKeyWebConfig} 의 상수를 그대로 써서 문서와
- * 동작이 어긋나지 않게 한다. 인증 방식마다 실패 코드가 달라 401 응답도 여기서 함께 표시한다. 이 설정은 문서에만 영향을 주고 인증 동작은 바꾸지
- * 않는다.
+ * {@link SecurityConfig} 의 상수를 그대로 써서 문서와 동작이 어긋나지 않게 한다. 인증 방식마다 실패 코드가 달라 401 응답도 여기서 함께
+ * 표시한다. 이 설정은 문서에만 영향을 주고 인증 동작은 바꾸지 않는다.
  */
 @Configuration(proxyBeanMethods = false)
 class OpenApiSecurityConfig {
@@ -36,11 +35,11 @@ class OpenApiSecurityConfig {
 
     private static final String BEARER = "bearer";
 
-    // 위에서부터 처음 맞는 규칙을 쓴다. 등록 경로는 차량 경로 패턴에도 맞으므로 먼저 둔다.
-    // 인증 실패 코드는 실제로 거부하는 필터·인터셉터의 코드다
+    // 위에서부터 처음 맞는 규칙을 쓴다. 등록 영역은 차량 경로 패턴에도 맞으므로 먼저 둔다.
+    // 인증 실패 코드는 실제로 거부하는 필터의 코드다
     private static final List<SchemeRule> RULES = List.of(
-            SchemeRule.of(EnrollmentKeyWebConfig.REGISTER_PATH, ENROLLMENT_KEY, AuthErrorCode.INVALID_ENROLLMENT_KEY),
-            SchemeRule.of(VehicleTokenWebConfig.VEHICLE_PATHS, VEHICLE_TOKEN, AuthErrorCode.UNAUTHORIZED),
+            SchemeRule.of(SecurityConfig.REGISTER_PATHS, ENROLLMENT_KEY, AuthErrorCode.INVALID_ENROLLMENT_KEY),
+            SchemeRule.of(SecurityConfig.VEHICLE_PATHS, VEHICLE_TOKEN, AuthErrorCode.UNAUTHORIZED),
             SchemeRule.of(SecurityConfig.ADMIN_PATHS, ADMIN_TOKEN, CommonErrorCode.AUTHENTICATION_REQUIRED),
             SchemeRule.of(SecurityConfig.DASHBOARD_PATHS, ADMIN_TOKEN, CommonErrorCode.AUTHENTICATION_REQUIRED));
 
