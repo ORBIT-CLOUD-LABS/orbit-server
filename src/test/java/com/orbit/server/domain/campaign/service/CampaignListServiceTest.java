@@ -1,5 +1,6 @@
 package com.orbit.server.domain.campaign.service;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -78,7 +79,7 @@ class CampaignListServiceTest {
 
     private Long register(String model, String version) {
         ArtifactRelease release = new ArtifactRelease(model, version);
-        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
+        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()), SIGNATURE);
         em.persist(artifact);
         CampaignCondition condition =
                 new CampaignCondition(new CampaignTarget(model, Set.of(), Set.of()), VersionRange.unbounded(), PERIOD);

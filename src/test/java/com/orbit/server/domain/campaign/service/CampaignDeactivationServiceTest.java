@@ -1,5 +1,6 @@
 package com.orbit.server.domain.campaign.service;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -83,7 +84,7 @@ class CampaignDeactivationServiceTest {
 
     private Long saveArtifact() {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.1.0");
-        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
+        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()), SIGNATURE);
         em.persist(artifact);
         return artifact.getId();
     }

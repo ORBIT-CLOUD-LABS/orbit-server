@@ -1,5 +1,6 @@
 package com.orbit.server.domain.campaign.entity;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
@@ -61,7 +62,8 @@ class CampaignConditionPersistenceTest {
     private Long persistCampaign(VersionRange versionRange) {
         Artifact artifact = new Artifact(
                 new ArtifactRelease("model-a", "1.0.0"),
-                new ArtifactFile("a".repeat(64), 1, "/firmware/model-a/1.0.0/firmware.bin"));
+                new ArtifactFile("a".repeat(64), 1, "/firmware/model-a/1.0.0/firmware.bin"),
+                SIGNATURE);
         em.persist(artifact);
         CampaignCondition condition =
                 new CampaignCondition(new CampaignTarget("model-a", null, null), versionRange, PERIOD);
