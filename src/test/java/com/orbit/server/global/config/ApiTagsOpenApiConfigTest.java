@@ -39,6 +39,7 @@ class ApiTagsOpenApiConfigTest {
                                 ApiTags.ADMIN_ARTIFACT,
                                 ApiTags.ADMIN_CAMPAIGN,
                                 ApiTags.DASHBOARD_VEHICLE,
+                                ApiTags.DASHBOARD_CDN_EDGE,
                                 ApiTags.VEHICLE_REGISTRATION,
                                 ApiTags.VEHICLE_UPDATE)));
     }
