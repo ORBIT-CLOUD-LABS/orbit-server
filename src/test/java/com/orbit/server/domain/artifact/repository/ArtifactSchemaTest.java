@@ -7,6 +7,7 @@ import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.artifact.entity.Artifact;
 import com.orbit.server.domain.artifact.entity.ArtifactFile;
 import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import java.util.Base64;
@@ -19,7 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-/** 엔티티가 아직 매핑하지 않은 [Phase2] 펌웨어 서명 컬럼의 제약을 SQL 로 검증한다. */
+/** [Phase2] 펌웨어 서명 컬럼의 DB 제약을 SQL 로 검증한다. 엔티티의 검증을 거치지 않고 들어온 값도 DB 가 막는지 확인한다. */
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
@@ -37,24 +38,27 @@ class ArtifactSchemaTest {
     @BeforeEach
     void setUp() {
         ArtifactRelease release = new ArtifactRelease("model-a", "1.0.0");
-        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
+        Artifact artifact = new Artifact(
+                release, new ArtifactFile("a".repeat(64), 1, release.originPath()), ArtifactSignatureFixture.SIGNATURE);
         em.persist(artifact);
         em.flush();
         artifactId = artifact.getId();
     }
 
     @Test
-    @DisplayName("서명 없이 등록한 파일도 저장할 수 있다 (등록 API 가 서명을 받기 전까지)")
-    void allowsArtifactWithoutSignature() {
-        assertThat(signature()).isEqualTo("null:null");
+    @DisplayName("base64 서명과 키 버전을 저장한다")
+    void storesSignature() {
+        String otherSignature = Base64.getEncoder().encodeToString(new byte[64]).replace('A', 'B');
+
+        update(otherSignature, "v2");
+
+        assertThat(signature()).isEqualTo(otherSignature + ":v2");
     }
 
     @Test
-    @DisplayName("base64 서명과 키 버전을 저장한다")
-    void storesSignature() {
-        update(SIGNATURE, "v1");
-
-        assertThat(signature()).isEqualTo(SIGNATURE + ":v1");
+    @DisplayName("ORIGIN-POL-001: 서명과 키 버전이 모두 없는 파일은 저장하지 않는다 (예외 경로를 두지 않는다)")
+    void rejectsArtifactWithoutSignature() {
+        assertThatThrownBy(() -> update(null, null)).isInstanceOf(PersistenceException.class);
     }
 
     @Test

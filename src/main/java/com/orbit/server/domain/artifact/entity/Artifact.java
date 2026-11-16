@@ -36,7 +36,6 @@ public class Artifact {
     @Embedded
     private ArtifactFile file;
 
-    // 서명 없이 등록된 기존 행은 null 이다. 등록이 서명을 저장하게 된 뒤 NOT NULL 로 바꾼다 (#89)
     @Embedded
     private ArtifactSignature signature;
 
@@ -44,17 +43,6 @@ public class Artifact {
     @Generated
     @Column(name = "created_at")
     private Instant createdAt;
-
-    /**
-     * 서명 없이 업데이트 파일을 등록한다. 테스트를 서명하는 생성자로 옮기는 동안만 남겨 두고, 서명을 필수로 바꿀 때 지운다. (#89)
-     *
-     * @param release 차종과 버전. null 불가
-     * @param file 파일 해시·크기·Origin 경로. null 불가
-     */
-    public Artifact(ArtifactRelease release, ArtifactFile file) {
-        this.release = Objects.requireNonNull(release, "release");
-        this.file = Objects.requireNonNull(file, "file");
-    }
 
     /**
      * 등록 때 검증한 펌웨어 서명과 함께 업데이트 파일을 등록한다. (ORIGIN-POL-001)
