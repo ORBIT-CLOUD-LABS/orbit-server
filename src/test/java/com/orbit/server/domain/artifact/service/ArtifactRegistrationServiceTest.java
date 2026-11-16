@@ -69,7 +69,7 @@ class ArtifactRegistrationServiceTest {
         ArtifactRegistrationResult result = service.register(command(null));
 
         ArtifactFile expectedFile = new ArtifactFile(HELLO_SHA256, 5, PATH);
-        assertThat(result).isEqualTo(new ArtifactRegistrationResult(1L, 5, HELLO_SHA256, PATH));
+        assertThat(result).isEqualTo(new ArtifactRegistrationResult(1L, 5, HELLO_SHA256, PATH, KEY_ID));
         assertThat(originStorage.uploaded).containsExactly(expectedFile);
         verify(artifactRepository).save(any());
     }

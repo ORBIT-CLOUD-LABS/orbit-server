@@ -18,7 +18,7 @@ spring:
         forceConnectionTimeZoneToSession: true
   servlet:
     multipart:
-      # 펌웨어 최대 크기. 요청 전체는 파일과 함께 오는 폼 필드(model, version, sha256)만큼 여유를 둔다
+      # 펌웨어 최대 크기. 요청 전체는 파일과 함께 오는 폼 필드(model, version, sha256, signature, keyId)만큼 여유를 둔다
       max-file-size: 1GB
       max-request-size: 1025MB
   jpa:

@@ -46,7 +46,7 @@ public class ArtifactRegistrationService {
         ArtifactSignature signature = verifySignature(release, file, command);
         originStorage.upload(file, command.content());
         Artifact artifact = saveOrDiscardUpload(new Artifact(release, file, signature), file);
-        return ArtifactRegistrationResult.of(artifact.getId(), file);
+        return ArtifactRegistrationResult.of(artifact.getId(), file, signature);
     }
 
     private ArtifactSignature verifySignature(
