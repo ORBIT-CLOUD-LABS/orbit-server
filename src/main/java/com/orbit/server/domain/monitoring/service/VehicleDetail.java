@@ -33,8 +33,8 @@ public record VehicleDetail(
     /**
      * 뷰의 컬럼을 그대로 받는 JPQL 생성자 표현식용 생성자. 위치와 최근 결과가 없으면 각각 null 로 둔다.
      *
-     * <p>위도·경도·위치 시각은 DB 제약(ck_vehicle_state_location)으로 함께 있거나 함께 없고, 결과 컬럼은 최근 결과가 있을 때만
-     * 값이 있다. 그래서 위도와 캠페인 ID 로 각각 있는지 판단한다.
+     * <p>위치가 있는지는 {@link VehicleLastLocation#of} 가 판단한다. 결과 컬럼은 최근 결과가 있을 때만 값이 있어 캠페인 ID 로
+     * 있는지 판단한다.
      */
     public VehicleDetail(
             String vehicleId,
@@ -62,7 +62,7 @@ public record VehicleDetail(
                 currentVersion,
                 lastSeenAt,
                 updatedAt,
-                latitude == null ? null : new VehicleLastLocation(latitude, longitude, locationUpdatedAt),
+                VehicleLastLocation.of(latitude, longitude, locationUpdatedAt).orElse(null),
                 assignedEdgeId,
                 campaignId == null
                         ? null

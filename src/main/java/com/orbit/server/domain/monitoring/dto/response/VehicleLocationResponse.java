@@ -4,7 +4,7 @@ import com.orbit.server.domain.monitoring.service.VehicleLastLocation;
 import java.time.Instant;
 
 /**
- * [Phase2] 차량 상세의 마지막 위치.
+ * [Phase2] 차량의 마지막 위치. 차량 상태(스냅샷)와 차량 상세가 같은 형식을 쓴다.
  *
  * @param latitude 위도
  * @param longitude 경도

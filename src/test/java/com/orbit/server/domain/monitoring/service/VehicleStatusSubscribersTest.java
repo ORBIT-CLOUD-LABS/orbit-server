@@ -11,13 +11,15 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import tools.jackson.databind.json.JsonMapper;
 
 class VehicleStatusSubscribersTest {
 
     private static final Instant AS_OF = Instant.parse("2026-10-01T12:00:00.123Z");
-    private static final VehicleStatus VEHICLE =
-            new VehicleStatus("vehicle-001", "model-a", "1.0.0", AS_OF, AS_OF, null, null, null);
+    private static final VehicleStatus VEHICLE = VehicleStatusFixture.withoutResult("vehicle-001", AS_OF);
     private static final VehicleStatusChanges CHANGES = new VehicleStatusChanges(AS_OF, List.of(VEHICLE));
+    // SSE 는 응답 DTO 를 거치지 않고 차량 상태를 그대로 JSON 으로 내보내므로, 직렬화한 모양을 명세와 맞춰 본다
+    private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
 
     private final VehicleStatusSubscribers subscribers = new VehicleStatusSubscribers();
 
@@ -36,6 +38,49 @@ class VehicleStatusSubscribersTest {
                             assertThat(text).contains("event:vehicles\n", "id:2026-10-01T12:00:00.123Z\n", "data:"));
             assertThat(emitter.data).containsExactly(List.of(VEHICLE));
         });
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: vehicles 이벤트의 차량은 스냅샷과 같은 형식으로 위치·배정 Edge·다운로드 Edge 를 담는다")
+    void sendsVehicleWithLocationAndEdges() {
+        VehicleStatus located = new VehicleStatus(
+                "vehicle-001",
+                "model-a",
+                "1.0.0",
+                AS_OF,
+                AS_OF,
+                7L,
+                "FAILED",
+                "SIGNATURE_INVALID",
+                new VehicleLastLocation(37.5665, 126.978, AS_OF),
+                "edge-seoul",
+                "edge-daejeon");
+        RecordingEmitter emitter = subscribe();
+
+        subscribers.broadcast(new VehicleStatusChanges(AS_OF, List.of(located)));
+
+        assertThat(emitter.data)
+                .singleElement()
+                .satisfies(data -> assertThat(JSON_MAPPER.writeValueAsString(data))
+                        .isEqualTo("[{\"vehicleId\":\"vehicle-001\",\"model\":\"model-a\",\"currentVersion\":\"1.0.0\","
+                                + "\"lastSeenAt\":\"2026-10-01T12:00:00.123Z\",\"updatedAt\":\"2026-10-01T12:00:00.123Z\","
+                                + "\"campaignId\":7,\"lastResult\":\"FAILED\",\"failureReason\":\"SIGNATURE_INVALID\","
+                                + "\"location\":{\"latitude\":37.5665,\"longitude\":126.978,"
+                                + "\"updatedAt\":\"2026-10-01T12:00:00.123Z\"},"
+                                + "\"assignedEdgeId\":\"edge-seoul\",\"downloadedEdgeId\":\"edge-daejeon\"}]"));
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: 위치·Edge 가 없는 차량은 vehicles 이벤트에 해당 필드를 null 로 담는다")
+    void sendsVehicleWithoutLocationAndEdges() {
+        RecordingEmitter emitter = subscribe();
+
+        subscribers.broadcast(CHANGES);
+
+        assertThat(emitter.data)
+                .singleElement()
+                .satisfies(data -> assertThat(JSON_MAPPER.writeValueAsString(data))
+                        .contains("\"location\":null", "\"assignedEdgeId\":null", "\"downloadedEdgeId\":null"));
     }
 
     @Test

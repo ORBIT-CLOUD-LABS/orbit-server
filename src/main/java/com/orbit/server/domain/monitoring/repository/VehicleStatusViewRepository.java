@@ -87,7 +87,8 @@ public interface VehicleStatusViewRepository extends Repository<VehicleStatusVie
     @Query("""
             select new com.orbit.server.domain.monitoring.service.VehicleStatus(
                 s.vehicleId, s.model, s.currentVersion, s.lastSeenAt, s.updatedAt,
-                s.campaignId, s.lastResult, s.failureReason)
+                s.campaignId, s.lastResult, s.failureReason,
+                s.latitude, s.longitude, s.locationUpdatedAt, s.assignedEdgeId, s.downloadedEdgeId)
             from VehicleStatusView s
             order by s.vehicleId
             """)
@@ -100,7 +101,8 @@ public interface VehicleStatusViewRepository extends Repository<VehicleStatusVie
     @Query("""
             select new com.orbit.server.domain.monitoring.service.VehicleStatus(
                 s.vehicleId, s.model, s.currentVersion, s.lastSeenAt, s.updatedAt,
-                s.campaignId, s.lastResult, s.failureReason)
+                s.campaignId, s.lastResult, s.failureReason,
+                s.latitude, s.longitude, s.locationUpdatedAt, s.assignedEdgeId, s.downloadedEdgeId)
             from VehicleStatusView s
             where s.updatedAt > :since
             order by s.vehicleId

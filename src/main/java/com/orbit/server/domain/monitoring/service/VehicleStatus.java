@@ -16,6 +16,9 @@ import java.time.Instant;
  * @param campaignId 최근 업데이트 결과의 캠페인 ID. 결과가 없으면 null
  * @param lastResult 최근 업데이트 결과(SUCCEEDED, FAILED). 결과가 없으면 null
  * @param failureReason 최근 업데이트의 실패 사유. 실패가 아니면 null
+ * @param location [Phase2] 마지막 위치. 위치를 받은 적 없으면 null
+ * @param assignedEdgeId [Phase2] 매니페스트가 마지막으로 배정한 Edge. 배정한 적 없으면 null
+ * @param downloadedEdgeId [Phase2] 최근 업데이트 결과에서 차량이 실제로 파일을 받은 Edge. 없으면 null
  */
 public record VehicleStatus(
         String vehicleId,
@@ -25,4 +28,41 @@ public record VehicleStatus(
         Instant updatedAt,
         Long campaignId,
         String lastResult,
-        String failureReason) {}
+        String failureReason,
+        VehicleLastLocation location,
+        String assignedEdgeId,
+        String downloadedEdgeId) {
+
+    /**
+     * 뷰의 컬럼을 그대로 받는 JPQL 생성자 표현식용 생성자. 위치가 없으면 null 로 둔다.
+     *
+     * <p>위치가 있는지는 {@link VehicleLastLocation#of} 가 판단한다.
+     */
+    public VehicleStatus(
+            String vehicleId,
+            String model,
+            String currentVersion,
+            Instant lastSeenAt,
+            Instant updatedAt,
+            Long campaignId,
+            String lastResult,
+            String failureReason,
+            Double latitude,
+            Double longitude,
+            Instant locationUpdatedAt,
+            String assignedEdgeId,
+            String downloadedEdgeId) {
+        this(
+                vehicleId,
+                model,
+                currentVersion,
+                lastSeenAt,
+                updatedAt,
+                campaignId,
+                lastResult,
+                failureReason,
+                VehicleLastLocation.of(latitude, longitude, locationUpdatedAt).orElse(null),
+                assignedEdgeId,
+                downloadedEdgeId);
+    }
+}

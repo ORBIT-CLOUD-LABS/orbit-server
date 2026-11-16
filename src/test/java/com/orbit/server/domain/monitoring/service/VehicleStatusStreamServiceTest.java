@@ -26,8 +26,7 @@ class VehicleStatusStreamServiceTest {
             new DashboardStreamProperties(Duration.ofSeconds(1), Duration.ofSeconds(15), OVERLAP);
     private static final Instant LAST_EVENT_ID = Instant.parse("2026-10-01T12:00:00Z");
     private static final Instant AS_OF = Instant.parse("2026-10-01T12:00:05Z");
-    private static final VehicleStatus VEHICLE =
-            new VehicleStatus("vehicle-001", "model-a", "1.0.0", AS_OF, AS_OF, null, null, null);
+    private static final VehicleStatus VEHICLE = VehicleStatusFixture.withoutResult("vehicle-001", AS_OF);
 
     private final VehicleStatusViewRepository query = mock(VehicleStatusViewRepository.class);
     private final VehicleStatusSubscribers subscribers = mock(VehicleStatusSubscribers.class);

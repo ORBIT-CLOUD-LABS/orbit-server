@@ -2,6 +2,7 @@ package com.orbit.server.domain.monitoring.dto.response;
 
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * 대시보드의 차량 한 대 상태. 스냅샷과 SSE 이벤트가 같은 형식을 쓴다. (MONITORING-REQ-004, MONITORING-REQ-001)
@@ -14,6 +15,9 @@ import java.time.Instant;
  * @param campaignId 최근 업데이트 결과의 캠페인 ID. 결과가 없으면 null
  * @param lastResult 최근 업데이트 결과(SUCCEEDED, FAILED). 결과가 없으면 null
  * @param failureReason 최근 업데이트의 실패 사유. 실패가 아니면 null
+ * @param location [Phase2] 마지막 위치. 위치를 받은 적 없으면 null
+ * @param assignedEdgeId [Phase2] 매니페스트가 마지막으로 배정한 Edge. 배정한 적 없으면 null
+ * @param downloadedEdgeId [Phase2] 최근 업데이트 결과에서 차량이 실제로 파일을 받은 Edge. 없으면 null
  */
 public record VehicleStatusResponse(
         String vehicleId,
@@ -23,7 +27,10 @@ public record VehicleStatusResponse(
         Instant updatedAt,
         Long campaignId,
         String lastResult,
-        String failureReason) {
+        String failureReason,
+        VehicleLocationResponse location,
+        String assignedEdgeId,
+        String downloadedEdgeId) {
 
     /**
      * @param status 조회한 차량 상태
@@ -38,6 +45,11 @@ public record VehicleStatusResponse(
                 status.updatedAt(),
                 status.campaignId(),
                 status.lastResult(),
-                status.failureReason());
+                status.failureReason(),
+                Optional.ofNullable(status.location())
+                        .map(VehicleLocationResponse::from)
+                        .orElse(null),
+                status.assignedEdgeId(),
+                status.downloadedEdgeId());
     }
 }

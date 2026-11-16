@@ -26,8 +26,7 @@ class VehicleStatusBroadcasterTest {
     private static final Instant STARTED_AT = Instant.parse("2026-10-01T12:00:00Z");
     private static final Instant FIRST_AS_OF = Instant.parse("2026-10-01T12:00:01Z");
     private static final Instant SECOND_AS_OF = Instant.parse("2026-10-01T12:00:02Z");
-    private static final VehicleStatus VEHICLE =
-            new VehicleStatus("vehicle-001", "model-a", "1.0.0", FIRST_AS_OF, FIRST_AS_OF, null, null, null);
+    private static final VehicleStatus VEHICLE = VehicleStatusFixture.withoutResult("vehicle-001", FIRST_AS_OF);
 
     private final VehicleStatusViewRepository query = mock(VehicleStatusViewRepository.class);
     private final VehicleStatusSubscribers subscribers = mock(VehicleStatusSubscribers.class);

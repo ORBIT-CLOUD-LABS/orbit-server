@@ -136,6 +136,55 @@ class VehicleStatusViewRepositoryTest {
     }
 
     @Test
+    @DisplayName("MONITORING-REQ-004: 위치·배정 Edge·최근 결과의 다운로드 Edge 를 함께 응답한다")
+    void returnsLocationAndEdges() {
+        Long vehicleId = insertVehicle("vehicle-001");
+        locate(vehicleId);
+        insertSucceeded(vehicleId, firstCampaignId, EARLIER);
+        insertFailedWithDetail(vehicleId, secondCampaignId, LATER);
+
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
+
+        assertThat(snapshot.vehicles()).singleElement().satisfies(status -> {
+            assertThat(status.location()).isEqualTo(new VehicleLastLocation(37.5665, 126.978, EARLIER));
+            assertThat(status.assignedEdgeId()).isEqualTo("edge-seoul");
+            assertThat(status.downloadedEdgeId()).isEqualTo("edge-daejeon");
+        });
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-004: 위치를 받은 적 없고 Edge 가 없는 차량은 위치·배정 Edge·다운로드 Edge 를 비워서 응답한다")
+    void returnsVehicleWithoutLocationAndEdges() {
+        Long vehicleId = insertVehicle("vehicle-001");
+        insertSucceeded(vehicleId, firstCampaignId, EARLIER);
+
+        VehicleStatusSnapshot snapshot = vehicleStatusViewRepository.findSnapshot();
+
+        assertThat(snapshot.vehicles()).singleElement().satisfies(status -> {
+            assertThat(status.location()).isNull();
+            assertThat(status.assignedEdgeId()).isNull();
+            assertThat(status.downloadedEdgeId()).isNull();
+        });
+    }
+
+    @Test
+    @DisplayName("MONITORING-REQ-001: 변경분도 위치·배정 Edge·최근 결과의 다운로드 Edge 를 함께 응답한다")
+    void returnsChangesWithLocationAndEdges() {
+        Long vehicleId = insertVehicle("vehicle-001");
+        locate(vehicleId);
+        insertFailedWithDetail(vehicleId, firstCampaignId, EARLIER);
+        changeStateAt(vehicleId, LATER);
+
+        VehicleStatusChanges changes = vehicleStatusViewRepository.findChangesSince(EARLIER);
+
+        assertThat(changes.vehicles()).singleElement().satisfies(status -> {
+            assertThat(status.location()).isEqualTo(new VehicleLastLocation(37.5665, 126.978, EARLIER));
+            assertThat(status.assignedEdgeId()).isEqualTo("edge-seoul");
+            assertThat(status.downloadedEdgeId()).isEqualTo("edge-daejeon");
+        });
+    }
+
+    @Test
     @DisplayName("MONITORING-REQ-004: 전체 차량을 vehicleId 오름차순으로 응답한다")
     void returnsAllVehiclesOrderedByVehicleId() {
         insertVehicle("vehicle-002");
