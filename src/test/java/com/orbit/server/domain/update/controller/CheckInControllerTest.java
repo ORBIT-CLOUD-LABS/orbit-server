@@ -1,5 +1,6 @@
 package com.orbit.server.domain.update.controller;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -416,7 +417,7 @@ class CheckInControllerTest {
     // 실제 시계로 판정하므로 지금을 포함하는 기간으로 등록한다
     private Long registerCampaign(String targetVersion, String hwVersion) {
         ArtifactRelease release = new ArtifactRelease("model-a", targetVersion);
-        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
+        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()), SIGNATURE);
         em.persist(artifact);
         Instant now = Instant.now();
         CampaignPeriod period = new CampaignPeriod(now.minus(Duration.ofHours(1)), now.plus(Duration.ofHours(1)));
