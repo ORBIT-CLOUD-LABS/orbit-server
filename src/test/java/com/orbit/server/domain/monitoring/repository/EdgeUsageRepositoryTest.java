@@ -3,8 +3,10 @@ package com.orbit.server.domain.monitoring.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
+import com.orbit.server.domain.monitoring.service.EdgeDownloadCount;
 import com.orbit.server.domain.monitoring.service.EdgeVehicleCount;
 import jakarta.persistence.EntityManager;
+import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Import(TestcontainersConfiguration.class)
 @Transactional
 class EdgeUsageRepositoryTest {
+
+    private static final Instant START = Instant.parse("2026-10-01T00:00:00Z");
+    private static final Instant END = Instant.parse("2026-11-01T00:00:00Z");
+    private static final Instant FINISHED_AT = Instant.parse("2026-10-02T00:00:00Z");
+
+    // ck_update_result_failure 가 실패한 결과에 실패 사유를 요구한다
+    private static final String FAILED = "FAILED";
 
     @Autowired
     private EdgeUsageRepository edgeUsageRepository;
@@ -52,6 +61,80 @@ class EdgeUsageRepositoryTest {
 
         assertThat(edgeUsageRepository.findAssignedVehicleCounts())
                 .containsExactly(new EdgeVehicleCount("edge-seoul", 1));
+    }
+
+    @Test
+    @DisplayName("Edge·캠페인별 다운로드 수: 결과가 없으면 빈 목록이다")
+    void countsNoDownloadsWithoutResults() {
+        assertThat(edgeUsageRepository.findDownloadCounts()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Edge·캠페인별 다운로드 수: 파일을 받은 Edge 와 캠페인별로 성공·실패를 세고 Edge 안에서 campaignId 순으로 돌려준다")
+    void countsDownloadsByEdgeAndCampaign() {
+        Long campaignId = insertCampaign("1.0.1", "ACTIVE");
+        Long laterCampaignId = insertCampaign("1.0.2", "ACTIVE");
+        insertResult(insertVehicle("vehicle-001", null), laterCampaignId, "SUCCEEDED", "edge-seoul");
+        insertResult(insertVehicle("vehicle-002", null), campaignId, "SUCCEEDED", "edge-seoul");
+        insertResult(insertVehicle("vehicle-003", null), campaignId, "SUCCEEDED", "edge-seoul");
+        insertResult(insertVehicle("vehicle-004", null), campaignId, "FAILED", "edge-seoul");
+        insertResult(insertVehicle("vehicle-005", null), campaignId, "FAILED", "edge-busan");
+
+        assertThat(edgeUsageRepository.findDownloadCounts())
+                .containsExactly(
+                        new EdgeDownloadCount("edge-busan", campaignId, 0, 1),
+                        new EdgeDownloadCount("edge-seoul", campaignId, 2, 1),
+                        new EdgeDownloadCount("edge-seoul", laterCampaignId, 1, 0));
+    }
+
+    @Test
+    @DisplayName("Edge·캠페인별 다운로드 수: 파일을 받은 Edge 가 없는 결과는 어느 Edge 에도 세지 않는다")
+    void skipsResultWithoutEdge() {
+        Long campaignId = insertCampaign("1.0.1", "ACTIVE");
+        insertResult(insertVehicle("vehicle-001", null), campaignId, "SUCCEEDED", "edge-seoul");
+        insertResult(insertVehicle("vehicle-002", null), campaignId, "FAILED", null);
+
+        assertThat(edgeUsageRepository.findDownloadCounts())
+                .containsExactly(new EdgeDownloadCount("edge-seoul", campaignId, 1, 0));
+    }
+
+    @Test
+    @DisplayName("Edge·캠페인별 다운로드 수: 비활성 캠페인의 결과도 센다")
+    void countsDownloadsOfInactiveCampaign() {
+        Long campaignId = insertCampaign("1.0.1", "INACTIVE");
+        insertResult(insertVehicle("vehicle-001", null), campaignId, "SUCCEEDED", "edge-seoul");
+
+        assertThat(edgeUsageRepository.findDownloadCounts())
+                .containsExactly(new EdgeDownloadCount("edge-seoul", campaignId, 1, 0));
+    }
+
+    private Long insertCampaign(String version, String status) {
+        em.createNativeQuery("INSERT INTO artifact (model, version, sha256, size_bytes, path)"
+                        + " VALUES ('model-a', :version, :sha256, 1, :path)")
+                .setParameter("version", version)
+                .setParameter("sha256", "a".repeat(64))
+                .setParameter("path", "/firmware/model-a/" + version)
+                .executeUpdate();
+        em.createNativeQuery("INSERT INTO campaign (artifact_id, name, model, start_at, end_at, status)"
+                        + " VALUES (LAST_INSERT_ID(), 'campaign', 'model-a', :startAt, :endAt, :status)")
+                .setParameter("startAt", START)
+                .setParameter("endAt", END)
+                .setParameter("status", status)
+                .executeUpdate();
+        return lastInsertId();
+    }
+
+    private void insertResult(Long vehicleId, Long campaignId, String result, String edgeId) {
+        em.createNativeQuery("INSERT INTO update_result"
+                        + " (vehicle_id, campaign_id, result, failure_reason, edge_id, finished_at)"
+                        + " VALUES (:vehicleId, :campaignId, :result, :failureReason, :edgeId, :finishedAt)")
+                .setParameter("vehicleId", vehicleId)
+                .setParameter("campaignId", campaignId)
+                .setParameter("result", result)
+                .setParameter("failureReason", FAILED.equals(result) ? "DOWNLOAD_FAILED" : null)
+                .setParameter("edgeId", edgeId)
+                .setParameter("finishedAt", FINISHED_AT)
+                .executeUpdate();
     }
 
     // 차량 등록과 같이 차량과 상태를 함께 만든다
