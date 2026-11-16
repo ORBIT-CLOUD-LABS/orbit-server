@@ -1,5 +1,6 @@
 package com.orbit.server.domain.update.service;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -93,6 +94,8 @@ class ManifestServiceTest {
         assertThat(result.targetVersion()).isEqualTo("1.0.1");
         assertThat(result.fileSize()).isEqualTo(FILE_SIZE);
         assertThat(result.sha256()).isEqualTo(SHA256);
+        assertThat(result.signature()).isEqualTo(SIGNATURE.signature());
+        assertThat(result.keyId()).isEqualTo(SIGNATURE.keyId());
         // 위치를 보낸 적이 없으므로 기본 Edge(서울)이고 나머지는 설정 순서다
         assertThat(result.edge().edgeId()).isEqualTo("edge-seoul");
         assertThat(result.edge().distanceKm()).isEmpty();
@@ -178,7 +181,7 @@ class ManifestServiceTest {
 
     private Long registerCampaign(String targetVersion, CampaignPeriod period) {
         ArtifactRelease release = new ArtifactRelease("model-a", targetVersion);
-        Artifact artifact = new Artifact(release, new ArtifactFile(SHA256, FILE_SIZE, release.originPath()));
+        Artifact artifact = new Artifact(release, new ArtifactFile(SHA256, FILE_SIZE, release.originPath()), SIGNATURE);
         em.persist(artifact);
         CampaignTarget target = new CampaignTarget("model-a", Set.of("hw-1"), Set.of("KR"));
         CampaignCondition condition = new CampaignCondition(target, VersionRange.unbounded(), period);
