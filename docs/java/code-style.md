@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | 클래스 | 명사, PascalCase | `OrderCanceler` |
 | 메서드 | 동사, camelCase | `cancelOrder()` |
-| boolean | `is/has/can` 접두 | `isCancelable()` |
+| boolean | 상태 질의는 `is/has/can` 접두. 인자를 받는 판정은 예/아니오로 읽히는 3인칭 동사도 허용 | `isCancelable()`, `contains(item)` |
 | 상수 | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
 | 컬렉션 | 복수형 | `orders` |
 

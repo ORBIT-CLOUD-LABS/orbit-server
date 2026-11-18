@@ -45,6 +45,7 @@ log.error("결제 승인 실패: paymentId={}", paymentId, e);
 ## 의존성
 
 - 새 라이브러리는 추가하기 전에 사용자에게 묻는다. JDK 표준 API 나 이미 있는 의존성으로 되는지 먼저 확인한다.
-- 버전은 Gradle version catalog(`gradle/libs.versions.toml`)에 모은다. 빌드 스크립트 여기저기에 버전 문자열을 흩어 두지 않는다.
+- 버전은 `build.gradle` 의 `plugins`·`dependencies` 에 적는다. 다른 빌드 스크립트에 버전 문자열을 흩어 두지 않는다.
+  orbit 은 Gradle version catalog(`gradle/libs.versions.toml`)를 쓰지 않는다. 도입하려면 별도 이슈로 다룬다.
 - 테스트에만 쓰는 라이브러리는 `testImplementation` 으로 둔다.
 - Gradle Wrapper(`gradlew`, `gradle/wrapper/`)를 저장소에 함께 두고, 로컬에 설치된 `gradle` 대신 `./gradlew` 로 실행한다.
