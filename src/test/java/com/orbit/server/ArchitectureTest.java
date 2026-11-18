@@ -24,7 +24,8 @@ import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import java.util.Set;
 
 /**
- * docs/architecture.md 의 의존 규칙을 검사한다. 문서로만 두면 리뷰에서 놓친 위반이 쌓이므로 빌드에서 막는다.
+ * docs/spring-java/architecture.md 의 의존 규칙과 docs/architecture.md 의 컨텍스트 간 통신 규칙을 검사한다. 문서로만 두면 리뷰에서 놓친 위반이 쌓이므로
+ * 빌드에서 막는다.
  *
  * <p>규칙을 바꾸려면 문서와 이 테스트를 함께 고친다.
  */
