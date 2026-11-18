@@ -66,6 +66,8 @@ RFC 9457 Problem Details(`ProblemDetail`)는 쓰지 않는다.
 - 기능 예외는 `BusinessException(errorCode)` 로 던진다. 원인 예외가 있으면 `BusinessException(errorCode, cause)` 로 cause 를 유지한다.
   외부 연동 포트처럼 메서드가 던지는 예외를 계약으로 드러내야 할 때는 `BusinessException` 을 상속한 예외 클래스를 만든다.
   (`OriginStorage` 의 `OriginFileExistsException`, `OriginUploadException`)
+- 값 객체가 생성 시점 검증에 실패하면 `InvalidValueException(메시지)` 를 던진다. 도메인 모델이 Spring 에 의존하지 않도록 `BusinessException` 을 상속하지 않고,
+  `GlobalExceptionHandler` 가 `INVALID_INPUT`(400)으로 응답한다. 메시지는 로그에만 남는다.
 - `GlobalExceptionHandler`(`@RestControllerAdvice`) 한 곳에서 `ErrorCode` 를 상태 코드와 `ApiResponse` 로 바꾼다.
   Spring 이 던지는 기본 예외(검증 실패, 본문 해석 실패 등)도 같은 형식으로 응답한다.
 - 컨트롤러 메서드에는 응답할 수 있는 오류 코드를 `@ApiErrorCodes` 로 적어 API 문서(Swagger)에 표시한다. 공통 오류(400, 401, 500)는 적지 않아도 붙는다.

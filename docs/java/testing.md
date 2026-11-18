@@ -54,7 +54,10 @@ class OrderCancelServiceTest {
         OrderCancelService service = new OrderCancelService(orderRepository, NOW);
 
         // when, then
-        assertThatThrownBy(() -> service.cancel(1L)).isInstanceOf(OrderNotCancelableException.class);
+        assertThatThrownBy(() -> service.cancel(1L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(OrderErrorCode.ORDER_NOT_CANCELABLE);
     }
 }
 ```

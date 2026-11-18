@@ -73,7 +73,7 @@ public void register(String email) {
 public record Email(String value) {
     public Email {
         if (value == null || !value.contains("@")) {
-            throw new InvalidEmailException(value);
+            throw new InvalidValueException("이메일 형식이 아닙니다.");
         }
     }
 }

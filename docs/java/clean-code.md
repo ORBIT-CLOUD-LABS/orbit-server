@@ -33,6 +33,10 @@
 - 커스텀 예외는 `RuntimeException` 을 상속한다. 호출자가 반드시 복구해야 하는 경우만 checked 예외를 쓴다.
 - 에러 코드 반환 대신 예외. 다만 정상 흐름(값이 없을 수 있음 등)을 예외로 제어하지 않는다.
 - 예외 메시지에는 원인을 찾을 수 있는 값(식별자 등)을 넣는다. 비밀번호·토큰 같은 민감한 값은 넣지 않는다.
+- orbit 은 예외 클래스를 경우마다 만들지 않는다. 예시 문서의 `XxxException` 클래스는 일반 Java 예시다.
+  - 업무 규칙 위반은 `BusinessException(XxxErrorCode)` 로 던진다. → [../spring-java/api.md](../spring-java/api.md) 의 오류 응답
+  - 값 객체의 생성 시점 검증 실패는 `InvalidValueException(메시지)` 로 던진다. `IllegalArgumentException` 은 서버 코드·JDK 에서도 던져져 입력 오류와 구분되지 않으므로 쓰지 않는다.
+    메시지는 로그에 남으므로 개인정보를 넣지 않는다.
 
 ## SOLID
 
