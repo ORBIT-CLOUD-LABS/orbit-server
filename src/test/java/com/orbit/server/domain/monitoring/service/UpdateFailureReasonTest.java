@@ -2,7 +2,7 @@ package com.orbit.server.domain.monitoring.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.orbit.server.domain.update.entity.FailureReason;
+import com.orbit.server.domain.update.domain.FailureReason;
 import java.util.Arrays;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

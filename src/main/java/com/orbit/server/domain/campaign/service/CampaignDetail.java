@@ -1,9 +1,9 @@
 package com.orbit.server.domain.campaign.service;
 
-import com.orbit.server.domain.campaign.entity.Campaign;
-import com.orbit.server.domain.campaign.entity.CampaignCondition;
-import com.orbit.server.domain.campaign.entity.CampaignPeriod;
-import com.orbit.server.domain.campaign.entity.CampaignStatus;
+import com.orbit.server.domain.campaign.domain.Campaign;
+import com.orbit.server.domain.campaign.domain.CampaignCondition;
+import com.orbit.server.domain.campaign.domain.CampaignPeriod;
+import com.orbit.server.domain.campaign.domain.CampaignStatus;
 import java.time.Instant;
 
 /**

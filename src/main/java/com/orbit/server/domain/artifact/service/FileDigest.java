@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.service;
 
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

@@ -2,8 +2,8 @@ package com.orbit.server.global.external.cdn;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.orbit.server.domain.edge.entity.Coordinates;
-import com.orbit.server.domain.edge.entity.Edge;
+import com.orbit.server.domain.edge.domain.Coordinates;
+import com.orbit.server.domain.edge.domain.Edge;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;

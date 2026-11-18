@@ -1,13 +1,13 @@
 package com.orbit.server.domain.campaign.controller;
 
-import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
+import static com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.artifact.entity.Artifact;
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import com.orbit.server.domain.artifact.domain.Artifact;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
 import com.orbit.server.domain.artifact.repository.ArtifactRepository;
 import java.util.ArrayList;
 import java.util.List;

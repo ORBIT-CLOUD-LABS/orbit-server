@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.service;
 
-import com.orbit.server.domain.artifact.entity.ArtifactSignature;
+import com.orbit.server.domain.artifact.domain.ArtifactSignature;
 import com.orbit.server.global.error.InvalidValueException;
 import java.util.HashMap;
 import java.util.Map;

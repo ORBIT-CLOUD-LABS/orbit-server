@@ -1,8 +1,8 @@
 package com.orbit.server.domain.campaign.service;
 
-import com.orbit.server.domain.campaign.entity.CampaignCondition;
-import com.orbit.server.domain.campaign.entity.CampaignTarget;
-import com.orbit.server.domain.campaign.entity.VersionRange;
+import com.orbit.server.domain.campaign.domain.CampaignCondition;
+import com.orbit.server.domain.campaign.domain.CampaignTarget;
+import com.orbit.server.domain.campaign.domain.VersionRange;
 import java.util.Collection;
 import java.util.List;
 

@@ -1,12 +1,12 @@
 package com.orbit.server.domain.campaign.service;
 
-import com.orbit.server.domain.campaign.entity.Campaign;
-import com.orbit.server.domain.campaign.entity.CampaignCondition;
-import com.orbit.server.domain.campaign.entity.CampaignName;
-import com.orbit.server.domain.campaign.entity.CampaignPeriod;
-import com.orbit.server.domain.campaign.entity.CampaignTarget;
-import com.orbit.server.domain.campaign.entity.TargetRelease;
-import com.orbit.server.domain.campaign.entity.VersionRange;
+import com.orbit.server.domain.campaign.domain.Campaign;
+import com.orbit.server.domain.campaign.domain.CampaignCondition;
+import com.orbit.server.domain.campaign.domain.CampaignName;
+import com.orbit.server.domain.campaign.domain.CampaignPeriod;
+import com.orbit.server.domain.campaign.domain.CampaignTarget;
+import com.orbit.server.domain.campaign.domain.TargetRelease;
+import com.orbit.server.domain.campaign.domain.VersionRange;
 import java.util.Objects;
 import java.util.Set;
 

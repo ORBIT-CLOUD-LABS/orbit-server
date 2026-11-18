@@ -1,8 +1,8 @@
 package com.orbit.server.global.external.cdn;
 
-import com.orbit.server.domain.edge.entity.Coordinates;
-import com.orbit.server.domain.edge.entity.Edge;
-import com.orbit.server.domain.edge.entity.Edges;
+import com.orbit.server.domain.edge.domain.Coordinates;
+import com.orbit.server.domain.edge.domain.Edge;
+import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

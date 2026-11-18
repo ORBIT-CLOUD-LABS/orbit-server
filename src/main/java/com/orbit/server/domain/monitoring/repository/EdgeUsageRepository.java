@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.repository;
 
-import com.orbit.server.domain.monitoring.entity.CampaignResultRecord;
+import com.orbit.server.domain.monitoring.domain.CampaignResultRecord;
 import com.orbit.server.domain.monitoring.service.EdgeDownloadCount;
 import com.orbit.server.domain.monitoring.service.EdgeVehicleCount;
 import java.util.List;

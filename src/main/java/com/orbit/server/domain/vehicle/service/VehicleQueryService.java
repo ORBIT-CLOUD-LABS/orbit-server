@@ -1,6 +1,6 @@
 package com.orbit.server.domain.vehicle.service;
 
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.repository.VehicleRepository;
 import com.orbit.server.global.error.InvalidValueException;
 import lombok.RequiredArgsConstructor;

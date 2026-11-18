@@ -3,9 +3,9 @@ package com.orbit.server.domain.edge.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.orbit.server.domain.edge.entity.Coordinates;
-import com.orbit.server.domain.edge.entity.Edge;
-import com.orbit.server.domain.edge.entity.Edges;
+import com.orbit.server.domain.edge.domain.Coordinates;
+import com.orbit.server.domain.edge.domain.Edge;
+import com.orbit.server.domain.edge.domain.Edges;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;

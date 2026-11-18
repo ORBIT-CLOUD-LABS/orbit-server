@@ -1,10 +1,10 @@
 package com.orbit.server.domain.artifact.service;
 
-import com.orbit.server.domain.artifact.entity.Artifact;
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
-import com.orbit.server.domain.artifact.entity.ArtifactSignature;
-import com.orbit.server.domain.artifact.entity.FirmwareSignaturePayload;
+import com.orbit.server.domain.artifact.domain.Artifact;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
+import com.orbit.server.domain.artifact.domain.ArtifactSignature;
+import com.orbit.server.domain.artifact.domain.FirmwareSignaturePayload;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.repository.ArtifactRepository;

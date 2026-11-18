@@ -1,6 +1,6 @@
 package com.orbit.server.domain.update.controller;
 
-import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
+import static com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -8,15 +8,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.artifact.entity.Artifact;
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
-import com.orbit.server.domain.campaign.entity.Campaign;
-import com.orbit.server.domain.campaign.entity.CampaignCondition;
-import com.orbit.server.domain.campaign.entity.CampaignName;
-import com.orbit.server.domain.campaign.entity.CampaignPeriod;
-import com.orbit.server.domain.campaign.entity.CampaignTarget;
-import com.orbit.server.domain.campaign.entity.VersionRange;
+import com.orbit.server.domain.artifact.domain.Artifact;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
+import com.orbit.server.domain.campaign.domain.Campaign;
+import com.orbit.server.domain.campaign.domain.CampaignCondition;
+import com.orbit.server.domain.campaign.domain.CampaignName;
+import com.orbit.server.domain.campaign.domain.CampaignPeriod;
+import com.orbit.server.domain.campaign.domain.CampaignTarget;
+import com.orbit.server.domain.campaign.domain.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.common.SuccessCode;

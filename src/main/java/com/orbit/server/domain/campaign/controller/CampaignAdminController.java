@@ -1,12 +1,12 @@
 package com.orbit.server.domain.campaign.controller;
 
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
+import com.orbit.server.domain.campaign.domain.CampaignStatus;
 import com.orbit.server.domain.campaign.dto.request.DeactivateCampaignRequest;
 import com.orbit.server.domain.campaign.dto.request.RegisterCampaignRequest;
 import com.orbit.server.domain.campaign.dto.response.CampaignDetailResponse;
 import com.orbit.server.domain.campaign.dto.response.CampaignListResponse;
 import com.orbit.server.domain.campaign.dto.response.CampaignRegistrationResponse;
-import com.orbit.server.domain.campaign.entity.CampaignStatus;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.service.CampaignDeactivationService;
 import com.orbit.server.domain.campaign.service.CampaignDetailService;

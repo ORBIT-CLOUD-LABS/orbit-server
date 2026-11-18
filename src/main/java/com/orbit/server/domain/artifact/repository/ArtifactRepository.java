@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.repository;
 
-import com.orbit.server.domain.artifact.entity.Artifact;
+import com.orbit.server.domain.artifact.domain.Artifact;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
 import java.util.Collection;
 import java.util.List;

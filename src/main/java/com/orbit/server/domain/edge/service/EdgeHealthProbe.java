@@ -1,6 +1,6 @@
 package com.orbit.server.domain.edge.service;
 
-import com.orbit.server.domain.edge.entity.Edge;
+import com.orbit.server.domain.edge.domain.Edge;
 
 /**
  * Edge 가 지금 파일을 배포할 수 있는 상태인지 한 번 확인한다.

@@ -1,6 +1,6 @@
 package com.orbit.server.domain.campaign.service;
 
-import com.orbit.server.domain.campaign.entity.TargetVehicle;
+import com.orbit.server.domain.campaign.domain.TargetVehicle;
 import java.util.Objects;
 
 /**

@@ -1,7 +1,7 @@
 package com.orbit.server.domain.artifact.service;
 
-import com.orbit.server.domain.artifact.entity.ArtifactSignature;
-import com.orbit.server.domain.artifact.entity.FirmwareSignaturePayload;
+import com.orbit.server.domain.artifact.domain.ArtifactSignature;
+import com.orbit.server.domain.artifact.domain.FirmwareSignaturePayload;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.InvalidValueException;

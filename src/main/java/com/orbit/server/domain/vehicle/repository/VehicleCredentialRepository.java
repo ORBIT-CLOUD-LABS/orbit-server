@@ -1,8 +1,8 @@
 package com.orbit.server.domain.vehicle.repository;
 
-import com.orbit.server.domain.vehicle.entity.TokenHash;
-import com.orbit.server.domain.vehicle.entity.VehicleCredential;
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.TokenHash;
+import com.orbit.server.domain.vehicle.domain.VehicleCredential;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

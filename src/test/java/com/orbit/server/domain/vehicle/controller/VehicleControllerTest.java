@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.vehicle.entity.VehicleToken;
+import com.orbit.server.domain.vehicle.domain.VehicleToken;
 import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.security.AuthErrorCode;

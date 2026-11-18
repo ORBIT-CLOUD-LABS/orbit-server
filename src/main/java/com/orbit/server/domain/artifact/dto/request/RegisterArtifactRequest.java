@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.dto.request;
 
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
 import com.orbit.server.domain.artifact.service.RegisterArtifactCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

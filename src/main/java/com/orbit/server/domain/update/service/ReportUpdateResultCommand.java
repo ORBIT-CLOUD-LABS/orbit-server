@@ -1,9 +1,9 @@
 package com.orbit.server.domain.update.service;
 
-import com.orbit.server.domain.update.entity.FailureReason;
-import com.orbit.server.domain.update.entity.UpdateFailure;
-import com.orbit.server.domain.update.entity.UpdateOutcome;
-import com.orbit.server.domain.update.entity.UpdateStatus;
+import com.orbit.server.domain.update.domain.FailureReason;
+import com.orbit.server.domain.update.domain.UpdateFailure;
+import com.orbit.server.domain.update.domain.UpdateOutcome;
+import com.orbit.server.domain.update.domain.UpdateStatus;
 import com.orbit.server.global.error.InvalidValueException;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;

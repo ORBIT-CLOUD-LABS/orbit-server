@@ -1,6 +1,6 @@
 package com.orbit.server.domain.edge.service;
 
-import com.orbit.server.domain.edge.entity.Edges;
+import com.orbit.server.domain.edge.domain.Edges;
 
 /**
  * 배포 설정으로 정한 CDN Edge 목록을 조회한다. 헬스체크(#85), 매니페스트의 Edge 선택, 대시보드 Edge 상태 API(#88)가 쓴다.

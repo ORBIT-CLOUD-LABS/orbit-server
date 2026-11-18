@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.repository;
 
-import com.orbit.server.domain.monitoring.entity.CampaignResultRecord;
+import com.orbit.server.domain.monitoring.domain.CampaignResultRecord;
 import com.orbit.server.domain.monitoring.service.CampaignResultCount;
 import com.orbit.server.domain.monitoring.service.CampaignResultCounts;
 import com.orbit.server.domain.monitoring.service.UnreportedVehicle;
