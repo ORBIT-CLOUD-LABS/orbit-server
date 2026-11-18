@@ -10,9 +10,11 @@ Spring 컨텍스트를 띄우는 테스트는 느리다. 가능한 한 아래 �
 | 대상 | 방법 |
 | --- | --- |
 | 도메인 객체, 서비스 | Spring 없이 단위 테스트. 서비스의 Repository·외부 연동은 Mockito 로 대체 |
-| 컨트롤러 (요청·검증·응답 형식) | `@WebMvcTest(OrderController.class)` 와 `MockMvcTester`. 서비스는 `@MockitoBean` |
-| Repository, 쿼리 | `@DataJpaTest` 와 Testcontainers 로 띄운 운영과 같은 DB |
-| 여러 레이어를 잇는 흐름 | `@SpringBootTest`. 핵심 시나리오에만 쓴다 |
+| 컨트롤러 (요청·검증·응답 형식) | Spring 없이 `MockMvcBuilders.standaloneSetup` 과 `MockMvc`. 서비스는 Mockito `mock()`, 오류 응답은 `setControllerAdvice(new GlobalExceptionHandler())` |
+| Repository, 쿼리 | `@SpringBootTest` 와 `TestcontainersConfiguration` 으로 띄운 운영과 같은 MySQL. 테스트마다 `@Transactional` 로 되돌린다 |
+| 여러 레이어를 잇는 흐름 (인증·필터 포함) | `@SpringBootTest` 와 `@AutoConfigureMockMvc`. 핵심 시나리오에만 쓴다 |
+
+orbit 은 `@WebMvcTest`·`MockMvcTester`·`@DataJpaTest` 를 쓰지 않는다. 기존 테스트와 같은 방식으로 맞추고, 바꾸려면 별도 이슈로 다룬다.
 
 ## 규칙
 
@@ -22,7 +24,6 @@ Spring 컨텍스트를 띄우는 테스트는 느리다. 가능한 한 아래 �
 - DB 는 H2 같은 다른 DB 로 대신하지 않는다. 방언·제약·함수가 달라 운영에서만 실패하는 쿼리를 놓친다.
 - Testcontainers 컨테이너는 `@ServiceConnection` 을 붙인 `@TestConfiguration` 빈으로 두고 테스트에서 `@Import` 한다.
   같은 설정의 테스트끼리 컨텍스트 캐시를 함께 써서 컨테이너를 한 번만 띄운다.
-- `@DataJpaTest` 는 `@ServiceConnection` 으로 띄운 DB 를 내장 DB 로 바꾸지 않는다. (`@AutoConfigureTestDatabase` 기본값 `NON_TEST`)
 - 테스트마다 `@MockitoBean` 조합이나 설정이 다르면 컨텍스트를 새로 띄운다. 공통 조합은 기반 클래스나 설정으로 모은다.
 - 의존 방향·클래스 위치·기능 간 순환은 설치된 `src/test/java/LayerArchitectureTest.java` 가 ArchUnit 으로 검사한다. 일반 `./gradlew test` 에 포함된다. → [architecture.md](architecture.md)
 - 기존 위반은 ArchUnit 기준선(`src/test/resources/archunit_store`)에 두고 새 위반만 막는다. 기준선을 손으로 고치거나 지우지 않는다.
@@ -56,34 +57,41 @@ public class TestcontainersConfiguration {
     }
 }
 
-@DataJpaTest
+@SpringBootTest
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
-class OrderRepositoryTest {
+@Transactional
+class CampaignRepositoryTest {
 
     @Autowired
-    private OrderRepository orderRepository;
+    private CampaignRepository campaignRepository;
 
     @Test
-    @DisplayName("회원의 결제 완료 주문만 최신순으로 조회한다")
-    void findPaidOrders() { ... }
+    @DisplayName("같은 대상 조건과 목표 버전의 활성 캠페인이 있으면 찾는다")
+    void findsActiveCampaign() { ... }
 }
 
-@WebMvcTest(OrderController.class)
-class OrderControllerTest {
+class CampaignAdminControllerTest {
 
-    @Autowired
-    private MockMvcTester mvc;
+    private MockMvc mockMvc;
+    private CampaignRegistrationService campaignRegistrationService;
 
-    @MockitoBean
-    private OrderService orderService;
+    @BeforeEach
+    void setUp() {
+        campaignRegistrationService = mock(CampaignRegistrationService.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(new CampaignAdminController(campaignRegistrationService, ...))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
 
     @Test
-    @DisplayName("수량이 0 이면 400 을 돌려준다")
-    void rejectsZeroQuantity() {
-        assertThat(mvc.post().uri("/orders").contentType(MediaType.APPLICATION_JSON).content("""
-                        {"productId": 1, "quantity": 0}
+    @DisplayName("이름이 비어 있으면 400 을 돌려준다")
+    void rejectsBlankName() throws Exception {
+        mockMvc.perform(post("/api/v1/admin/campaigns").contentType(MediaType.APPLICATION_JSON).content("""
+                        {"name": "", "artifactId": 1}
                         """))
-                .hasStatus(HttpStatus.BAD_REQUEST);
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.isSuccess").value(false));
     }
 }
 ```
