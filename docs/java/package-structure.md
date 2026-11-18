@@ -37,7 +37,7 @@ JUnit 5 를 쓰도록 `tasks.test { useJUnitPlatform() }` (Kotlin) 또는 `test 
 
 크기 초과 메시지의 역할 분포(`config 3, service 7, record 13, 기타 6`)를 보고 위에서부터 판단한다.
 
-1. **역할이 섞여 있으면 역할 단위 하위 패키지로 나눈다.** 예: `domain/event/`, `application/listener/`, `application/config/`.
+1. **역할이 섞여 있으면 역할 단위 하위 패키지로 나눈다.** 예: `domain/event/`, `service/config/`. 새 레이어 이름(`application/` 등)은 만들지 않는다. → [../spring-java/architecture.md](../spring-java/architecture.md)
    분포가 한 역할로 몰려 있지 않고 두 가지 이상이 크게 섞여 있으면 이 단계다.
 2. **한 역할 안에서도 크면 기능 단위 하위 패키지로 나눈다.** 예: `service/` 안의 서비스가 모두 서비스인데 15개를 넘으면 `service/alert/`, `service/report/` 처럼 기능으로 묶는다.
 3. **컨텍스트 경계 자체가 의심되면 사람에게 묻는다.** 서로 다른 기능이 한 패키지에 들어와 있어 나누기보다 모듈·기능 패키지를 새로 만들어야 하는 경우다. 혼자 정하지 않는다.

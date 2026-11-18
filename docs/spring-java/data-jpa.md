@@ -36,7 +36,7 @@ public class Order {
 
     public void cancel() {
         if (status != OrderStatus.PAID) {
-            throw new OrderNotCancelableException(id);
+            throw new BusinessException(OrderErrorCode.ORDER_NOT_CANCELABLE);
         }
         status = OrderStatus.CANCELED;
     }
@@ -74,7 +74,8 @@ spring:
 - 값 객체를 컬럼 값으로 풀어야 하는 쿼리는 `default` 메서드로 감싸고, 서비스는 `default` 메서드를 쓴다. (`UpdateResultRepository.record`)
 - 목록 조회의 projection 은 조회 결과 타입을 `service` 에 두고 `@Query` 의 JPQL 생성자 표현식으로 만든다. → [architecture.md](architecture.md) 의 의존 방향
 - 메서드 이름 쿼리가 길어지면 `@Query` 로 쓴다.
-- 없을 때의 처리는 서비스에서 기능 예외로 바꾼다. (`findById(id).orElseThrow(() -> new OrderNotFoundException(id))`)
+- 없을 때의 처리는 서비스에서 기능 예외로 바꾼다. (`findById(id).orElseThrow(() -> new BusinessException(CampaignErrorCode.CAMPAIGN_NOT_FOUND))`)
+  예외 클래스를 경우마다 만들지 않고 `ErrorCode` 로 구분한다. → [api.md](api.md) 의 오류 응답
 
 ## 트랜잭션
 

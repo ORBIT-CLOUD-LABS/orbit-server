@@ -61,7 +61,7 @@ controller → service → repository
   설치한 뒤 `LayerArchitectureTest` 의 `FEATURES_PACKAGE`, `GLOBAL_PACKAGE` 를 프로젝트 패키지로 바꾼다. → [testing.md](testing.md)
   - orbit 은 이 테스트들을 #136 에서 들여온다. 그 전까지 의존 규칙은 `com.orbit.server.ArchitectureTest` 가 검사한다.
   - 컨텍스트 간 내부 참조 금지와 `global/external` 의 포트 규칙은 원본 테스트에 없는 orbit 규칙이라 orbit 테스트로 따로 검사한다.
-- 순환 허용 목록(`LayerArchitectureTest` 의 `ignoreDependency`), 큰 패키지 상한(`PackageSizeTest` 의 `KNOWN_LARGE_PACKAGES`), ArchUnit 기준선(`archunit_store`)은 늘리거나 고치지 않는다.
+- 순환 허용 목록(`LayerArchitectureTest` 의 `ignoreDependency`, #136 전까지는 `ArchitectureTest.contextsAreFreeOfCycles` 의 `ignoreDependency`), 큰 패키지 상한(`PackageSizeTest` 의 `KNOWN_LARGE_PACKAGES`), ArchUnit 기준선(`archunit_store`)은 늘리거나 고치지 않는다.
   넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
 
 ## 레이어별 책임
@@ -109,7 +109,8 @@ public record OrderResponse(Long id, String status, int totalPrice) {
 public record PaymentProperties(@NotBlank String baseUrl, @NotNull Duration timeout) {}
 ```
 
-- 애플리케이션 클래스에 `@ConfigurationPropertiesScan` 을 붙여 등록한다.
+- 설정을 쓰는 컨텍스트의 `XxxConfig` 클래스에 `@EnableConfigurationProperties(XxxProperties.class)` 를 붙여 등록한다. (`CheckInConfig`)
+  애플리케이션 클래스에 `@ConfigurationPropertiesScan` 을 붙이지 않는다. 등록 방식이 두 가지로 갈리기 때문이다.
 
 ## null
 

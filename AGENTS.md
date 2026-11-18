@@ -15,6 +15,10 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 문서에 바로 적는다.
 프리셋 버전을 올릴 때는 `agentsmd init --force` 로 덮어쓰지 않는다. 이전 원본과 지금 문서의 차이(orbit 수정분)를 새 원본에 다시 적용한다.
 
+프리셋 문서가 설명하는 `LayerArchitectureTest`·`PackageSizeTest`·`CodingRulesTest`·`SpringCodingRulesTest` 와 `agentsmd verify` 는 #136 에서 들여온다.
+그 전까지 테스트가 검사하는 것은 `com.orbit.server.ArchitectureTest` 의 의존 규칙뿐이다. 나머지 규칙(필드 주입, `ORDINAL`, 즉시 로딩, 인자 없는 `now()` 등)은 리뷰에서 확인하고,
+`agentsmd verify` 대신 아래 검증 명령을 실행한다.
+
 | 문서 | 읽는 시점 |
 | --- | --- |
 | [docs/requirements.md](docs/requirements.md) | 기능 구현 전 (요구사항 확인) |

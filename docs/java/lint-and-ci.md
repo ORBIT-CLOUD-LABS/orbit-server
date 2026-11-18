@@ -47,10 +47,10 @@ IDE 포맷터는 편의용이다. 최종 판정은 `spotlessCheck` 이다.
 
 ## CI
 
-어떤 CI 서비스를 쓰든 아래 명령을 실행한다. 작업을 마치기 전에 돌리는 검증 명령과 같다.
+orbit CI(`.github/workflows/ci.yml`)는 아래 명령을 실행한다. `spotlessCheck` 이 `check` 에 연결되어 있어 `build` 에서 함께 돈다.
 
 ```bash
-./gradlew spotlessCheck build
+./gradlew build
 ```
 
 - CI 의 JDK 는 toolchain 과 같은 21 을 쓴다.
