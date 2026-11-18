@@ -7,23 +7,35 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 
 요구사항의 원본(source of truth)은 orbit 레포에 있다. 이 레포에 복사하지 않는다.
 기능 구현 전에 읽는 방법과 규칙은 [docs/requirements.md](docs/requirements.md).
+프로젝트의 목표와 범위도 요구사항 원본을 따른다. 그래서 별도의 방향 문서(agentsmd `project` 프리셋의 `direction.md`)는 두지 않는다.
 
-## 작업 전 읽을 문서
+## 문서 지도
 
-| 상황 | 문서 |
+`docs/java/`, `docs/spring-java/` 는 agentsmd 0.8.0 프리셋 원본이다. 고치지 않고, orbit 이 다르게 정한 것은 orbit 문서에 적는다.
+
+| 문서 | 읽는 시점 |
 | --- | --- |
-| 기능 구현 (요구사항 확인) | [docs/requirements.md](docs/requirements.md) |
-| 패키지·클래스 위치, 도메인 설계 (DDD) | [docs/architecture.md](docs/architecture.md) |
-| Java 코드 작성·리뷰 (항상) | [docs/java-checklist.md](docs/java-checklist.md) |
-| 설계·함수·예외·SOLID 판단 | [docs/clean-code.md](docs/clean-code.md) |
-| 원칙 적용 예시가 필요할 때 | [docs/clean-code-examples.md](docs/clean-code-examples.md) |
-| 포맷·네이밍·주석 | [docs/code-style.md](docs/code-style.md) |
-| Issue·Branch·커밋·PR·리뷰 (Org 공통 CONTRIBUTING) | [docs/git-conventions.md](docs/git-conventions.md) |
+| [docs/requirements.md](docs/requirements.md) | 기능 구현 전 (요구사항 확인) |
+| [docs/conventions.md](docs/conventions.md) | 코드 작성·리뷰 (항상). orbit 이 프리셋과 다르게 정한 규칙 |
+| [docs/architecture.md](docs/architecture.md) | 패키지·클래스 위치, 도메인 설계 (DDD, 바운디드 컨텍스트) |
+| [docs/git-conventions.md](docs/git-conventions.md) | Issue·Branch·커밋·PR·리뷰 (Org 공통 CONTRIBUTING) |
+| [docs/java/checklist.md](docs/java/checklist.md) | Java 코드 작성·리뷰 |
+| [docs/java/clean-code.md](docs/java/clean-code.md) | 코드 작성, 설계 |
+| [docs/java/clean-code-examples.md](docs/java/clean-code-examples.md) | 코드 작성 시 참고 예시 |
+| [docs/java/code-style.md](docs/java/code-style.md) | 코드 작성, 주석 |
+| [docs/java/testing.md](docs/java/testing.md) | 테스트를 쓸 때 |
+| [docs/java/logging-and-security.md](docs/java/logging-and-security.md) | 로그를 남길 때, 비밀값·외부 입력·의존성을 다룰 때 |
+| [docs/java/lint-and-ci.md](docs/java/lint-and-ci.md) | 린트·포맷·CI 설정 |
+| [docs/java/package-structure.md](docs/java/package-structure.md) | 클래스를 추가할 때, 패키지가 커져 PackageSizeTest 가 실패할 때 |
+| [docs/spring-java/architecture.md](docs/spring-java/architecture.md) | 클래스·패키지를 만들 때. 패키지 구조, 의존 방향, 주입, DTO 경계, 설정 |
+| [docs/spring-java/data-jpa.md](docs/spring-java/data-jpa.md) | 엔티티·Repository·트랜잭션을 다룰 때. 지연 로딩, N+1, 스키마 마이그레이션 |
+| [docs/spring-java/api.md](docs/spring-java/api.md) | 컨트롤러·API 를 만들 때. URL, 상태 코드, 요청 검증, 오류 응답, 페이징 |
+| [docs/spring-java/testing.md](docs/spring-java/testing.md) | Spring 이 필요한 테스트를 쓸 때. 슬라이스 테스트, @MockitoBean, Testcontainers |
 
-문서끼리 충돌하면 `java-checklist.md` > `clean-code.md` 순으로 따른다.
-(예: 파라미터 객체 검토 예외는 checklist 의 기준을 따른다.)
+문서끼리 충돌하면 orbit 문서(`conventions.md`, `architecture.md`) > `docs/spring-java/` > `docs/java/` 순으로 따른다.
+`docs/java/` 안에서는 `checklist.md` > `clean-code.md` 순이다. (예: 파라미터 객체 검토 예외는 checklist 의 기준을 따른다.)
 
-## 핵심 규칙 요약
+## 핵심 규칙
 
 문서를 다 읽지 못했더라도 아래는 반드시 지킨다.
 
@@ -33,32 +45,33 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 - `global` 에는 설정·전역 예외·보안 같은 기술 기반만 둔다. 비즈니스 규칙은 두지 않는다.
   외부 시스템 연동 구현은 `global/external/{시스템}` 에 두고, `service` 의 포트(인터페이스)를 구현한다.
 - `XxxService` 는 유스케이스를 조율하는 서비스만 쓴다. 도메인 서비스는 역할로 이름 짓는다. (`DispatchPolicy`)
-
-- 중첩은 2단계 이하, 조기 반환. 앞 분기가 `return`·`throw` 로 끝나면 `else` 를 쓰지 않는다.
-- 메서드 인자는 3개 이하 권장, 넘으면 파라미터 객체를 검토한다. 메서드는 한 가지 일만.
-- 검증이나 도메인 의미가 있는 값은 값 객체로 만들고 검증은 생성자에서.
-- 규칙(검증·합계·필터)이 붙는 컬렉션은 일급 컬렉션으로 감싼다.
-- setter 금지. getter 는 Lombok `@Getter`(`getXxx()`)로 응답 변환 같은 읽기에만 쓰고, 판단은 객체에 시킨다.
-- 서비스가 주입받는 협력 객체는 5개 이하, 넘으면 분리를 검토하고 안 하면 PR 에 이유를 적는다.
-- 디미터 법칙: 객체 내부를 연달아 탐색하지 않는다. stream·builder 체인은 허용.
 - Repository 는 `JpaRepository` 를 바로 상속하고 서비스가 직접 주입받는다. 포트와 구현으로 나누지 않는다.
 - 단건 상세 조회는 엔티티를 읽어 변환하고, 목록·대시보드는 Repository 의 `@Query` projection 으로 읽는다.
+- API 는 성공·실패 모두 공통 응답 `ApiResponse` 로 응답한다. `ProblemDetail` 을 쓰지 않는다.
 - 빈 catch 금지. 커스텀 예외로 감싸고 cause 를 유지한다.
-- null 반환 대신 `Optional` 또는 빈 컬렉션.
-- 매직 넘버·문자열은 상수나 enum 으로.
-- public 클래스·메서드에는 Javadoc. 주석은 무엇이 아니라 **왜**를 쓴다.
 - 인터페이스는 경계에만 둔다: 다른 모듈이 호출하는 진입점, 외부 시스템 연동, 구현이 둘 이상인 정책.
   모듈 내부의 단일 구현 클래스에는 만들지 않는다. (`XxxServiceImpl` 금지)
 - 과설계 금지: 패턴은 문제가 보일 때 적용하고, 중복은 세 번 반복될 때 추출한다.
+- 주석에는 코드만 봐서는 알 수 없는 의도와 이유를 쓴다. 코드를 되풀이하지 않는다.
+- 포맷은 손으로 맞추지 않는다. 작업을 마치기 전 `./gradlew spotlessApply`.
+- 기능은 테스트와 함께 쓴다. 버그 수정은 재현 테스트부터 쓴다.
+- 로그와 예외 메시지에 비밀값·개인정보를 남기지 않는다.
+- 새 의존성은 사용자에게 묻고 추가한다.
+- 필드 주입 대신 생성자 주입을 쓴다.
+- 엔티티를 API 요청·응답으로 쓰지 않는다. DTO(record)로 바꾼다.
+- `@Transactional` 은 service 에 두고, 조회는 `readOnly = true`. 트랜잭션 안에서 외부 API 를 부르지 않는다.
+- ArchUnit 기준선(archunit_store), PackageSizeTest 의 큰 패키지 상한, 순환 허용 목록을 늘리지 않는다. 넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
+
+중첩, 인자 개수, 값 객체, 일급 컬렉션, getter, 협력 객체 수, 디미터 법칙 같은 코드 단위 기준은 [docs/java/checklist.md](docs/java/checklist.md),
+null·매직 넘버·예외는 [docs/java/clean-code.md](docs/java/clean-code.md), Javadoc·주석은 [docs/java/code-style.md](docs/java/code-style.md) 에 있다.
 
 ## 작업 방식
 
 - 기존 코드의 구조·네이밍·주석 밀도를 먼저 확인하고 그에 맞춘다.
 - 요청 범위 밖의 리팩터링이나 파일 정리는 하지 않는다. 필요해 보이면 제안만 한다.
-- 기능 구현은 테스트와 함께 작성한다. 버그 수정은 재현 테스트를 먼저 쓴다.
 - 작업을 마치기 전에 아래 검증을 실행하고 결과를 그대로 보고한다. 실패를 숨기지 않는다.
 
-## 빌드·검증
+## 검증
 
 ```bash
 ./gradlew spotlessApply   # 포맷 적용 (palantir-java-format)
@@ -67,4 +80,4 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 ./gradlew build           # 전체 빌드
 ```
 
-- 포맷은 손으로 맞추지 않고 palantir-java-format 에 맡긴다. 들여쓰기는 공백 4칸. 강제 방식은 [docs/lint-and-ci.md](docs/lint-and-ci.md).
+- 포맷은 손으로 맞추지 않고 palantir-java-format 에 맡긴다. 들여쓰기는 공백 4칸. 강제 방식은 [docs/java/lint-and-ci.md](docs/java/lint-and-ci.md).
