@@ -1,0 +1,8 @@
+{
+  "steps": [
+    {
+      "name": "build",
+      "run": "./gradlew spotlessCheck build"
+    }
+  ]
+}
