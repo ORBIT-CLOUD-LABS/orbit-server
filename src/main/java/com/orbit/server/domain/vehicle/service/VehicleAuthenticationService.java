@@ -1,7 +1,7 @@
 package com.orbit.server.domain.vehicle.service;
 
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
-import com.orbit.server.domain.vehicle.entity.VehicleToken;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.VehicleToken;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.domain.vehicle.repository.VehicleCredentialRepository;
 import com.orbit.server.global.error.BusinessException;

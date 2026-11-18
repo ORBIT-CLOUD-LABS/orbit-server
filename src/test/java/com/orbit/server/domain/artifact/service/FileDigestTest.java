@@ -3,7 +3,7 @@ package com.orbit.server.domain.artifact.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.global.error.InvalidValueException;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;

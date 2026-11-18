@@ -2,7 +2,7 @@ package com.orbit.server.domain.campaign.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.orbit.server.domain.campaign.entity.CampaignStatus;
+import com.orbit.server.domain.campaign.domain.CampaignStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

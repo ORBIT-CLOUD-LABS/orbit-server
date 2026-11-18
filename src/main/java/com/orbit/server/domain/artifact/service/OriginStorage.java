@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.service;
 
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.exception.OriginFileExistsException;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import org.springframework.core.io.InputStreamSource;

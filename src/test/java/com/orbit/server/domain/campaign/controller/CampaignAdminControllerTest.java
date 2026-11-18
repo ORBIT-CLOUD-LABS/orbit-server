@@ -13,11 +13,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
-import com.orbit.server.domain.campaign.entity.CampaignName;
-import com.orbit.server.domain.campaign.entity.CampaignPeriod;
-import com.orbit.server.domain.campaign.entity.CampaignStatus;
-import com.orbit.server.domain.campaign.entity.TargetRelease;
-import com.orbit.server.domain.campaign.entity.VersionRange;
+import com.orbit.server.domain.campaign.domain.CampaignName;
+import com.orbit.server.domain.campaign.domain.CampaignPeriod;
+import com.orbit.server.domain.campaign.domain.CampaignStatus;
+import com.orbit.server.domain.campaign.domain.TargetRelease;
+import com.orbit.server.domain.campaign.domain.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.service.CampaignDeactivationService;
 import com.orbit.server.domain.campaign.service.CampaignDetail;

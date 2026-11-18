@@ -1,9 +1,9 @@
 package com.orbit.server.domain.campaign.dto.request;
 
-import com.orbit.server.domain.campaign.entity.CampaignName;
-import com.orbit.server.domain.campaign.entity.CampaignPeriod;
-import com.orbit.server.domain.campaign.entity.TargetRelease;
-import com.orbit.server.domain.campaign.entity.VersionRange;
+import com.orbit.server.domain.campaign.domain.CampaignName;
+import com.orbit.server.domain.campaign.domain.CampaignPeriod;
+import com.orbit.server.domain.campaign.domain.TargetRelease;
+import com.orbit.server.domain.campaign.domain.VersionRange;
 import com.orbit.server.domain.campaign.service.RegisterCampaignCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.artifact.entity.Artifact;
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
-import com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture;
+import com.orbit.server.domain.artifact.domain.Artifact;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
+import com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import java.util.Base64;

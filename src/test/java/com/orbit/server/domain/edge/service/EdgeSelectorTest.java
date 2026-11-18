@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 
-import com.orbit.server.domain.edge.entity.Coordinates;
-import com.orbit.server.domain.edge.entity.Edge;
-import com.orbit.server.domain.edge.entity.Edges;
+import com.orbit.server.domain.edge.domain.Coordinates;
+import com.orbit.server.domain.edge.domain.Edge;
+import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.domain.edge.exception.EdgeErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import java.net.URI;

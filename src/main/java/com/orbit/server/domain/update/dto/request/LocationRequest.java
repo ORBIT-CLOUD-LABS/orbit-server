@@ -1,6 +1,6 @@
 package com.orbit.server.domain.update.dto.request;
 
-import com.orbit.server.domain.update.entity.VehicleLocation;
+import com.orbit.server.domain.update.domain.VehicleLocation;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.validation.constraints.NotNull;
 

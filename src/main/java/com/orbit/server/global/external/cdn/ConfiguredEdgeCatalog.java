@@ -1,6 +1,6 @@
 package com.orbit.server.global.external.cdn;
 
-import com.orbit.server.domain.edge.entity.Edges;
+import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.domain.edge.service.EdgeCatalog;
 import org.springframework.stereotype.Component;
 

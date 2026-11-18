@@ -1,6 +1,6 @@
 package com.orbit.server.domain.vehicle.service;
 
-import com.orbit.server.domain.vehicle.entity.VehicleToken;
+import com.orbit.server.domain.vehicle.domain.VehicleToken;
 import java.time.Instant;
 
 /**

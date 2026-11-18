@@ -1,7 +1,7 @@
 package com.orbit.server.domain.vehicle.repository;
 
-import com.orbit.server.domain.vehicle.entity.Vehicle;
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.Vehicle;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.service.VehicleProfile;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;

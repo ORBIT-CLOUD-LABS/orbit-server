@@ -3,10 +3,10 @@ package com.orbit.server.domain.artifact.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
-import com.orbit.server.domain.artifact.entity.ArtifactSignature;
-import com.orbit.server.domain.artifact.entity.FirmwareSignaturePayload;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
+import com.orbit.server.domain.artifact.domain.ArtifactSignature;
+import com.orbit.server.domain.artifact.domain.FirmwareSignaturePayload;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import java.util.Base64;

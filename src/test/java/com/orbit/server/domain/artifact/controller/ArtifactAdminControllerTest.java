@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;

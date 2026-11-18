@@ -1,7 +1,7 @@
 package com.orbit.server.domain.update.service;
 
-import com.orbit.server.domain.update.entity.SoftwareVersion;
-import com.orbit.server.domain.update.entity.VehicleLocation;
+import com.orbit.server.domain.update.domain.SoftwareVersion;
+import com.orbit.server.domain.update.domain.VehicleLocation;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;

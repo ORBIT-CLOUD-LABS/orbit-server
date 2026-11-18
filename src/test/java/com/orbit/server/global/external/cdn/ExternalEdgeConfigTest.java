@@ -2,7 +2,7 @@ package com.orbit.server.global.external.cdn;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.orbit.server.domain.edge.entity.Edges;
+import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.domain.edge.service.EdgeCatalog;
 import com.orbit.server.domain.edge.service.EdgeSelectionProperties;
 import java.io.IOException;

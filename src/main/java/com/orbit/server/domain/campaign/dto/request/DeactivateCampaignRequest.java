@@ -1,7 +1,7 @@
 package com.orbit.server.domain.campaign.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.orbit.server.domain.campaign.entity.CampaignStatus;
+import com.orbit.server.domain.campaign.domain.CampaignStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 

@@ -1,7 +1,7 @@
 package com.orbit.server.domain.update.service;
 
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
-import com.orbit.server.domain.update.entity.UpdateOutcome;
+import com.orbit.server.domain.update.domain.UpdateOutcome;
 import com.orbit.server.domain.update.repository.UpdateResultRepository;
 import com.orbit.server.domain.update.repository.VehicleEventRepository;
 import com.orbit.server.global.error.InvalidValueException;

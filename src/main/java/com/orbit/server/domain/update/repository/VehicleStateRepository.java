@@ -1,8 +1,8 @@
 package com.orbit.server.domain.update.repository;
 
-import com.orbit.server.domain.update.entity.SoftwareVersion;
-import com.orbit.server.domain.update.entity.VehicleLocation;
-import com.orbit.server.domain.update.entity.VehicleState;
+import com.orbit.server.domain.update.domain.SoftwareVersion;
+import com.orbit.server.domain.update.domain.VehicleLocation;
+import com.orbit.server.domain.update.domain.VehicleState;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

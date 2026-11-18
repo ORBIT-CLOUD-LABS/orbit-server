@@ -3,12 +3,12 @@ package com.orbit.server.domain.update.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.update.entity.SoftwareVersion;
-import com.orbit.server.domain.update.entity.VehicleLocation;
-import com.orbit.server.domain.update.entity.VehicleState;
-import com.orbit.server.domain.vehicle.entity.Vehicle;
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
-import com.orbit.server.domain.vehicle.entity.VehicleSpec;
+import com.orbit.server.domain.update.domain.SoftwareVersion;
+import com.orbit.server.domain.update.domain.VehicleLocation;
+import com.orbit.server.domain.update.domain.VehicleState;
+import com.orbit.server.domain.vehicle.domain.Vehicle;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;

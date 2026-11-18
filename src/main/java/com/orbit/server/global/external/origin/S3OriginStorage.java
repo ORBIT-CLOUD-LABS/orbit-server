@@ -1,6 +1,6 @@
 package com.orbit.server.global.external.origin;
 
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.exception.OriginFileExistsException;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.service.OriginStorage;

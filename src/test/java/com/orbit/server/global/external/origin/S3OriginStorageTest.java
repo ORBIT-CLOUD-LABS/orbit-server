@@ -8,7 +8,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.exception.OriginFileExistsException;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;

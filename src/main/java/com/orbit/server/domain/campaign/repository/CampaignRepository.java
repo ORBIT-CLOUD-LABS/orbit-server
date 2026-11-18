@@ -1,6 +1,6 @@
 package com.orbit.server.domain.campaign.repository;
 
-import com.orbit.server.domain.campaign.entity.Campaign;
+import com.orbit.server.domain.campaign.domain.Campaign;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
 import com.orbit.server.domain.campaign.service.CampaignSummary;
 import java.util.List;
@@ -26,7 +26,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, Long> {
     // idx_campaign_status_model 인덱스를 타도록 상태와 차종으로만 거른다
     @Query("""
             select c from Campaign c
-            where c.status = com.orbit.server.domain.campaign.entity.CampaignStatus.ACTIVE
+            where c.status = com.orbit.server.domain.campaign.domain.CampaignStatus.ACTIVE
               and c.condition.target.model = :model
             """)
     List<Campaign> findAllActiveByModel(@Param("model") String model);

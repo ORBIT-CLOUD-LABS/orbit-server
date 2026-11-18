@@ -1,8 +1,8 @@
 package com.orbit.server.domain.update.repository;
 
-import com.orbit.server.domain.update.entity.UpdateFailure;
-import com.orbit.server.domain.update.entity.UpdateOutcome;
-import com.orbit.server.domain.update.entity.UpdateResult;
+import com.orbit.server.domain.update.domain.UpdateFailure;
+import com.orbit.server.domain.update.domain.UpdateOutcome;
+import com.orbit.server.domain.update.domain.UpdateResult;
 import java.time.Instant;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;

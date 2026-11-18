@@ -1,7 +1,7 @@
 package com.orbit.server.domain.artifact.service;
 
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
-import com.orbit.server.domain.artifact.entity.ArtifactSignature;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactSignature;
 
 /**
  * Origin 파일 등록 결과. 서명은 매니페스트로만 내려주므로 키 버전만 담는다.

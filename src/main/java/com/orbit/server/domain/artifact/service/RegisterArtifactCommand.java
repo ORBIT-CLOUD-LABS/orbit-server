@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.service;
 
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.core.io.InputStreamSource;

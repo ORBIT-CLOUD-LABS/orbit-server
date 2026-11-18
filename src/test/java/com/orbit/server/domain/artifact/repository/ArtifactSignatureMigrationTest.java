@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.repository;
 
-import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
+import static com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

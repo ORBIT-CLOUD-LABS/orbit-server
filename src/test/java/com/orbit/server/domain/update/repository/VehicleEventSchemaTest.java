@@ -1,22 +1,22 @@
 package com.orbit.server.domain.update.repository;
 
-import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
+import static com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.artifact.entity.Artifact;
-import com.orbit.server.domain.artifact.entity.ArtifactFile;
-import com.orbit.server.domain.artifact.entity.ArtifactRelease;
-import com.orbit.server.domain.campaign.entity.Campaign;
-import com.orbit.server.domain.campaign.entity.CampaignCondition;
-import com.orbit.server.domain.campaign.entity.CampaignName;
-import com.orbit.server.domain.campaign.entity.CampaignPeriod;
-import com.orbit.server.domain.campaign.entity.CampaignTarget;
-import com.orbit.server.domain.campaign.entity.VersionRange;
-import com.orbit.server.domain.vehicle.entity.Vehicle;
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
-import com.orbit.server.domain.vehicle.entity.VehicleSpec;
+import com.orbit.server.domain.artifact.domain.Artifact;
+import com.orbit.server.domain.artifact.domain.ArtifactFile;
+import com.orbit.server.domain.artifact.domain.ArtifactRelease;
+import com.orbit.server.domain.campaign.domain.Campaign;
+import com.orbit.server.domain.campaign.domain.CampaignCondition;
+import com.orbit.server.domain.campaign.domain.CampaignName;
+import com.orbit.server.domain.campaign.domain.CampaignPeriod;
+import com.orbit.server.domain.campaign.domain.CampaignTarget;
+import com.orbit.server.domain.campaign.domain.VersionRange;
+import com.orbit.server.domain.vehicle.domain.Vehicle;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 import java.time.Duration;

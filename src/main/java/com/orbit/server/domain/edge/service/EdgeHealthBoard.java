@@ -1,7 +1,7 @@
 package com.orbit.server.domain.edge.service;
 
-import com.orbit.server.domain.edge.entity.Edge;
-import com.orbit.server.domain.edge.entity.EdgeHealth;
+import com.orbit.server.domain.edge.domain.Edge;
+import com.orbit.server.domain.edge.domain.EdgeHealth;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

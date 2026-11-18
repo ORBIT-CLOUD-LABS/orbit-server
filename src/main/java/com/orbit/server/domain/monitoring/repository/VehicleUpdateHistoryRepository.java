@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.repository;
 
-import com.orbit.server.domain.monitoring.entity.VehicleEventRecord;
+import com.orbit.server.domain.monitoring.domain.VehicleEventRecord;
 import com.orbit.server.domain.monitoring.service.VehicleUpdateAttempt;
 import java.util.List;
 import java.util.Optional;

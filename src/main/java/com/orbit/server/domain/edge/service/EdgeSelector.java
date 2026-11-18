@@ -1,7 +1,7 @@
 package com.orbit.server.domain.edge.service;
 
-import com.orbit.server.domain.edge.entity.Coordinates;
-import com.orbit.server.domain.edge.entity.Edge;
+import com.orbit.server.domain.edge.domain.Coordinates;
+import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.exception.EdgeErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import java.util.ArrayList;

@@ -1,8 +1,8 @@
 package com.orbit.server.domain.update.service;
 
-import com.orbit.server.domain.update.entity.SoftwareVersion;
-import com.orbit.server.domain.update.entity.VehicleLocation;
-import com.orbit.server.domain.update.entity.VehicleState;
+import com.orbit.server.domain.update.domain.SoftwareVersion;
+import com.orbit.server.domain.update.domain.VehicleLocation;
+import com.orbit.server.domain.update.domain.VehicleState;
 import com.orbit.server.domain.update.repository.ManifestStateRow;
 import com.orbit.server.domain.update.repository.VehicleStateRepository;
 import com.orbit.server.domain.update.service.ManifestVehicleState.LastLocation;

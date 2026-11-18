@@ -1,6 +1,6 @@
 package com.orbit.server.domain.campaign.service;
 
-import com.orbit.server.domain.campaign.entity.CampaignStatus;
+import com.orbit.server.domain.campaign.domain.CampaignStatus;
 import org.springframework.util.StringUtils;
 
 /**

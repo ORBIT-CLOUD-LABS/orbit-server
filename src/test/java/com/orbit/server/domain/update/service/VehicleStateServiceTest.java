@@ -4,12 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.update.entity.SoftwareVersion;
-import com.orbit.server.domain.update.entity.VehicleLocation;
+import com.orbit.server.domain.update.domain.SoftwareVersion;
+import com.orbit.server.domain.update.domain.VehicleLocation;
 import com.orbit.server.domain.update.service.ManifestVehicleState.LastLocation;
-import com.orbit.server.domain.vehicle.entity.Vehicle;
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
-import com.orbit.server.domain.vehicle.entity.VehicleSpec;
+import com.orbit.server.domain.vehicle.domain.Vehicle;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import com.orbit.server.domain.vehicle.repository.VehicleRepository;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.EntityManager;

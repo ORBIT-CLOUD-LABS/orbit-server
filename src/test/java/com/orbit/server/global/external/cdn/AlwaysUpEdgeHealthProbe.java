@@ -1,6 +1,6 @@
 package com.orbit.server.global.external.cdn;
 
-import com.orbit.server.domain.edge.entity.Edge;
+import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.service.EdgeHealthProbe;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;

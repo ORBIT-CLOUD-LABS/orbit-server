@@ -2,9 +2,9 @@ package com.orbit.server.domain.campaign.service;
 
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
-import com.orbit.server.domain.campaign.entity.Campaign;
-import com.orbit.server.domain.campaign.entity.TargetCampaign;
-import com.orbit.server.domain.campaign.entity.TargetVehicle;
+import com.orbit.server.domain.campaign.domain.Campaign;
+import com.orbit.server.domain.campaign.domain.TargetCampaign;
+import com.orbit.server.domain.campaign.domain.TargetVehicle;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import com.orbit.server.domain.shared.DottedVersion;

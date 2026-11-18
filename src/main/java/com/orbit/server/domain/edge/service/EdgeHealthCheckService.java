@@ -1,6 +1,6 @@
 package com.orbit.server.domain.edge.service;
 
-import com.orbit.server.domain.edge.entity.Edge;
+import com.orbit.server.domain.edge.domain.Edge;
 import org.springframework.stereotype.Service;
 
 /**

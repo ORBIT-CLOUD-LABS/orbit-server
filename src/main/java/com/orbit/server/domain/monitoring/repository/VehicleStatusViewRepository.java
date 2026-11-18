@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.repository;
 
-import com.orbit.server.domain.monitoring.entity.VehicleStatusView;
+import com.orbit.server.domain.monitoring.domain.VehicleStatusView;
 import com.orbit.server.domain.monitoring.service.VehicleDetail;
 import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusChanges;

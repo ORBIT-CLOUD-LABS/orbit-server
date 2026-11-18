@@ -1,7 +1,7 @@
 package com.orbit.server.domain.vehicle.dto.request;
 
-import com.orbit.server.domain.vehicle.entity.VehicleExternalId;
-import com.orbit.server.domain.vehicle.entity.VehicleSpec;
+import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
+import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import com.orbit.server.domain.vehicle.service.RegisterVehicleCommand;
 import jakarta.validation.constraints.NotBlank;
 
