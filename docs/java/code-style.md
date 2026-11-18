@@ -2,8 +2,8 @@
 
 ## 포맷
 
-- palantir-java-format (공백 4칸 들여쓰기, 120자). 수동 정렬하지 않는다.
-- 커밋 전 `./gradlew spotlessApply`. 빌드 시 `spotlessCheck` 이 위반을 잡는다.
+- palantir-java-format (Spotless). 들여쓰기 공백 4칸, 줄 길이 120. 수동 정렬하지 않는다.
+- 작업을 마치기 전 `./gradlew spotlessApply`. 검증 명령과 CI 가 `spotlessCheck` 를 돌린다.
 - 설정은 [lint-and-ci.md](lint-and-ci.md).
 
 ## 네이밍
@@ -39,7 +39,7 @@
 
 - 코드를 그대로 읽는 주석 (`// i 증가`)
 - 주석 처리된 코드
-- 변경 이력 주석 (git 이 한다)
+- 변경 이력 주석 (버전 관리 도구가 한다)
 
 ```java
 /**
@@ -49,13 +49,13 @@
  * @throws OrderNotCancelableException 결제 후 24시간이 지난 경우
  */
 public void cancel(Long orderId) {
-	Order order = orderRepository.getById(orderId);
+    Order order = orderRepository.getById(orderId);
 
-	// 정산이 결제 후 24시간 시점에 확정되므로 그 이후 취소는 환불 절차로 처리한다.
-	if (order.isPaidBefore(CANCEL_LIMIT)) {
-		throw new OrderNotCancelableException(orderId);
-	}
-	order.cancel();
+    // 정산이 결제 후 24시간 시점에 확정되므로 그 이후 취소는 환불 절차로 처리한다.
+    if (order.isPaidBefore(CANCEL_LIMIT)) {
+        throw new OrderNotCancelableException(orderId);
+    }
+    order.cancel();
 }
 ```
 

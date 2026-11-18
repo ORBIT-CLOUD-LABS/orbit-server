@@ -1,7 +1,7 @@
 # 클린 코드 + SOLID
 
 코드 작성·리뷰 시 체크리스트. 예시는 [clean-code-examples.md](clean-code-examples.md).
-Java 는 [java-checklist.md](java-checklist.md) 를 함께 본다. 겹치면 그쪽이 우선한다.
+값 객체, 일급 컬렉션, 중첩 깊이처럼 Java 코드에서 확인할 구체적인 기준은 [checklist.md](checklist.md) 에 있다. 겹치면 그쪽이 우선한다.
 
 ## 함수
 
@@ -17,6 +17,7 @@ Java 는 [java-checklist.md](java-checklist.md) 를 함께 본다. 겹치면 그
 - 매직 넘버·문자열은 상수나 enum 으로.
 - 불변을 기본으로. 필드는 `final`, 컬렉션은 방어적 복사.
 - null 반환 대신 `Optional` 또는 빈 컬렉션.
+- `Optional` 은 반환 타입에만 쓴다. 필드, 파라미터, 컬렉션 원소에는 쓰지 않는다.
 - 검증이나 도메인 의미가 있는 값은 원시 값 대신 의미 있는 타입. (`String email` → `Email`)
 
 ## 객체
@@ -29,7 +30,13 @@ Java 는 [java-checklist.md](java-checklist.md) 를 함께 본다. 겹치면 그
 
 - 예외를 삼키지 않는다. 빈 catch 금지.
 - 의미 있는 커스텀 예외로 감싼다. 원인(cause)을 유지한다.
-- 에러 코드 반환 대신 예외.
+- 커스텀 예외는 `RuntimeException` 을 상속한다. 호출자가 반드시 복구해야 하는 경우만 checked 예외를 쓴다.
+- 에러 코드 반환 대신 예외. 다만 정상 흐름(값이 없을 수 있음 등)을 예외로 제어하지 않는다.
+- 예외 메시지에는 원인을 찾을 수 있는 값(식별자 등)을 넣는다. 비밀번호·토큰 같은 민감한 값은 넣지 않는다.
+- orbit 은 예외 클래스를 경우마다 만들지 않는다. 예시 문서의 `XxxException` 클래스는 일반 Java 예시다.
+  - 업무 규칙 위반은 `BusinessException(XxxErrorCode)` 로 던진다. → [../spring-java/api.md](../spring-java/api.md) 의 오류 응답
+  - 값 객체의 생성 시점 검증 실패는 `InvalidValueException(메시지)` 로 던진다. `IllegalArgumentException` 은 서버 코드·JDK 에서도 던져져 입력 오류와 구분되지 않으므로 쓰지 않는다.
+    메시지는 로그에 남으므로 개인정보를 넣지 않는다.
 
 ## SOLID
 
@@ -39,14 +46,14 @@ Java 는 [java-checklist.md](java-checklist.md) 를 함께 본다. 겹치면 그
 | OCP 개방-폐쇄 | 기능 추가 시 기존 코드 수정 없이 확장 | 타입별 `if/switch` 가 여러 곳에 반복 |
 | LSP 리스코프 치환 | 하위 타입은 상위 타입 계약을 지킨다 | 오버라이드에서 `UnsupportedOperationException` |
 | ISP 인터페이스 분리 | 클라이언트가 안 쓰는 메서드에 의존하지 않게 | 빈 구현 메서드 |
-| DIP 의존 역전 | 구체 클래스가 아니라 추상에 의존 | 내부에서 `new` 로 협력 객체 생성 |
+| DIP 의존 역전 | 협력 객체는 생성자로 주입받고, 외부 시스템처럼 바뀌는 경계에서는 추상에 의존 | 내부에서 `new` 로 협력 객체 생성 |
 
 ## 추상화 기준
 
 인터페이스를 만든다:
 
 - 다른 모듈(패키지)이 호출하는 진입점
-- 외부 시스템 연동 (PG, 메일, 외부 API 등)
+- 외부 시스템 연동 (결제, 메일, 외부 API 등)
 - 구현이 둘 이상이거나, 교체 계획이 명확한 정책
 
 인터페이스를 만들지 않는다:
