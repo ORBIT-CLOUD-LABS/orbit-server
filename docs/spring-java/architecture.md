@@ -61,6 +61,8 @@ controller → service → repository
   orbit 은 `FEATURES_PACKAGE` 를 `com.orbit.server.domain`, `GLOBAL_PACKAGE` 를 `com.orbit.server.global` 로 두었다. → [testing.md](testing.md)
   - 컨텍스트 간 내부 참조 금지와 `global/external` 의 포트 규칙은 템플릿에 없는 orbit 규칙이라 `com.orbit.server.ContextBoundaryTest` 가 따로 검사한다.
     `LayerArchitectureTest` 와 같은 규칙을 `ContextBoundaryTest` 에 두지 않는다. 같은 위반이 두 번 보고된다.
+    예외는 `global/external` 규칙 하나다. 템플릿 규칙은 `service` 레이어 전체를 허용하는 근사라 orbit 은 더 엄격한 규칙을 함께 둔다.
+    그래서 `external` 이 `controller`·`repository` 를 쓰면 두 테스트가 함께 실패한다. 유스케이스·도메인 서비스를 직접 부르면 `ContextBoundaryTest` 만 실패한다.
 - 순환 허용 목록(`LayerArchitectureTest` 의 `ignoreDependency`), 큰 패키지 상한(`PackageSizeTest` 의 `KNOWN_LARGE_PACKAGES`), ArchUnit 기준선(`archunit_store`)은 늘리거나 고치지 않는다.
   넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
 
