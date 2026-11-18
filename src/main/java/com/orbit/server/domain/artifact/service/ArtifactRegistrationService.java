@@ -27,8 +27,8 @@ public class ArtifactRegistrationService {
     private final FirmwareSignatureVerifier signatureVerifier;
 
     /**
-     * 중복 확인 → 해시 계산·비교 → 펌웨어 서명 검증 → Origin 업로드 → 저장 순서로 등록한다. 어느 단계에서든 실패하면 Artifact 를 저장하지
-     * 않으므로 캠페인에 연결할 수 없다.
+     * 중복 확인 → 서명 형식·키 버전 확인 → 해시 계산·비교 → 펌웨어 서명 검증 → Origin 업로드 → 저장 순서로 등록한다. 어느 단계에서든
+     * 실패하면 Artifact 를 저장하지 않으므로 캠페인에 연결할 수 없다.
      *
      * @param command 등록 요청
      * @return 등록한 Artifact 의 ID 와 파일 정보
@@ -40,19 +40,15 @@ public class ArtifactRegistrationService {
         ArtifactRelease release = command.release();
         // 이미 등록된 버전이면 큰 파일을 읽고 올리기 전에 끝낸다. 동시에 이 확인을 통과한 요청은 Origin 의 조건부 쓰기가 막는다
         requireNewRelease(release);
+        // 서명이 빠졌거나 형식이 틀린 요청은 큰 파일의 해시를 계산하기 전에 끝낸다
+        ArtifactSignature signature = signatureVerifier.parse(command.signature(), command.keyId());
         ArtifactFile file = digest(command);
         requireSameSha256(file, command);
         // 서명은 서버가 계산한 해시·크기로 검증한다. 잘못 서명된 파일이 Origin 에 올라가 Edge 캐시로 퍼지지 않게 업로드 전에 한다
-        ArtifactSignature signature = verifySignature(release, file, command);
+        signatureVerifier.verify(new FirmwareSignaturePayload(release, file), signature);
         originStorage.upload(file, command.content());
         Artifact artifact = saveOrDiscardUpload(new Artifact(release, file, signature), file);
         return ArtifactRegistrationResult.of(artifact.getId(), file, signature);
-    }
-
-    private ArtifactSignature verifySignature(
-            ArtifactRelease release, ArtifactFile file, RegisterArtifactCommand command) {
-        FirmwareSignaturePayload payload = new FirmwareSignaturePayload(release, file);
-        return signatureVerifier.verify(payload, command.signature(), command.keyId());
     }
 
     // 저장에 실패한 파일이 Origin 에 남으면 같은 경로 조건부 쓰기에 걸려 이 버전을 다시 등록할 수 없으므로 지운다

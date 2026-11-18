@@ -36,7 +36,7 @@ class FirmwareSignatureVerifierTest {
     void returnsVerifiedSignature() {
         String signature = signer.sign(PAYLOAD.toBytes());
 
-        ArtifactSignature verified = verifier.verify(PAYLOAD, signature, "v1");
+        ArtifactSignature verified = parseAndVerify(PAYLOAD, signature, "v1");
 
         assertThat(verified).isEqualTo(new ArtifactSignature(signature, "v1"));
     }
@@ -45,7 +45,7 @@ class FirmwareSignatureVerifierTest {
     @NullAndEmptySource
     @DisplayName("ORIGIN-POL-001: 서명이 없으면 422 SIGNATURE_INVALID")
     void rejectsMissingSignature(String signature) {
-        assertSignatureInvalid(() -> verifier.verify(PAYLOAD, signature, "v1"));
+        assertSignatureInvalid(() -> verifier.parse(signature, "v1"));
     }
 
     @ParameterizedTest
@@ -54,7 +54,7 @@ class FirmwareSignatureVerifierTest {
     void rejectsMissingKeyId(String keyId) {
         String signature = signer.sign(PAYLOAD.toBytes());
 
-        assertSignatureInvalid(() -> verifier.verify(PAYLOAD, signature, keyId));
+        assertSignatureInvalid(() -> verifier.parse(signature, keyId));
     }
 
     @Test
@@ -62,8 +62,8 @@ class FirmwareSignatureVerifierTest {
     void rejectsMalformedSignature() {
         String signatureOf32Bytes = Base64.getEncoder().encodeToString(new byte[32]);
 
-        assertSignatureInvalid(() -> verifier.verify(PAYLOAD, signatureOf32Bytes, "v1"));
-        assertSignatureInvalid(() -> verifier.verify(PAYLOAD, "not base64!", "v1"));
+        assertSignatureInvalid(() -> verifier.parse(signatureOf32Bytes, "v1"));
+        assertSignatureInvalid(() -> verifier.parse("not base64!", "v1"));
     }
 
     @Test
@@ -71,7 +71,7 @@ class FirmwareSignatureVerifierTest {
     void rejectsUnknownKeyId() {
         String signature = signer.sign(PAYLOAD.toBytes());
 
-        assertSignatureInvalid(() -> verifier.verify(PAYLOAD, signature, "v2"));
+        assertSignatureInvalid(() -> verifier.parse(signature, "v2"));
     }
 
     @Test
@@ -79,7 +79,7 @@ class FirmwareSignatureVerifierTest {
     void rejectsSignatureOfOtherKey() {
         String signature = new TestFirmwareSigner().sign(PAYLOAD.toBytes());
 
-        assertSignatureInvalid(() -> verifier.verify(PAYLOAD, signature, "v1"));
+        assertSignatureInvalid(() -> parseAndVerify(PAYLOAD, signature, "v1"));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -88,7 +88,7 @@ class FirmwareSignatureVerifierTest {
     void rejectsSignatureOfDifferentPayload(String changedField, FirmwareSignaturePayload tampered) {
         String signature = signer.sign(PAYLOAD.toBytes());
 
-        assertSignatureInvalid(() -> verifier.verify(tampered, signature, "v1"));
+        assertSignatureInvalid(() -> parseAndVerify(tampered, signature, "v1"));
     }
 
     static Stream<Arguments> tamperedPayloads() {
@@ -117,6 +117,13 @@ class FirmwareSignatureVerifierTest {
                 Arguments.of(
                         "fileSize",
                         new FirmwareSignaturePayload(RELEASE, new ArtifactFile(SHA256, 1025, RELEASE.originPath()))));
+    }
+
+    // 등록 서비스와 같은 순서로 형식·키 버전을 확인한 뒤 서명 대상과 대조한다
+    private ArtifactSignature parseAndVerify(FirmwareSignaturePayload payload, String signature, String keyId) {
+        ArtifactSignature parsed = verifier.parse(signature, keyId);
+        verifier.verify(payload, parsed);
+        return parsed;
     }
 
     private static void assertSignatureInvalid(ThrowingCallable verification) {

@@ -25,29 +25,42 @@ class FirmwareSignatureVerifier {
     private final FirmwarePublicKeys publicKeys;
 
     /**
-     * @param payload 서명 대상. 서버가 계산한 해시·크기로 만든다
+     * 파일 내용 없이 판정할 수 있는 것(누락·형식·키 버전)을 먼저 확인한다. 파일은 수백 MB 일 수 있어, 서명을 빠뜨리거나 Vault 출력을 통째로
+     * 붙인 요청을 해시 계산 전에 거르기 위해 {@link #verify} 와 나눈다.
+     *
      * @param signature 요청의 서명 (64바이트의 base64). 없으면 null
      * @param keyId 요청의 서명 키 버전. 없으면 null
-     * @return 검증을 통과한 서명. 그대로 저장해 매니페스트로 내려준다
-     * @throws BusinessException 서명·키 버전이 없거나 형식이 틀리거나, 모르는 키 버전이거나, 서명이 맞지 않으면 SIGNATURE_INVALID
+     * @return 형식이 맞고 공개 키가 있는 서명. 아직 서명 대상과 대조하지 않았다
+     * @throws BusinessException 서명·키 버전이 없거나 형식이 틀리거나, 모르는 키 버전이면 SIGNATURE_INVALID
      */
-    ArtifactSignature verify(FirmwareSignaturePayload payload, String signature, String keyId) {
-        ArtifactSignature parsed = parse(signature, keyId);
-        FirmwarePublicKey publicKey =
-                publicKeys.find(parsed.keyId()).orElseThrow(() -> rejected(Reason.UNKNOWN_KEY_ID));
-        if (!publicKey.verifies(payload.toBytes(), parsed.signatureBytes())) {
-            throw rejected(Reason.MISMATCH);
-        }
+    ArtifactSignature parse(String signature, String keyId) {
+        ArtifactSignature parsed = toSignature(signature, keyId);
+        publicKeyOf(parsed);
         return parsed;
     }
 
-    private ArtifactSignature parse(String signature, String keyId) {
+    /**
+     * @param payload 서명 대상. 서버가 계산한 해시·크기로 만든다
+     * @param signature {@link #parse} 로 확인한 서명
+     * @throws BusinessException 서명이 서명 대상과 맞지 않으면 SIGNATURE_INVALID
+     */
+    void verify(FirmwareSignaturePayload payload, ArtifactSignature signature) {
+        if (!publicKeyOf(signature).verifies(payload.toBytes(), signature.signatureBytes())) {
+            throw rejected(Reason.MISMATCH);
+        }
+    }
+
+    private ArtifactSignature toSignature(String signature, String keyId) {
         try {
             return new ArtifactSignature(signature, keyId);
         } catch (InvalidValueException e) {
             log.warn("펌웨어 서명 검증 실패: reason={}", Reason.MISSING_OR_MALFORMED);
             throw new BusinessException(ArtifactErrorCode.SIGNATURE_INVALID, e);
         }
+    }
+
+    private FirmwarePublicKey publicKeyOf(ArtifactSignature signature) {
+        return publicKeys.find(signature.keyId()).orElseThrow(() -> rejected(Reason.UNKNOWN_KEY_ID));
     }
 
     private BusinessException rejected(Reason reason) {
