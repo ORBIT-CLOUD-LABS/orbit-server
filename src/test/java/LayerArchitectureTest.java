@@ -7,6 +7,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
+import com.orbit.server.domain.update.service.VehicleStateService;
+import com.orbit.server.domain.vehicle.service.VehicleRegistrationService;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -137,9 +139,8 @@ class LayerArchitectureTest {
             .ignoreDependency(resideInAPackage(GLOBAL_PACKAGE + ".."), DescribedPredicate.alwaysTrue())
             .ignoreDependency(DescribedPredicate.alwaysTrue(), resideInAPackage(GLOBAL_PACKAGE + ".."))
             // vehicle → update: 차량 등록이 초기 상태를 만들려고 VehicleStateService 를 부른다. 이벤트로 끊으면 이 줄을 지운다
-            .ignoreDependency(
-                    "com.orbit.server.domain.vehicle.service.VehicleRegistrationService",
-                    "com.orbit.server.domain.update.service.VehicleStateService")
+            // 클래스 리터럴로 적어 이름을 바꾸거나 옮기면 컴파일 단계에서 드러나게 한다
+            .ignoreDependency(VehicleRegistrationService.class, VehicleStateService.class)
             .because("기능끼리 서로를 알면 한쪽 변경이 다른 쪽으로 번진다. 역방향이 필요하면 도메인 이벤트로 끊는다" + " → docs/spring-java/architecture.md");
 
     /** 기능 패키지의 클래스. FEATURES_PACKAGE 바로 아래 패키지의 클래스는 포함하고, GLOBAL_PACKAGE 는 뺀다. */
