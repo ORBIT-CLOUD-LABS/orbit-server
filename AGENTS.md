@@ -11,13 +11,14 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 
 ## 문서 지도
 
-`docs/java/`, `docs/spring-java/` 는 agentsmd 0.8.0 프리셋 원본이다. 고치지 않고, orbit 이 다르게 정한 것은 orbit 문서에 적는다.
+`docs/java/`, `docs/spring-java/` 는 [agentsmd-kit v0.8.0](https://github.com/xoruddl/agentsmd-kit/tree/v0.8.0) 의 `java`·`spring-java` 프리셋 문서를 orbit 에 맞게 고쳐 쓴 것이다.
+orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 문서에 바로 적는다.
+프리셋 버전을 올릴 때는 `agentsmd init --force` 로 덮어쓰지 않는다. 이전 원본과 지금 문서의 차이(orbit 수정분)를 새 원본에 다시 적용한다.
 
 | 문서 | 읽는 시점 |
 | --- | --- |
 | [docs/requirements.md](docs/requirements.md) | 기능 구현 전 (요구사항 확인) |
-| [docs/conventions.md](docs/conventions.md) | 코드 작성·리뷰 (항상). orbit 이 프리셋과 다르게 정한 규칙 |
-| [docs/architecture.md](docs/architecture.md) | 패키지·클래스 위치, 도메인 설계 (DDD, 바운디드 컨텍스트) |
+| [docs/architecture.md](docs/architecture.md) | 도메인 설계 (DDD). Shared Kernel, Aggregate, 도메인 서비스·이벤트, 컨텍스트 간 통신 |
 | [docs/git-conventions.md](docs/git-conventions.md) | Issue·Branch·커밋·PR·리뷰 (Org 공통 CONTRIBUTING) |
 | [docs/java/checklist.md](docs/java/checklist.md) | Java 코드 작성·리뷰 |
 | [docs/java/clean-code.md](docs/java/clean-code.md) | 코드 작성, 설계 |
@@ -32,7 +33,7 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 | [docs/spring-java/api.md](docs/spring-java/api.md) | 컨트롤러·API 를 만들 때. URL, 상태 코드, 요청 검증, 오류 응답, 페이징 |
 | [docs/spring-java/testing.md](docs/spring-java/testing.md) | Spring 이 필요한 테스트를 쓸 때. 슬라이스 테스트, @MockitoBean, Testcontainers |
 
-문서끼리 충돌하면 orbit 문서(`conventions.md`, `architecture.md`) > `docs/spring-java/` > `docs/java/` 순으로 따른다.
+문서끼리 충돌하면 `docs/architecture.md` > `docs/spring-java/` > `docs/java/` 순으로 따른다.
 `docs/java/` 안에서는 `checklist.md` > `clean-code.md` 순이다. (예: 파라미터 객체 검토 예외는 checklist 의 기준을 따른다.)
 
 ## 핵심 규칙
