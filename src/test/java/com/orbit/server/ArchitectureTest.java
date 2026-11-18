@@ -32,16 +32,18 @@ import java.util.Set;
 class ArchitectureTest {
 
     private static final String DOMAIN_PACKAGE = "com.orbit.server.domain.";
-    private static final Set<String> CONTEXT_INTERNAL_LAYERS = Set.of("entity", "repository");
+    // 컨텍스트 바로 아래 domain 계층. "..domain..domain.." 처럼 쓰면 최상위 domain 과 겹쳐 뜻이 흐려지므로 위치를 고정한다
+    private static final String CONTEXT_DOMAIN_LAYER = DOMAIN_PACKAGE + "*.domain..";
+    private static final Set<String> CONTEXT_INTERNAL_LAYERS = Set.of("domain", "repository");
 
     @ArchTest
-    static final ArchRule entityDoesNotDependOnSpring = noClasses()
+    static final ArchRule domainDoesNotDependOnSpring = noClasses()
             .that()
-            .resideInAPackage("..domain..entity..")
+            .resideInAPackage(CONTEXT_DOMAIN_LAYER)
             .should()
             .dependOnClassesThat()
             .resideInAPackage("org.springframework..")
-            .because("도메인 규칙을 컨테이너 없이 단위 테스트하고, 트랜잭션·외부 호출이 entity 로 새지 않게 하기 위해서다");
+            .because("도메인 규칙을 컨테이너 없이 단위 테스트하고, 트랜잭션·외부 호출이 domain 으로 새지 않게 하기 위해서다");
 
     @ArchTest
     static final ArchRule globalDoesNotDependOnDomain = noClasses()
@@ -54,11 +56,11 @@ class ArchitectureTest {
             .resideInAPackage("..domain..")
             .because("global 에는 기술 기반만 두고 비즈니스 규칙을 두지 않으므로 domain → global 방향만 허용한다");
 
-    // 포트(service 의 interface)와 포트가 주고받는 타입(service 의 record, entity, exception)만 허용한다.
+    // 포트(service 의 interface)와 포트가 주고받는 타입(service 의 record, domain, exception)만 허용한다.
     // 금지 목록이 아니라 허용 목록으로 둬야 유스케이스 서비스나 도메인 서비스를 직접 부르는 경로까지 막힌다
     private static final DescribedPredicate<JavaClass> PORT_OR_PORT_TYPE = resideInAPackage("..domain..service..")
             .and(INTERFACES.or(assignableTo(Record.class)))
-            .or(resideInAnyPackage("..domain..entity..", "..domain..exception.."))
+            .or(resideInAnyPackage(CONTEXT_DOMAIN_LAYER, "..domain..exception.."))
             .as("ports or types used by ports");
 
     @ArchTest
