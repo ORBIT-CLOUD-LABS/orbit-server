@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 /**
  * 차량 API 에서 발생하는 오류.
  *
- * <p>HTTP 상태에 의존하므로 Spring 에 의존하지 않는 entity 가 아닌 exception 에 둔다.
+ * <p>HTTP 상태에 의존하므로 Spring 에 의존하지 않는 domain 이 아닌 exception 에 둔다.
  */
 @Getter
 public enum VehicleErrorCode implements ErrorCode {
