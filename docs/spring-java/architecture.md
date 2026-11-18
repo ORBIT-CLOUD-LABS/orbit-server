@@ -5,24 +5,39 @@ Spring Boot 4(Spring Framework 7) 기준이다. Java 코드 규칙과 검증 명
 
 ## 패키지
 
-기능(도메인) 단위로 먼저 나누고, 그 안을 레이어로 나눈다.
+기능(도메인) 단위로 먼저 나누고, 그 안을 레이어로 나눈다. orbit 에서 기능 하나는 DDD 의 바운디드 컨텍스트다. → [../architecture.md](../architecture.md)
 
 ```text
-com.example.app/
-  order/            기능 하나
-    controller/     HTTP 요청·응답
-    dto/            요청·응답 DTO
-    service/        유스케이스, 트랜잭션 경계
-    repository/     Spring Data 인터페이스
-    domain/         엔티티, 값 객체, 도메인 규칙
-    exception/      이 기능의 예외
-  member/
-  global/           설정, 전역 예외 처리, 보안 같은 기술 기반
+com.orbit.server/
+  domain/                 바운디드 컨텍스트 모음
+    artifact/             컨텍스트 하나
+      controller/         HTTP 요청·응답
+      dto/
+        request/          API 요청 DTO
+        response/         API 응답 DTO
+      service/            유스케이스(트랜잭션 경계), Command/Result·조회 결과, 외부 연동 포트, 도메인 서비스
+      repository/         Spring Data 인터페이스
+      domain/             엔티티, 값 객체, enum, 도메인 이벤트
+      exception/          이 컨텍스트의 오류 코드, 예외
+    campaign/
+    shared/               Shared Kernel: 여러 컨텍스트가 같은 의미로 쓰는 값 객체 (하위 패키지 없음)
+  global/                 설정, 전역 예외 처리, 보안 같은 기술 기반
+    config/               Spring 설정 (JPA, Web, Swagger 등)
+    error/                공통 예외 계층, 전역 예외 핸들러, 오류 코드
+    security/             인증·인가
+    common/               공통 응답(ApiResponse, SuccessCode)과 공통 검증
+    external/<시스템>/     외부 시스템 연동 구현 (origin: AWS S3, 로컬은 S3 호환 SeaweedFS)
 ```
 
+- 컨텍스트 안의 `domain` 은 최상위 `domain` 과 이름이 같다. 경로는 `com.orbit.server.domain.<컨텍스트>.domain` 이 된다.
+  이 문서에서 레이어를 말할 때 `domain` 은 컨텍스트 안의 `domain` 을 뜻한다.
+- 컨텍스트 이름은 [요구사항](../requirements.md)의 용어(유비쿼터스 언어)를 따른다. 새 컨텍스트를 만들기 전에 기존 컨텍스트에 속하는지 먼저 검토한다.
 - 필요 없는 하위 패키지는 만들지 않는다. (API 가 없는 기능에는 `controller/` 를 두지 않는다)
+- 서비스의 입출력(`XxxCommand` / `XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)은 `dto` 가 아니라 `service` 에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
 - `global` 에는 비즈니스 규칙을 두지 않는다. 두 기능이 같은 개념을 쓴다고 `global` 로 올리지 않고, 기능 경계를 먼저 다시 본다.
+  여러 컨텍스트가 같은 의미와 규칙으로 쓰는 값 객체는 `domain/shared` 에 둔다. → [../architecture.md](../architecture.md) 의 Shared Kernel
 - 외부 시스템 연동(결제, 메일 등)은 서비스가 쓰는 인터페이스를 `service` 에 두고, 구현은 `global/external/<시스템>` 에 둔다.
+  구현은 그 포트(interface·`record`)와 `domain`·`exception` 에만 의존한다. 유스케이스 서비스나 도메인 서비스를 직접 부르지 않는다.
 
 ## 의존 방향
 
@@ -33,13 +48,31 @@ controller → service → repository
 ```
 
 - `domain` 은 다른 레이어를 모른다. Spring 에 의존하지 않는다. (JPA 매핑 어노테이션만 예외)
-- `global` 은 기능 패키지에 의존하지 않는다.
+  - 예외: Shared Kernel(`domain/shared`)의 값 객체는 쓸 수 있다.
+- `global` 은 기능 패키지에 의존하지 않는다. (`global/external` 은 위 패키지 절의 포트 규칙만 예외)
+- `exception` 은 어느 레이어에서든 쓸 수 있다.
+- 목록·검색·대시보드처럼 필요한 컬럼만 읽는 조회는 Repository 의 `@Query` 에서 JPQL 생성자 표현식으로 조회 결과(`XxxSummary` 등)를 바로 만든다.
+  조회 결과 타입은 `service` 에 두므로, 이때만 `repository → service` 의존을 허용한다. (예: `ArtifactRepository.findAllSummaries()`)
+  - `JpaRepository` 기본 메서드와 헷갈리지 않도록 메서드 이름에 결과 종류를 넣는다. (`findById` 가 아니라 `findSummaryById`)
+- 다른 컨텍스트의 `domain`·`repository` 를 직접 참조하지 않는다. → [../architecture.md](../architecture.md) 의 컨텍스트 간 통신
 - 기능 사이에 즉시 결과가 필요 없는 일은 도메인 이벤트(`ApplicationEventPublisher`, `@TransactionalEventListener`)로 나눈다.
 - 기능끼리 순환하지 않는다. 역방향이 필요하면 도메인 이벤트로 끊는다.
-- 의존 방향, 클래스 위치, 기능 간 순환은 설치된 `src/test/java/LayerArchitectureTest.java` 가 검사한다. 패키지 크기는 Java 프리셋의 `PackageSizeTest` 가 검사한다.
+- 의존 방향, 클래스 위치, 기능 간 순환은 `src/test/java/LayerArchitectureTest.java` 가 검사한다. 패키지 크기는 Java 프리셋의 `PackageSizeTest` 가 검사한다.
   설치한 뒤 `LayerArchitectureTest` 의 `FEATURES_PACKAGE`, `GLOBAL_PACKAGE` 를 프로젝트 패키지로 바꾼다. → [testing.md](testing.md)
+  - orbit 은 이 테스트들을 #136 에서 들여온다. 그 전까지 의존 규칙은 `com.orbit.server.ArchitectureTest` 가 검사한다.
+  - 컨텍스트 간 내부 참조 금지와 `global/external` 의 포트 규칙은 원본 테스트에 없는 orbit 규칙이라 orbit 테스트로 따로 검사한다.
 - 순환 허용 목록(`LayerArchitectureTest` 의 `ignoreDependency`), 큰 패키지 상한(`PackageSizeTest` 의 `KNOWN_LARGE_PACKAGES`), ArchUnit 기준선(`archunit_store`)은 늘리거나 고치지 않는다.
   넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
+
+## 레이어별 책임
+
+| 레이어 | 둔다 | 두지 않는다 |
+| --- | --- | --- |
+| domain | 비즈니스 규칙, 상태 변경, 검증 | 트랜잭션, HTTP, 외부 API 호출 |
+| service | 유스케이스 흐름 조율, 트랜잭션, 권한 확인 | 비즈니스 판단 (`if` 로 도메인 규칙 판단) |
+| repository | DB 접근 | 비즈니스 규칙 |
+| global/external | 외부 시스템 연동 구현 | 비즈니스 규칙 |
+| controller, dto | 요청 검증(형식), DTO 변환, 응답 코드 | 비즈니스 로직 |
 
 ## 빈과 주입
 

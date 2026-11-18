@@ -5,9 +5,15 @@ Spring Data JPA(Hibernate) 를 쓰는 프로젝트의 규칙이다.
 ## 엔티티
 
 - 도메인 모델과 JPA 엔티티는 같은 클래스로 쓴다. 매핑 전용 클래스를 따로 두지 않는다.
-- JPA 용 기본 생성자는 `@NoArgsConstructor(access = AccessLevel.PROTECTED)` 로 만든다.
+- JPA 용 기본 생성자는 `@NoArgsConstructor(access = AccessLevel.PROTECTED)` 로 만든다. 엔티티와 `@Embeddable` 클래스 모두 같다.
+  JPA 만 쓰도록 `protected` 로 막고, 객체는 검증을 거치는 생성자로만 만든다.
 - setter 를 두지 않는다. 상태는 의도를 드러내는 메서드로 바꾼다. (`changeStatus()` 가 아니라 `cancel()`)
-- getter 는 응답 변환 같은 읽기에만 쓴다. Lombok 을 쓰면 클래스에 `@Getter` 를 붙인다.
+- getter 는 응답 변환 같은 읽기에만 쓰고, 판단은 엔티티 메서드로 한다. 클래스에 Lombok `@Getter` 를 붙여 `getXxx()` 로 만든다. 엔티티와 `@Embeddable` 클래스 모두 같다.
+  - 새 엔티티는 처음부터 클래스 단위 `@Getter` 를 붙인다. 아직 없는 기존 엔티티는 그 엔티티를 변경할 때 맞춘다.
+  - 그대로 내보내면 안 되는 필드는 같은 이름의 getter 를 직접 만든다. Lombok 은 이미 있는 메서드를 만들지 않는다. 필드에 직접 만든 이유를 주석으로 남긴다.
+    컬렉션은 수정할 수 없는 뷰를 돌려준다. (`CampaignTarget.getHwVersions()`)
+    Hibernate 가 null 로 채울 수 있는 `@Embedded` 는 기본값으로 바꿔 돌려준다. (`CampaignCondition.getCurrentVersionRange()`)
+  - 밖으로 내보낼 이유가 없는 민감한 필드(토큰 해시 등)는 `@Getter(AccessLevel.NONE)` 으로 막는다.
 - 엔티티에 `@Setter`, `@Data`, `@ToString`, `@EqualsAndHashCode` 를 쓰지 않는다. 지연 로딩 필드를 건드리거나 순환 참조로 터진다.
 - enum 컬럼은 `@Enumerated(EnumType.STRING)` 으로 저장한다. `ORDINAL` 은 상수 순서를 바꾸면 데이터가 틀어진다.
 - 값 객체는 `@Embeddable` 로 매핑한다.
@@ -63,6 +69,10 @@ spring:
 ## Repository
 
 - Aggregate 루트마다 하나 만든다. `JpaRepository<Xxx, ID>` 를 바로 상속하고 서비스가 주입받는다. 포트 인터페이스와 구현으로 나누지 않는다.
+  - `JpaRepository` 의 삭제·일괄 저장 메서드도 노출되지만, 도메인 규칙상 지우지 않는 Aggregate 에서는 쓰지 않는다. 리뷰에서 확인한다.
+  - `@Immutable` 뷰처럼 쓰기가 없는 대상은 쓰기 메서드가 없는 `Repository<Xxx, ID>` 를 상속한다. (`VehicleStatusViewRepository`)
+- 값 객체를 컬럼 값으로 풀어야 하는 쿼리는 `default` 메서드로 감싸고, 서비스는 `default` 메서드를 쓴다. (`UpdateResultRepository.record`)
+- 목록 조회의 projection 은 조회 결과 타입을 `service` 에 두고 `@Query` 의 JPQL 생성자 표현식으로 만든다. → [architecture.md](architecture.md) 의 의존 방향
 - 메서드 이름 쿼리가 길어지면 `@Query` 로 쓴다.
 - 없을 때의 처리는 서비스에서 기능 예외로 바꾼다. (`findById(id).orElseThrow(() -> new OrderNotFoundException(id))`)
 
