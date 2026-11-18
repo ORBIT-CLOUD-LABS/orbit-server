@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
  * 캠페인 등록과 매니페스트 발급 중 발생하는 오류. (CAMPAIGN-REQ-001 / CAMPAIGN-POL-001, MANIFEST-REQ-001 /
  * MANIFEST-POL-001)
  *
- * <p>HTTP 상태에 의존하므로 Spring 에 의존하지 않는 entity 가 아닌 exception 에 둔다.
+ * <p>HTTP 상태에 의존하므로 Spring 에 의존하지 않는 domain 이 아닌 exception 에 둔다.
  */
 @Getter
 public enum CampaignErrorCode implements ErrorCode {

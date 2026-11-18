@@ -4,7 +4,7 @@ import com.orbit.server.domain.campaign.domain.TargetVehicle;
 import java.util.Objects;
 
 /**
- * 캠페인 대상 조회에 쓰는 차량 조건. 다른 컨텍스트(체크인, 매니페스트 발급)가 캠페인 entity 인 {@link TargetVehicle} 을 직접 만들지 않도록
+ * 캠페인 대상 조회에 쓰는 차량 조건. 다른 컨텍스트(체크인, 매니페스트 발급)가 캠페인 domain 의 {@link TargetVehicle} 을 직접 만들지 않도록
  * 서비스 경계에서 받는다.
  *
  * @param model 차종. null 불가

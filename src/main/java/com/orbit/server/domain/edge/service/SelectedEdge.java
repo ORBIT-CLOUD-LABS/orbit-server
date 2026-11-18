@@ -5,7 +5,7 @@ import java.net.URI;
 import java.util.OptionalDouble;
 
 /**
- * 매니페스트에 내려주려고 고른 Edge 하나. 다른 컨텍스트가 {@code edge} 의 entity 를 참조하지 않도록 필요한 값만 담는다.
+ * 매니페스트에 내려주려고 고른 Edge 하나. 다른 컨텍스트가 {@code edge} 의 domain 을 참조하지 않도록 필요한 값만 담는다.
  *
  * @param edgeId Edge id
  * @param baseUrl 차량이 파일을 받는 주소. 다운로드 URL 은 이 주소 뒤에 Origin 경로를 붙여 만든다

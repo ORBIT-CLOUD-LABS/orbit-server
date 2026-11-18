@@ -4,7 +4,7 @@ import com.orbit.server.domain.edge.domain.Coordinates;
 import com.orbit.server.domain.edge.domain.Edge;
 
 /**
- * 대시보드에 보여 줄 Edge 하나의 위치와 정상 여부. 다른 컨텍스트가 {@code edge} 의 entity 를 참조하지 않도록 필요한 값만 담는다.
+ * 대시보드에 보여 줄 Edge 하나의 위치와 정상 여부. 다른 컨텍스트가 {@code edge} 의 domain 을 참조하지 않도록 필요한 값만 담는다.
  *
  * <p>차량이 파일을 받는 주소는 내부 주소라 대시보드에 내보내지 않으므로 담지 않는다.
  *

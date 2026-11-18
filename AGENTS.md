@@ -15,9 +15,8 @@ orbit-server 에서 Java 코드를 작성·수정·리뷰하는 AI 에이전트�
 orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 문서에 바로 적는다.
 프리셋 버전을 올릴 때는 `agentsmd init --force` 로 덮어쓰지 않는다. 이전 원본과 지금 문서의 차이(orbit 수정분)를 새 원본에 다시 적용한다.
 
-프리셋 문서가 설명하는 `LayerArchitectureTest`·`PackageSizeTest`·`CodingRulesTest`·`SpringCodingRulesTest` 와 `agentsmd verify` 는 #136 에서 들여온다.
-그 전까지 테스트가 검사하는 것은 `com.orbit.server.ArchitectureTest` 의 의존 규칙뿐이다. 나머지 규칙(필드 주입, `ORDINAL`, 즉시 로딩, 인자 없는 `now()` 등)은 리뷰에서 확인하고,
-`agentsmd verify` 대신 아래 검증 명령을 실행한다.
+프리셋 문서가 설명하는 `LayerArchitectureTest`·`PackageSizeTest`·`CodingRulesTest`·`SpringCodingRulesTest` 는 템플릿 그대로 `src/test/java/`(기본 패키지)에 있다.
+템플릿에 없는 orbit 규칙(다른 컨텍스트 내부 참조 금지, `global/external` 포트 규칙)은 `com.orbit.server.ContextBoundaryTest` 가 검사한다.
 
 | 문서 | 읽는 시점 |
 | --- | --- |
@@ -78,11 +77,11 @@ null·매직 넘버·예외는 [docs/java/clean-code.md](docs/java/clean-code.md
 
 ## 검증
 
+작업을 마치기 전에 `agentsmd verify` 를 실행하고 결과를 그대로 보고한다. 단계 목록은 `.agentsmd/verify.json`.
+
 ```bash
-./gradlew spotlessApply   # 포맷 적용 (palantir-java-format)
-./gradlew spotlessCheck   # 포맷 검사
-./gradlew test            # 테스트
-./gradlew build           # 전체 빌드
+./gradlew spotlessApply              # 포맷 적용 (palantir-java-format). verify 전에 먼저 실행한다
+npx @agentsmd/cli@0.8.0 verify       # .agentsmd/verify.json 의 단계(./gradlew spotlessCheck build)를 실행한다
 ```
 
 - 포맷은 손으로 맞추지 않고 palantir-java-format 에 맡긴다. 들여쓰기는 공백 4칸. 강제 방식은 [docs/java/lint-and-ci.md](docs/java/lint-and-ci.md).

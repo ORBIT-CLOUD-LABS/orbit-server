@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 /**
  * Origin 파일 등록·조회 중 발생하는 오류. (ORIGIN-REQ-001 / ORIGIN-POL-001, CAMPAIGN-REQ-001)
  *
- * <p>HTTP 상태에 의존하므로 Spring 에 의존하지 않는 entity 가 아닌 exception 에 둔다.
+ * <p>HTTP 상태에 의존하므로 Spring 에 의존하지 않는 domain 이 아닌 exception 에 둔다.
  */
 @Getter
 public enum ArtifactErrorCode implements ErrorCode {
