@@ -18,7 +18,7 @@ com.orbit.server
 │   │   │   └── response/       # API 응답 DTO
 │   │   ├── service/            # 서비스(트랜잭션 경계), Command/Result·조회 결과, 외부 연동 포트, 도메인 서비스
 │   │   ├── repository/         # Spring Data Repository 인터페이스
-│   │   ├── entity/             # 엔티티, 값 객체, enum, 도메인 이벤트
+│   │   ├── domain/             # 엔티티, 값 객체, enum, 도메인 이벤트
 │   │   └── exception/          # 에러 코드, 커스텀 예외
 │   ├── campaign/
 │   └── shared/                 # Shared Kernel: 여러 컨텍스트가 같은 의미로 쓰는 값 객체 (하위 패키지 없음)
@@ -31,6 +31,8 @@ com.orbit.server
         └── origin/             # Origin 저장소 (AWS S3, 로컬은 S3 호환 SeaweedFS)
 ```
 
+- 컨텍스트 안의 `domain` 은 최상위 `domain` 과 이름이 같다. 경로는 `com.orbit.server.domain.<컨텍스트>.domain` 이 된다.
+  이 문서에서 계층을 말할 때 `domain` 은 컨텍스트 안의 `domain` 을 뜻한다.
 - 컨텍스트 이름은 [요구사항](requirements.md)의 용어(유비쿼터스 언어)를 따른다.
 - 새 컨텍스트를 만들기 전에 기존 컨텍스트에 속하는지 먼저 검토한다.
 - 필요 없는 하위 패키지는 만들지 않는다. (예: API 가 없는 컨텍스트에는 `controller` 를 두지 않는다)
@@ -47,24 +49,24 @@ com.orbit.server
 ### Shared Kernel (`domain/shared`)
 
 여러 컨텍스트가 **같은 의미와 같은 규칙**으로 쓰는 도메인 개념을 둔다. (예: 점으로 나눈 숫자 버전 `DottedVersion`)
-비즈니스 규칙이라 `global` 에는 둘 수 없고, 한 컨텍스트의 `entity` 에 두면 다른 컨텍스트가 참조할 수 없기 때문이다.
+비즈니스 규칙이라 `global` 에는 둘 수 없고, 한 컨텍스트의 `domain` 에 두면 다른 컨텍스트가 참조할 수 없기 때문이다.
 
 - 상태 없는 값 객체만 둔다. 엔티티·Repository·서비스는 두지 않는다.
 - 하위 패키지를 만들지 않는다. 바운디드 컨텍스트가 아니므로 계층으로 나누지 않는다.
 - 다른 컨텍스트에 의존하지 않는다. `global` 에만 의존할 수 있다.
-- 모든 컨텍스트의 `entity` 를 포함해 어느 계층에서나 쓸 수 있다.
+- 모든 컨텍스트의 `domain` 을 포함해 어느 계층에서나 쓸 수 있다.
 - 바꾸면 모든 컨텍스트에 영향을 주므로 작게 유지한다. 두 컨텍스트가 비슷한 개념을 쓴다는 이유만으로 옮기지 않는다.
   이름이 같아도 컨텍스트마다 규칙(길이 제한 등)이 다르면 각 컨텍스트의 값 객체에 두고, 같은 부분만 Shared Kernel 을 쓴다.
 
 ## 의존 방향
 
 ```
-controller → service → repository → entity
-             service → entity
+controller → service → repository → domain
+             service → domain
 global/external → service   (포트 구현)
 ```
 
-- `entity` 는 다른 패키지를 모른다. Spring 에 의존하지 않는다. (JPA 매핑 어노테이션만 예외, 아래 참고)
+- `domain` 은 다른 패키지를 모른다. Spring 에 의존하지 않는다. (JPA 매핑 어노테이션만 예외, 아래 참고)
   - 예외: Shared Kernel(`domain/shared`)의 값 객체는 쓸 수 있다.
 - `service` 는 외부 시스템을 포트(인터페이스)로만 쓴다. 구현은 `global/external` 에 둔다.
 - 목록·검색·대시보드처럼 필요한 컬럼만 읽는 조회는 Repository 의 `@Query` 에서 JPQL 생성자 표현식으로 조회 결과(`XxxSummary` 등)를 바로 만든다.
@@ -72,14 +74,14 @@ global/external → service   (포트 구현)
   - `JpaRepository` 기본 메서드와 헷갈리지 않도록 메서드 이름에 결과 종류를 넣는다. (`findById` 가 아니라 `findSummaryById`)
 - 단건 상세는 서비스가 Repository 로 엔티티를 읽어 트랜잭션 안에서 조회 결과(`XxxDetail`)로 변환한다.
   `open-in-view` 가 꺼져 있어 트랜잭션 밖에서는 지연 로딩이 실패하기 때문이다.
-- `controller` 는 `entity` 를 응답으로 직접 노출하지 않는다. `dto/response` 로 변환한다.
+- `controller` 는 엔티티를 응답으로 직접 노출하지 않는다. `dto/response` 로 변환한다.
 - `exception` 은 어느 패키지에서든 쓸 수 있다.
 
 ## 패키지별 책임
 
 | 패키지 | 둔다 | 두지 않는다 |
 | --- | --- | --- |
-| entity | 비즈니스 규칙, 상태 변경, 검증 | 트랜잭션, HTTP, 외부 API 호출 |
+| domain | 비즈니스 규칙, 상태 변경, 검증 | 트랜잭션, HTTP, 외부 API 호출 |
 | service | 유스케이스 흐름 조율, 트랜잭션, 권한 확인 | 비즈니스 판단 (`if` 로 도메인 규칙 판단) |
 | repository | DB 접근 | 비즈니스 규칙 |
 | global/external | 외부 시스템 연동 구현 | 비즈니스 규칙 |
@@ -135,11 +137,11 @@ global/external → service   (포트 구현)
 ### 도메인 이벤트
 
 - 과거형으로 이름 짓는다. (`VehicleDeparted`)
-- `entity` 에 정의하고, 발행·구독 처리는 `service` 에서 한다.
+- `domain` 에 정의하고, 발행·구독 처리는 `service` 에서 한다.
 
 ## 컨텍스트 간 통신
 
-- 다른 컨텍스트의 `entity`, `repository` 를 직접 참조하지 않는다.
+- 다른 컨텍스트의 `domain`, `repository` 를 직접 참조하지 않는다.
 - 동기 호출은 상대 컨텍스트의 `service` 를 통한다.
 - 즉시 결과가 필요 없으면 도메인 이벤트로 비동기 처리한다.
 - 다른 컨텍스트의 Aggregate 는 ID 로만 참조한다.
