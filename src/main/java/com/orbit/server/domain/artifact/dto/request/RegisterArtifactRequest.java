@@ -2,6 +2,7 @@ package com.orbit.server.domain.artifact.dto.request;
 
 import com.orbit.server.domain.artifact.entity.ArtifactRelease;
 import com.orbit.server.domain.artifact.service.RegisterArtifactCommand;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -24,9 +25,9 @@ public record RegisterArtifactRequest(
         // 형식이 틀린 값은 해시 불일치(422)가 아니라 잘못된 요청(400)으로 구분한다
         @Pattern(regexp = "^[0-9a-fA-F]{64}$") String sha256,
         // 서명·키 버전은 필수지만 형식 검증을 걸지 않는다. 누락·형식 오류도 검증 실패와 같은 422 SIGNATURE_INVALID 로 응답해
-        // 어떤 이유로 거부됐는지 구분해 주지 않기 위해서다
-        String signature,
-        String keyId) {
+        // 어떤 이유로 거부됐는지 구분해 주지 않기 위해서다. 대신 API 문서에는 필수로 표시해 클라이언트가 빠뜨리지 않게 한다
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String signature,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) String keyId) {
 
     public RegisterArtifactCommand toCommand() {
         return new RegisterArtifactCommand(new ArtifactRelease(model, version), file, sha256, signature, keyId);

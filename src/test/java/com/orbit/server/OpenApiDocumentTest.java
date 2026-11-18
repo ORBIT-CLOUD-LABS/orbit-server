@@ -1,5 +1,8 @@
 package com.orbit.server;
 
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,6 +40,16 @@ class OpenApiDocumentTest {
         mockMvc.perform(get(API_DOCS_URL))
                 .andExpect(jsonPath(CHECK_IN + ".summary").value("차량의 현재 버전을 기록하고 업데이트할 캠페인이 있는지 응답한다"))
                 .andExpect(jsonPath(CHECK_IN + ".description", startsWith("차량의 현재 버전을 기록하고")));
+    }
+
+    // 서명·키 버전은 누락도 422 로 응답하려고 Bean Validation 을 걸지 않으므로, 문서의 필수 표시는 @Schema 로만 정해진다
+    @Test
+    @DisplayName("ORIGIN-POL-001: Origin 파일 등록 요청 문서에 서명과 키 버전을 필수로 표시한다")
+    void marksSignatureFieldsRequired() throws Exception {
+        String required = "$.components.schemas.RegisterArtifactRequest.required";
+        mockMvc.perform(get(API_DOCS_URL))
+                .andExpect(jsonPath(required, hasItems("signature", "keyId")))
+                .andExpect(jsonPath(required, not(hasItem("sha256"))));
     }
 
     @Test

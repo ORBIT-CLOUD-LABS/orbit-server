@@ -99,15 +99,25 @@ class ArtifactRegistrationServiceTest {
         verify(artifactRepository, never()).save(any());
     }
 
-    @Test
-    @DisplayName("ORIGIN-POL-001: 서명·키 버전이 없으면 422 SIGNATURE_INVALID 이고 Origin 에 올리지 않는다")
-    void rejectsMissingSignatureBeforeUpload() {
-        RegisterArtifactCommand command = new RegisterArtifactCommand(RELEASE, CONTENT, null, null, null);
+    @ParameterizedTest
+    @ValueSource(strings = {"missing", "vault-output", "unknown-key-id"})
+    @DisplayName("ORIGIN-POL-001: 서명 누락·형식 오류·모르는 키 버전은 파일을 읽어 해시를 계산하기 전에 422 SIGNATURE_INVALID")
+    void rejectsSignatureBeforeReadingFile(String invalidCase) {
+        // 파일을 열면 실패하는 출처라, 해시 계산 전에 거르지 못하면 SIGNATURE_INVALID 가 아닌 다른 예외가 난다
+        InputStreamSource unreadable = () -> {
+            throw new IOException("file must not be read");
+        };
+        String signature = signHello();
+        RegisterArtifactCommand command = switch (invalidCase) {
+            case "missing" -> new RegisterArtifactCommand(RELEASE, unreadable, null, null, null);
+            case "vault-output" ->
+                new RegisterArtifactCommand(RELEASE, unreadable, null, "vault:v1:" + signature, KEY_ID);
+            default -> new RegisterArtifactCommand(RELEASE, unreadable, null, signature, "v2");
+        };
 
         assertThatThrownBy(() -> service.register(command))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.SIGNATURE_INVALID);
-        assertThat(originStorage.uploaded).isEmpty();
     }
 
     @Test
