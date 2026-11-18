@@ -36,19 +36,24 @@ public class Artifact {
     @Embedded
     private ArtifactFile file;
 
+    @Embedded
+    private ArtifactSignature signature;
+
     // 등록 시각은 DB 시각(NOW(3))을 기준으로 한다
     @Generated
     @Column(name = "created_at")
     private Instant createdAt;
 
     /**
-     * 업데이트 파일을 등록한다.
+     * 등록 때 검증한 펌웨어 서명과 함께 업데이트 파일을 등록한다. (ORIGIN-POL-001)
      *
      * @param release 차종과 버전. null 불가
      * @param file 파일 해시·크기·Origin 경로. null 불가
+     * @param signature 검증을 마친 펌웨어 서명과 키 버전. null 불가
      */
-    public Artifact(ArtifactRelease release, ArtifactFile file) {
+    public Artifact(ArtifactRelease release, ArtifactFile file, ArtifactSignature signature) {
         this.release = Objects.requireNonNull(release, "release");
         this.file = Objects.requireNonNull(file, "file");
+        this.signature = Objects.requireNonNull(signature, "signature");
     }
 }

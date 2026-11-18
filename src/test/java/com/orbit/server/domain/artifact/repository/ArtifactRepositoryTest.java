@@ -1,11 +1,13 @@
 package com.orbit.server.domain.artifact.repository;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.artifact.entity.Artifact;
 import com.orbit.server.domain.artifact.entity.ArtifactFile;
 import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ class ArtifactRepositoryTest {
 
     @Autowired
     private ArtifactRepository artifactRepository;
+
+    @Autowired
+    private EntityManager em;
 
     @Test
     @DisplayName("ORIGIN-POL-001: 차종에 등록된 버전을 입력한 표기 그대로 읽는다")
@@ -59,7 +64,19 @@ class ArtifactRepositoryTest {
         assertThat(artifactRepository.lockById(artifact.getId() + 1)).isEmpty();
     }
 
+    @Test
+    @DisplayName("ORIGIN-POL-001: 펌웨어 서명과 키 버전을 함께 저장하고 읽는다")
+    void storesSignature() {
+        Artifact artifact = artifactRepository.save(artifactOf(RELEASE));
+        // 저장한 객체가 아니라 DB 에서 다시 읽은 값을 확인한다
+        em.flush();
+        em.clear();
+
+        assertThat(artifactRepository.findById(artifact.getId()))
+                .hasValueSatisfying(found -> assertThat(found.getSignature()).isEqualTo(SIGNATURE));
+    }
+
     private Artifact artifactOf(ArtifactRelease release) {
-        return new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
+        return new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()), SIGNATURE);
     }
 }

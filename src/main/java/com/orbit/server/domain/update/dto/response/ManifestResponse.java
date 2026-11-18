@@ -7,7 +7,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * 매니페스트 응답. 차량은 {@code downloadUrl} 로 파일을 받고, 실패하면 {@code fallbackUrls} 를 순서대로 시도하며, 크기와 해시로 검증한다.
+ * 매니페스트 응답. 차량은 {@code downloadUrl} 로 파일을 받고, 실패하면 {@code fallbackUrls} 를 순서대로 시도하며, 크기와 해시, 펌웨어 서명으로
+ * 검증한다.
  *
  * <p>URL 에는 서명이 붙어 있어 {@code urlExpiresAt} 이 지나면 Edge 가 거부한다. 차량은 다운로드 전에 이 시각이 지났으면 매니페스트를 다시
  * 요청한다.
@@ -20,6 +21,9 @@ import java.util.List;
  * @param downloadUrl 파일을 먼저 받을 Edge 의 URL
  * @param fallbackUrls 예비 Edge 의 URL 목록. 없으면 빈 배열
  * @param urlExpiresAt {@code downloadUrl} 과 {@code fallbackUrls} 가 함께 만료되는 시각(UTC, 초 단위)
+ * @param signature 펌웨어 서명 (Ed25519 64바이트의 base64). URL 서명과 달리 요청마다 바뀌지 않는다. 차량은 서명 대상을 매니페스트 값이
+ *     아니라 직접 확인한 값으로 다시 만들어 검증한다
+ * @param keyId 펌웨어 서명 키 버전. 차량은 이 값으로 내장 공개 키를 고른다
  */
 public record ManifestResponse(
         Long campaignId,
@@ -29,7 +33,9 @@ public record ManifestResponse(
         EdgeResponse edge,
         String downloadUrl,
         List<FallbackUrlResponse> fallbackUrls,
-        Instant urlExpiresAt) {
+        Instant urlExpiresAt,
+        String signature,
+        String keyId) {
 
     public static ManifestResponse from(ManifestResult result) {
         return new ManifestResponse(
@@ -40,7 +46,9 @@ public record ManifestResponse(
                 EdgeResponse.from(result.edge()),
                 result.downloadUrl(),
                 result.fallbackUrls().stream().map(FallbackUrlResponse::from).toList(),
-                result.urlExpiresAt());
+                result.urlExpiresAt(),
+                result.signature(),
+                result.keyId());
     }
 
     /**

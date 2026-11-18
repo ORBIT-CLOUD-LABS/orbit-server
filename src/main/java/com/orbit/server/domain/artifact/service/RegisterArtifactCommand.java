@@ -11,8 +11,12 @@ import org.springframework.core.io.InputStreamSource;
  * @param release 차종과 버전
  * @param content 파일 내용. 해시 계산과 업로드에서 각각 읽는다
  * @param expectedSha256 관리자가 알려 준 SHA-256. 없으면 null 이고 비교하지 않는다
+ * @param signature 관리자가 Vault 로 만든 펌웨어 서명 (64바이트의 base64). 필수지만 없을 때도 422 SIGNATURE_INVALID 로 응답하도록 검증은
+ *     서명 검증에서 한다
+ * @param keyId 서명 키 버전 ({@code v1}, ...). 서명과 같다
  */
-public record RegisterArtifactCommand(ArtifactRelease release, InputStreamSource content, String expectedSha256) {
+public record RegisterArtifactCommand(
+        ArtifactRelease release, InputStreamSource content, String expectedSha256, String signature, String keyId) {
 
     public RegisterArtifactCommand {
         Objects.requireNonNull(release, "release");

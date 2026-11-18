@@ -34,7 +34,15 @@ class CampaignRegistrationServiceTest {
     private static final Long ARTIFACT_ID = 1L;
     private static final Long MISSING_ARTIFACT_ID = 2L;
     private static final ArtifactSummary ARTIFACT = new ArtifactSummary(
-            ARTIFACT_ID, "model-a", "1.0.1", 1, "a".repeat(64), "/firmware/model-a/1.0.1/firmware.bin", Instant.EPOCH);
+            ARTIFACT_ID,
+            "model-a",
+            "1.0.1",
+            1,
+            "a".repeat(64),
+            "/firmware/model-a/1.0.1/firmware.bin",
+            "signature",
+            "v1",
+            Instant.EPOCH);
     private static final Instant START = Instant.parse("2026-10-01T00:00:00Z");
     private static final CampaignPeriod PERIOD = new CampaignPeriod(START, START.plus(Duration.ofDays(1)));
 

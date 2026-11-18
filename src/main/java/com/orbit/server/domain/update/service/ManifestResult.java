@@ -17,6 +17,8 @@ import java.util.List;
  * @param downloadUrl 파일을 먼저 받을 Edge 의 URL
  * @param fallbackUrls 다운로드가 실패하면 순서대로 시도할 예비 Edge 의 URL. 없으면 빈 목록
  * @param urlExpiresAt 다운로드 URL 과 예비 URL 이 함께 만료되는 시각
+ * @param signature 설치 전에 검증할 펌웨어 서명. 등록 때 저장한 값 그대로다
+ * @param keyId 펌웨어 서명 키 버전. 차량은 이 값으로 내장 공개 키를 고른다
  */
 public record ManifestResult(
         Long campaignId,
@@ -26,13 +28,15 @@ public record ManifestResult(
         SelectedEdge edge,
         String downloadUrl,
         List<FallbackUrl> fallbackUrls,
-        Instant urlExpiresAt) {
+        Instant urlExpiresAt,
+        String signature,
+        String keyId) {
 
     /**
      * @param campaignId 캠페인 ID
      * @param artifact 캠페인이 배포하는 파일
      * @param assignment 차량에 배정한 Edge 와 다운로드 URL, URL 만료 시각
-     * @return 파일의 버전·크기·해시와 Edge 별 다운로드 URL, URL 만료 시각을 담은 매니페스트
+     * @return 파일의 버전·크기·해시·펌웨어 서명과 Edge 별 다운로드 URL, URL 만료 시각을 담은 매니페스트
      */
     public static ManifestResult of(Long campaignId, ArtifactSummary artifact, EdgeAssignment assignment) {
         return new ManifestResult(
@@ -43,6 +47,8 @@ public record ManifestResult(
                 assignment.edge(),
                 assignment.downloadUrl(),
                 assignment.fallbackUrls(),
-                assignment.urlExpiresAt());
+                assignment.urlExpiresAt(),
+                artifact.signature(),
+                artifact.keyId());
     }
 }

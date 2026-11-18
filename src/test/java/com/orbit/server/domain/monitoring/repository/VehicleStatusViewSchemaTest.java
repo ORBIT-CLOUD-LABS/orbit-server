@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.repository;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
@@ -111,11 +112,13 @@ class VehicleStatusViewSchemaTest {
     }
 
     private void insertCampaign(String version) {
-        em.createNativeQuery("INSERT INTO artifact (model, version, sha256, size_bytes, path)"
-                        + " VALUES ('model-a', :version, :sha256, 1, :path)")
+        em.createNativeQuery("INSERT INTO artifact (model, version, sha256, size_bytes, path, signature, key_id)"
+                        + " VALUES ('model-a', :version, :sha256, 1, :path, :signature, :keyId)")
                 .setParameter("version", version)
                 .setParameter("sha256", "a".repeat(64))
                 .setParameter("path", "/firmware/model-a/" + version)
+                .setParameter("signature", SIGNATURE.signature())
+                .setParameter("keyId", SIGNATURE.keyId())
                 .executeUpdate();
         em.createNativeQuery("INSERT INTO campaign (artifact_id, name, model, start_at, end_at, status)"
                         + " VALUES (LAST_INSERT_ID(), 'campaign', 'model-a',"

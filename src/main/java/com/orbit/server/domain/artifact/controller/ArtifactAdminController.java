@@ -39,8 +39,8 @@ public class ArtifactAdminController {
     /**
      * 업데이트 파일을 Origin 에 올리고 Artifact 로 등록한다. (ORIGIN-REQ-001 / ORIGIN-POL-001)
      *
-     * @param request 파일, 차종, 버전, (선택) SHA-256
-     * @return 201 과 등록한 Artifact 의 ID·크기·해시·경로
+     * @param request 파일, 차종, 버전, (선택) SHA-256, 펌웨어 서명과 키 버전
+     * @return 201 과 등록한 Artifact 의 ID·크기·해시·경로·키 버전
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     // 공통 응답 타입 ApiResponse 와 이름이 같아 Swagger 어노테이션은 전체 이름으로 쓴다
@@ -50,7 +50,7 @@ public class ArtifactAdminController {
             useReturnTypeSchema = true)
     @ApiErrorCodes(
             type = ArtifactErrorCode.class,
-            codes = {"ARTIFACT_VERSION_EXISTS", "HASH_MISMATCH", "ORIGIN_UPLOAD_FAILED"})
+            codes = {"ARTIFACT_VERSION_EXISTS", "HASH_MISMATCH", "SIGNATURE_INVALID", "ORIGIN_UPLOAD_FAILED"})
     @ApiErrorCodes(
             type = CommonErrorCode.class,
             codes = {"CONTENT_TOO_LARGE"})

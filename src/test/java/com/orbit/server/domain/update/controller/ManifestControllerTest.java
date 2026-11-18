@@ -1,5 +1,6 @@
 package com.orbit.server.domain.update.controller;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -91,6 +92,17 @@ class ManifestControllerTest {
                 .andExpect(jsonPath("$.data.targetVersion").value("1.0.1"))
                 .andExpect(jsonPath("$.data.fileSize").value(FILE_SIZE))
                 .andExpect(jsonPath("$.data.sha256").value(SHA256));
+    }
+
+    @Test
+    @DisplayName("MANIFEST-REQ-001: 등록 때 저장한 펌웨어 서명과 키 버전을 그대로 응답한다")
+    void respondsStoredFirmwareSignature() throws Exception {
+        Long campaignId = registerCampaign("1.0.1", "hw-1", periodAroundNow());
+
+        requestManifest(VEHICLE_ID, campaignId, token)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.signature").value(SIGNATURE.signature()))
+                .andExpect(jsonPath("$.data.keyId").value(SIGNATURE.keyId()));
     }
 
     @Test
@@ -262,7 +274,7 @@ class ManifestControllerTest {
 
     private Long registerCampaign(String targetVersion, String hwVersion, CampaignPeriod period) {
         ArtifactRelease release = new ArtifactRelease("model-a", targetVersion);
-        Artifact artifact = new Artifact(release, new ArtifactFile(SHA256, FILE_SIZE, release.originPath()));
+        Artifact artifact = new Artifact(release, new ArtifactFile(SHA256, FILE_SIZE, release.originPath()), SIGNATURE);
         em.persist(artifact);
         CampaignTarget target = new CampaignTarget("model-a", Set.of(hwVersion), Set.of("KR"));
         CampaignCondition condition = new CampaignCondition(target, VersionRange.unbounded(), period);

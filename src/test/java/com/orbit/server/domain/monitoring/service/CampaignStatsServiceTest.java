@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.service;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
@@ -117,9 +118,11 @@ class CampaignStatsServiceTest {
     }
 
     private Long insertCampaign() {
-        em.createNativeQuery("INSERT INTO artifact (model, version, sha256, size_bytes, path)"
-                        + " VALUES ('model-a', '1.0.1', :sha256, 1, '/firmware/model-a/1.0.1')")
+        em.createNativeQuery("INSERT INTO artifact (model, version, sha256, size_bytes, path, signature, key_id)"
+                        + " VALUES ('model-a', '1.0.1', :sha256, 1, '/firmware/model-a/1.0.1', :signature, :keyId)")
                 .setParameter("sha256", "a".repeat(64))
+                .setParameter("signature", SIGNATURE.signature())
+                .setParameter("keyId", SIGNATURE.keyId())
                 .executeUpdate();
         em.createNativeQuery("INSERT INTO campaign"
                         + " (artifact_id, name, model, current_version_min, current_version_max,"

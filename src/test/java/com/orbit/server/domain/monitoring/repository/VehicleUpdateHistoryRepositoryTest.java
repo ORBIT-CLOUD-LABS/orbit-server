@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.repository;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
@@ -114,7 +115,7 @@ class VehicleUpdateHistoryRepositoryTest {
 
     private Long persistCampaign(String version) {
         ArtifactRelease release = new ArtifactRelease("model-a", version);
-        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
+        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()), SIGNATURE);
         em.persist(artifact);
         CampaignCondition condition = new CampaignCondition(
                 new CampaignTarget("model-a", null, null),

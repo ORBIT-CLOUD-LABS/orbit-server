@@ -12,6 +12,8 @@ import static org.mockito.Mockito.verify;
 import com.orbit.server.domain.artifact.entity.Artifact;
 import com.orbit.server.domain.artifact.entity.ArtifactFile;
 import com.orbit.server.domain.artifact.entity.ArtifactRelease;
+import com.orbit.server.domain.artifact.entity.ArtifactSignature;
+import com.orbit.server.domain.artifact.entity.FirmwareSignaturePayload;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.repository.ArtifactRepository;
@@ -20,11 +22,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -37,7 +41,9 @@ class ArtifactRegistrationServiceTest {
 
     // echo -n "hello" | sha256sum
     private static final String HELLO_SHA256 = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824";
+    private static final String KEY_ID = "v1";
 
+    private final TestFirmwareSigner signer = new TestFirmwareSigner();
     private ArtifactRepository artifactRepository;
     private FakeOriginStorage originStorage;
     private ArtifactRegistrationService service;
@@ -52,24 +58,62 @@ class ArtifactRegistrationServiceTest {
             return artifact;
         });
         originStorage = new FakeOriginStorage();
-        service = new ArtifactRegistrationService(artifactRepository, originStorage);
+        FirmwareSignatureVerifier signatureVerifier =
+                new FirmwareSignatureVerifier(FirmwarePublicKeys.fromBase64(Map.of(KEY_ID, signer.publicKeyBase64())));
+        service = new ArtifactRegistrationService(artifactRepository, originStorage, signatureVerifier);
     }
 
     @Test
     @DisplayName("ORIGIN-REQ-001: 파일을 Origin 경로에 올리고 계산한 해시·크기로 등록한다")
     void registersArtifact() {
-        ArtifactRegistrationResult result = service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null));
+        ArtifactRegistrationResult result = service.register(command(null));
 
         ArtifactFile expectedFile = new ArtifactFile(HELLO_SHA256, 5, PATH);
-        assertThat(result).isEqualTo(new ArtifactRegistrationResult(1L, 5, HELLO_SHA256, PATH));
+        assertThat(result).isEqualTo(new ArtifactRegistrationResult(1L, 5, HELLO_SHA256, PATH, KEY_ID));
         assertThat(originStorage.uploaded).containsExactly(expectedFile);
         verify(artifactRepository).save(any());
     }
 
     @Test
+    @DisplayName("ORIGIN-POL-001: 검증한 펌웨어 서명과 키 버전을 Artifact 에 함께 저장한다")
+    void savesVerifiedSignature() {
+        service.register(command(null));
+
+        ArgumentCaptor<Artifact> saved = ArgumentCaptor.forClass(Artifact.class);
+        verify(artifactRepository).save(saved.capture());
+        assertThat(saved.getValue().getSignature()).isEqualTo(new ArtifactSignature(signHello(), KEY_ID));
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 서명이 맞지 않으면 422 SIGNATURE_INVALID 이고 Origin 에 올리지 않고 저장하지 않는다")
+    void rejectsInvalidSignatureBeforeUpload() {
+        String signatureOfOtherKey =
+                new TestFirmwareSigner().sign(helloPayload().toBytes());
+        RegisterArtifactCommand command =
+                new RegisterArtifactCommand(RELEASE, CONTENT, null, signatureOfOtherKey, KEY_ID);
+
+        assertThatThrownBy(() -> service.register(command))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.SIGNATURE_INVALID);
+        assertThat(originStorage.uploaded).isEmpty();
+        verify(artifactRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 서명·키 버전이 없으면 422 SIGNATURE_INVALID 이고 Origin 에 올리지 않는다")
+    void rejectsMissingSignatureBeforeUpload() {
+        RegisterArtifactCommand command = new RegisterArtifactCommand(RELEASE, CONTENT, null, null, null);
+
+        assertThatThrownBy(() -> service.register(command))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.SIGNATURE_INVALID);
+        assertThat(originStorage.uploaded).isEmpty();
+    }
+
+    @Test
     @DisplayName("ORIGIN-REQ-001: 요청 해시가 계산한 해시와 같으면 등록한다")
     void registersWhenExpectedSha256Matches() {
-        RegisterArtifactCommand command = new RegisterArtifactCommand(RELEASE, CONTENT, HELLO_SHA256.toUpperCase());
+        RegisterArtifactCommand command = command(HELLO_SHA256.toUpperCase());
 
         ArtifactRegistrationResult result = service.register(command);
 
@@ -79,7 +123,7 @@ class ArtifactRegistrationServiceTest {
     @Test
     @DisplayName("ORIGIN-REQ-001: 요청 해시가 계산한 해시와 다르면 422 HASH_MISMATCH 이고 업로드·저장하지 않는다")
     void rejectsHashMismatch() {
-        RegisterArtifactCommand command = new RegisterArtifactCommand(RELEASE, CONTENT, "b".repeat(64));
+        RegisterArtifactCommand command = command("b".repeat(64));
 
         assertThatThrownBy(() -> service.register(command))
                 .isInstanceOf(BusinessException.class)
@@ -94,7 +138,7 @@ class ArtifactRegistrationServiceTest {
     void rejectsExistingRelease(String registeredVersion) {
         given(artifactRepository.findVersionsByModel(RELEASE.model())).willReturn(List.of("0.9", registeredVersion));
 
-        assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
+        assertThatThrownBy(() -> service.register(command(null)))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ArtifactErrorCode.ARTIFACT_VERSION_EXISTS);
         assertThat(originStorage.uploaded).isEmpty();
@@ -106,7 +150,7 @@ class ArtifactRegistrationServiceTest {
     void registersNewVersionOfModel() {
         given(artifactRepository.findVersionsByModel(RELEASE.model())).willReturn(List.of("0.9", "1.0.0.1"));
 
-        service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null));
+        service.register(command(null));
 
         verify(artifactRepository).save(any());
     }
@@ -116,8 +160,7 @@ class ArtifactRegistrationServiceTest {
     void doesNotSaveWhenUploadFails() {
         originStorage.failing = true;
 
-        assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
-                .isInstanceOf(OriginUploadException.class);
+        assertThatThrownBy(() -> service.register(command(null))).isInstanceOf(OriginUploadException.class);
         verify(artifactRepository, never()).save(any());
     }
 
@@ -128,9 +171,21 @@ class ArtifactRegistrationServiceTest {
         // setUp 의 저장 응답을 실행하지 않고 덮어쓰도록 willThrow(...).given(...) 형식으로 쓴다
         willThrow(saveFailure).given(artifactRepository).save(any());
 
-        assertThatThrownBy(() -> service.register(new RegisterArtifactCommand(RELEASE, CONTENT, null)))
-                .isSameAs(saveFailure);
+        assertThatThrownBy(() -> service.register(command(null))).isSameAs(saveFailure);
         assertThat(originStorage.deleted).containsExactly(new ArtifactFile(HELLO_SHA256, 5, PATH));
+    }
+
+    // "hello" 파일의 해시·크기로 만든 서명 대상에 서명한 요청
+    private RegisterArtifactCommand command(String expectedSha256) {
+        return new RegisterArtifactCommand(RELEASE, CONTENT, expectedSha256, signHello(), KEY_ID);
+    }
+
+    private String signHello() {
+        return signer.sign(helloPayload().toBytes());
+    }
+
+    private static FirmwareSignaturePayload helloPayload() {
+        return new FirmwareSignaturePayload(RELEASE, new ArtifactFile(HELLO_SHA256, 5, PATH));
     }
 
     // Origin 은 외부 저장소 포트라 호출 기록과 실패를 직접 흉내 낸다

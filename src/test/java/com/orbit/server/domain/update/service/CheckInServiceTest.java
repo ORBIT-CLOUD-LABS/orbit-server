@@ -1,5 +1,6 @@
 package com.orbit.server.domain.update.service;
 
+import static com.orbit.server.domain.artifact.entity.ArtifactSignatureFixture.SIGNATURE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -222,7 +223,7 @@ class CheckInServiceTest {
 
     private Long registerCampaign(String targetVersion, CampaignPeriod period) {
         ArtifactRelease release = new ArtifactRelease("model-a", targetVersion);
-        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()));
+        Artifact artifact = new Artifact(release, new ArtifactFile("a".repeat(64), 1, release.originPath()), SIGNATURE);
         em.persist(artifact);
         CampaignTarget target = new CampaignTarget("model-a", Set.of("hw-1"), Set.of("KR"));
         CampaignCondition condition = new CampaignCondition(target, VersionRange.unbounded(), period);

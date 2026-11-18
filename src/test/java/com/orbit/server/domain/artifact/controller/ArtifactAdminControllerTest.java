@@ -25,6 +25,7 @@ import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +43,8 @@ class ArtifactAdminControllerTest {
     private static final String PATH = "/firmware/model-a/1.0.0/firmware.bin";
     private static final String CREATED_AT = "2026-10-11T07:00:00.123Z";
     private static final MockMultipartFile FILE = new MockMultipartFile("file", "firmware.bin", null, new byte[] {1});
+    // 서명 검증은 서비스가 하므로 형식만 맞는 값을 쓴다
+    private static final String SIGNATURE = Base64.getEncoder().encodeToString(new byte[64]);
 
     private ArtifactRegistrationService artifactRegistrationService;
     private ArtifactQueryService artifactQueryService;
@@ -58,11 +61,9 @@ class ArtifactAdminControllerTest {
     }
 
     @Test
-    @DisplayName("ORIGIN-REQ-001: 차종으로 필터링한 파일 목록을 200 으로 응답한다")
+    @DisplayName("ORIGIN-REQ-001: 차종으로 필터링한 파일 목록을 키 버전과 함께 200 으로 응답하고 서명은 응답하지 않는다")
     void respondsArtifactsOfModel() throws Exception {
-        given(artifactQueryService.findAll("model-a"))
-                .willReturn(List.of(
-                        new ArtifactSummary(1L, "model-a", "1.0.0", 1, SHA256, PATH, Instant.parse(CREATED_AT))));
+        given(artifactQueryService.findAll("model-a")).willReturn(List.of(summary()));
 
         mockMvc.perform(get(URL).param("model", "model-a"))
                 .andExpect(status().isOk())
@@ -73,6 +74,8 @@ class ArtifactAdminControllerTest {
                 .andExpect(jsonPath("$.data.artifacts[0].fileSize").value(1))
                 .andExpect(jsonPath("$.data.artifacts[0].sha256").value(SHA256))
                 .andExpect(jsonPath("$.data.artifacts[0].path").value(PATH))
+                .andExpect(jsonPath("$.data.artifacts[0].keyId").value("v1"))
+                .andExpect(jsonPath("$.data.artifacts[0].signature").doesNotExist())
                 .andExpect(jsonPath("$.data.artifacts[0].createdAt").value(CREATED_AT));
     }
 
@@ -89,10 +92,9 @@ class ArtifactAdminControllerTest {
 
     // 보조 API(제안)라 요구사항 ID 가 없다
     @Test
-    @DisplayName("Origin 파일 상세: 파일 한 건의 해시·경로를 200 으로 응답한다")
+    @DisplayName("Origin 파일 상세: 파일 한 건의 해시·경로·키 버전을 200 으로 응답하고 서명은 응답하지 않는다")
     void respondsArtifactDetail() throws Exception {
-        given(artifactQueryService.getById(1L))
-                .willReturn(new ArtifactSummary(1L, "model-a", "1.0.0", 1, SHA256, PATH, Instant.parse(CREATED_AT)));
+        given(artifactQueryService.getById(1L)).willReturn(summary());
 
         mockMvc.perform(get(URL + "/{artifactId}", 1L))
                 .andExpect(status().isOk())
@@ -104,6 +106,8 @@ class ArtifactAdminControllerTest {
                 .andExpect(jsonPath("$.data.fileSize").value(1))
                 .andExpect(jsonPath("$.data.sha256").value(SHA256))
                 .andExpect(jsonPath("$.data.path").value(PATH))
+                .andExpect(jsonPath("$.data.keyId").value("v1"))
+                .andExpect(jsonPath("$.data.signature").doesNotExist())
                 .andExpect(jsonPath("$.data.createdAt").value(CREATED_AT));
     }
 
@@ -127,10 +131,10 @@ class ArtifactAdminControllerTest {
     }
 
     @Test
-    @DisplayName("ORIGIN-REQ-001: 파일을 등록하면 201 과 ID·크기·해시·경로를 응답한다")
+    @DisplayName("ORIGIN-REQ-001: 파일을 등록하면 201 과 ID·크기·해시·경로·키 버전을 응답하고 서명은 응답하지 않는다")
     void respondsCreated() throws Exception {
         given(artifactRegistrationService.register(any()))
-                .willReturn(new ArtifactRegistrationResult(1L, 1, SHA256, PATH));
+                .willReturn(new ArtifactRegistrationResult(1L, 1, SHA256, PATH, "v1"));
 
         mockMvc.perform(validRequest().param("sha256", SHA256))
                 .andExpect(status().isCreated())
@@ -139,12 +143,44 @@ class ArtifactAdminControllerTest {
                 .andExpect(jsonPath("$.data.artifactId").value(1))
                 .andExpect(jsonPath("$.data.fileSize").value(1))
                 .andExpect(jsonPath("$.data.sha256").value(SHA256))
-                .andExpect(jsonPath("$.data.path").value(PATH));
+                .andExpect(jsonPath("$.data.path").value(PATH))
+                .andExpect(jsonPath("$.data.keyId").value("v1"))
+                .andExpect(jsonPath("$.data.signature").doesNotExist());
 
         ArgumentCaptor<RegisterArtifactCommand> command = ArgumentCaptor.forClass(RegisterArtifactCommand.class);
         verify(artifactRegistrationService).register(command.capture());
         assertThat(command.getValue().release()).isEqualTo(new ArtifactRelease("model-a", "1.0.0"));
         assertThat(command.getValue().findExpectedSha256()).contains(SHA256);
+        assertThat(command.getValue().signature()).isEqualTo(SIGNATURE);
+        assertThat(command.getValue().keyId()).isEqualTo("v1");
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 서명·키 버전이 없어도 400 으로 막지 않고 서명 검증에 넘겨 422 로 응답하게 한다")
+    void passesMissingSignatureToVerification() throws Exception {
+        given(artifactRegistrationService.register(any()))
+                .willThrow(new BusinessException(ArtifactErrorCode.SIGNATURE_INVALID));
+
+        mockMvc.perform(multipart(URL).file(FILE).param("model", "model-a").param("version", "1.0.0"))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value(ArtifactErrorCode.SIGNATURE_INVALID.getCode()));
+
+        ArgumentCaptor<RegisterArtifactCommand> command = ArgumentCaptor.forClass(RegisterArtifactCommand.class);
+        verify(artifactRegistrationService).register(command.capture());
+        assertThat(command.getValue().signature()).isNull();
+        assertThat(command.getValue().keyId()).isNull();
+    }
+
+    @Test
+    @DisplayName("ORIGIN-POL-001: 서명 검증에 실패하면 원인을 구분하지 않고 422 SIGNATURE_INVALID 로 응답한다")
+    void respondsSignatureInvalid() throws Exception {
+        given(artifactRegistrationService.register(any()))
+                .willThrow(new BusinessException(ArtifactErrorCode.SIGNATURE_INVALID));
+
+        mockMvc.perform(validRequest())
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value(ArtifactErrorCode.SIGNATURE_INVALID.getCode()))
+                .andExpect(jsonPath("$.message").value(ArtifactErrorCode.SIGNATURE_INVALID.getMessage()));
     }
 
     @Test
@@ -206,7 +242,16 @@ class ArtifactAdminControllerTest {
                 .andExpect(jsonPath("$.code").value(ArtifactErrorCode.ORIGIN_UPLOAD_FAILED.getCode()));
     }
 
+    private static ArtifactSummary summary() {
+        return new ArtifactSummary(1L, "model-a", "1.0.0", 1, SHA256, PATH, SIGNATURE, "v1", Instant.parse(CREATED_AT));
+    }
+
     private MockMultipartHttpServletRequestBuilder validRequest() {
-        return multipart(URL).file(FILE).param("model", "model-a").param("version", "1.0.0");
+        return multipart(URL)
+                .file(FILE)
+                .param("model", "model-a")
+                .param("version", "1.0.0")
+                .param("signature", SIGNATURE)
+                .param("keyId", "v1");
     }
 }

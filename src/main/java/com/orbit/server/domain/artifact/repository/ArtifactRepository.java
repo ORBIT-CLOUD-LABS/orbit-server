@@ -47,7 +47,8 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      */
     @Query("""
             select new com.orbit.server.domain.artifact.service.ArtifactSummary(
-                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path, a.createdAt)
+                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
+                a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a
             order by a.createdAt desc, a.id desc
             """)
@@ -59,7 +60,8 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      */
     @Query("""
             select new com.orbit.server.domain.artifact.service.ArtifactSummary(
-                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path, a.createdAt)
+                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
+                a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a
             where a.release.model = :model
             order by a.createdAt desc, a.id desc
@@ -74,7 +76,8 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      */
     @Query("""
             select new com.orbit.server.domain.artifact.service.ArtifactSummary(
-                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path, a.createdAt)
+                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
+                a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a
             where a.id = :id
             """)
@@ -88,7 +91,8 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      */
     @Query("""
             select new com.orbit.server.domain.artifact.service.ArtifactSummary(
-                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path, a.createdAt)
+                a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
+                a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a
             where a.id in :ids
             """)

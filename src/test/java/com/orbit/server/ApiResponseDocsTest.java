@@ -64,7 +64,7 @@ class ApiResponseDocsTest {
             value = {
                 "/api/v1/admin/artifacts | post | 409 | ARTIFACT_VERSION_EXISTS",
                 "/api/v1/admin/artifacts | post | 413 | CONTENT_TOO_LARGE",
-                "/api/v1/admin/artifacts | post | 422 | HASH_MISMATCH",
+                "/api/v1/admin/artifacts | post | 422 | HASH_MISMATCH, SIGNATURE_INVALID",
                 "/api/v1/admin/artifacts | post | 502 | ORIGIN_UPLOAD_FAILED",
                 "/api/v1/admin/artifacts/{artifactId} | get | 404 | ARTIFACT_NOT_FOUND",
                 "/api/v1/admin/campaigns | post | 404 | ARTIFACT_NOT_FOUND",
