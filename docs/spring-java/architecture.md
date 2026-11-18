@@ -58,10 +58,10 @@ controller → service → repository
 - 기능 사이에 즉시 결과가 필요 없는 일은 도메인 이벤트(`ApplicationEventPublisher`, `@TransactionalEventListener`)로 나눈다.
 - 기능끼리 순환하지 않는다. 역방향이 필요하면 도메인 이벤트로 끊는다.
 - 의존 방향, 클래스 위치, 기능 간 순환은 `src/test/java/LayerArchitectureTest.java` 가 검사한다. 패키지 크기는 Java 프리셋의 `PackageSizeTest` 가 검사한다.
-  설치한 뒤 `LayerArchitectureTest` 의 `FEATURES_PACKAGE`, `GLOBAL_PACKAGE` 를 프로젝트 패키지로 바꾼다. → [testing.md](testing.md)
-  - orbit 은 이 테스트들을 #136 에서 들여온다. 그 전까지 의존 규칙은 `com.orbit.server.ArchitectureTest` 가 검사한다.
-  - 컨텍스트 간 내부 참조 금지와 `global/external` 의 포트 규칙은 원본 테스트에 없는 orbit 규칙이라 orbit 테스트로 따로 검사한다.
-- 순환 허용 목록(`LayerArchitectureTest` 의 `ignoreDependency`, #136 전까지는 `ArchitectureTest.contextsAreFreeOfCycles` 의 `ignoreDependency`), 큰 패키지 상한(`PackageSizeTest` 의 `KNOWN_LARGE_PACKAGES`), ArchUnit 기준선(`archunit_store`)은 늘리거나 고치지 않는다.
+  orbit 은 `FEATURES_PACKAGE` 를 `com.orbit.server.domain`, `GLOBAL_PACKAGE` 를 `com.orbit.server.global` 로 두었다. → [testing.md](testing.md)
+  - 컨텍스트 간 내부 참조 금지와 `global/external` 의 포트 규칙은 템플릿에 없는 orbit 규칙이라 `com.orbit.server.ContextBoundaryTest` 가 따로 검사한다.
+    `LayerArchitectureTest` 와 같은 규칙을 `ContextBoundaryTest` 에 두지 않는다. 같은 위반이 두 번 보고된다.
+- 순환 허용 목록(`LayerArchitectureTest` 의 `ignoreDependency`), 큰 패키지 상한(`PackageSizeTest` 의 `KNOWN_LARGE_PACKAGES`), ArchUnit 기준선(`archunit_store`)은 늘리거나 고치지 않는다.
   넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
 
 ## 레이어별 책임

@@ -97,7 +97,8 @@ ArchUnit 의존성은 [package-structure.md](package-structure.md) 의 스니펫
 ### 기준선
 
 모든 규칙은 `FreezingArchRule` 로 감싸 있다. 이미 있는 위반은 기준선(`src/test/resources/archunit_store`)에 기록해 두고 **새 위반만** 실패시킨다.
-orbit 의 `ArchitectureTest` 는 다르다. 컨텍스트 간 내부 참조 금지 규칙만 기준선에 두고, 순환을 포함한 나머지 규칙은 위반하면 바로 실패한다.
+다른 ArchUnit 테스트는 다르다. `LayerArchitectureTest` 의 순환 규칙은 기준선 대신 코드의 허용 목록(`ignoreDependency`)을 쓰고,
+orbit 의 `ContextBoundaryTest` 는 컨텍스트 간 내부 참조 금지 규칙만 기준선에 둔다. `global/external` 포트 규칙은 위반하면 바로 실패한다.
 위반을 고치면 기준선에서 줄어든다. 기준선은 커밋해서 팀이 같은 기준으로 검사한다.
 
 처음 도입할 때 기준선을 만드는 절차:

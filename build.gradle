@@ -42,7 +42,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 	testImplementation 'org.testcontainers:testcontainers-mysql'
-	// docs/spring-java/architecture.md 의 의존 규칙을 문서가 아니라 테스트로 강제하기 위해서다
+	// 패키지 크기·의존 방향·코드 작성 규칙을 문서가 아니라 테스트로 강제하기 위해서다 (src/test/java 의 ArchUnit 테스트)
 	testImplementation 'com.tngtech.archunit:archunit-junit5:1.5.1'
 	testCompileOnly 'org.projectlombok:lombok'
 	testAnnotationProcessor 'org.projectlombok:lombok'
