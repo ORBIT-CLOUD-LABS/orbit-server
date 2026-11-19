@@ -1,5 +1,6 @@
-package com.orbit.server.domain.artifact.service;
+package com.orbit.server.domain.artifact.service.config;
 
+import com.orbit.server.domain.artifact.service.FirmwarePublicKeys;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;

@@ -1,5 +1,6 @@
-package com.orbit.server.domain.artifact.service;
+package com.orbit.server.domain.artifact.service.config;
 
+import com.orbit.server.domain.artifact.service.FirmwarePublicKeys;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(SigningProperties.class)
-class SigningConfig {
+public class SigningConfig {
 
     // 공개 키가 잘못되면 첫 등록 요청이 아니라 기동 때 실패하도록 빈을 만들 때 검증한다
     @Bean
