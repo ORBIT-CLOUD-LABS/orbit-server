@@ -1,9 +1,9 @@
 Constructor <com.orbit.server.domain.update.service.command.CheckInCommand.<init>(java.lang.String, java.lang.String, java.util.Optional, java.util.Optional)> 의 파라미터 타입이 Optional 이다
 Constructor <com.orbit.server.domain.update.service.command.CheckInCommand.<init>(java.lang.String, java.lang.String, java.util.Optional, java.util.Optional)> 의 파라미터 타입이 Optional 이다
-Constructor <com.orbit.server.domain.update.service.CheckInResult.<init>(java.util.Optional, int)> 의 파라미터 타입이 Optional 이다
-Constructor <com.orbit.server.domain.update.service.ManifestVehicleState.<init>(java.lang.Long, com.orbit.server.domain.update.domain.SoftwareVersion, java.util.Optional)> 의 파라미터 타입이 Optional 이다
+Constructor <com.orbit.server.domain.update.service.result.CheckInResult.<init>(java.util.Optional, int)> 의 파라미터 타입이 Optional 이다
+Constructor <com.orbit.server.domain.update.service.result.ManifestVehicleState.<init>(java.lang.Long, com.orbit.server.domain.update.domain.SoftwareVersion, java.util.Optional)> 의 파라미터 타입이 Optional 이다
 Field <com.orbit.server.domain.update.service.command.CheckInCommand.lastUpdate> 의 타입이 Optional 이다
 Field <com.orbit.server.domain.update.service.command.CheckInCommand.location> 의 타입이 Optional 이다
-Field <com.orbit.server.domain.update.service.CheckInResult.targetCampaignId> 의 타입이 Optional 이다
-Field <com.orbit.server.domain.update.service.ManifestVehicleState.lastLocation> 의 타입이 Optional 이다
+Field <com.orbit.server.domain.update.service.result.CheckInResult.targetCampaignId> 의 타입이 Optional 이다
+Field <com.orbit.server.domain.update.service.result.ManifestVehicleState.lastLocation> 의 타입이 Optional 이다
 Method <com.orbit.server.domain.monitoring.service.VehicleStatusStreamService.subscribe(java.util.Optional)> 의 파라미터 타입이 Optional 이다

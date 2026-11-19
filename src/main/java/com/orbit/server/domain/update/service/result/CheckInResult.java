@@ -1,4 +1,4 @@
-package com.orbit.server.domain.update.service;
+package com.orbit.server.domain.update.service.result;
 
 import java.util.Objects;
 import java.util.Optional;

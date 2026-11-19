@@ -1,4 +1,4 @@
-package com.orbit.server.domain.update.service;
+package com.orbit.server.domain.update.service.result;
 
 import com.orbit.server.domain.update.domain.SoftwareVersion;
 import com.orbit.server.domain.update.domain.VehicleLocation;

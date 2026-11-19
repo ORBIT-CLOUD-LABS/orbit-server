@@ -15,7 +15,10 @@ com.orbit.server/
       dto/
         request/          API 요청 DTO
         response/         API 응답 DTO
-      service/            유스케이스(트랜잭션 경계), Command/Result·조회 결과, 외부 연동 포트, 도메인 서비스
+      service/            유스케이스(트랜잭션 경계), 외부 연동 포트, 도메인 서비스
+        command/          서비스 입력 (XxxCommand)
+        result/           서비스 출력·조회 결과 (XxxResult, XxxDetail)
+        config/           이 컨텍스트의 설정 (XxxConfig, XxxProperties)
       repository/         Spring Data 인터페이스
       domain/             엔티티, 값 객체, enum, 도메인 이벤트
       exception/          이 컨텍스트의 오류 코드, 예외
@@ -34,6 +37,7 @@ com.orbit.server/
 - 컨텍스트 이름은 [요구사항](../requirements.md)의 용어(유비쿼터스 언어)를 따른다. 새 컨텍스트를 만들기 전에 기존 컨텍스트에 속하는지 먼저 검토한다.
 - 필요 없는 하위 패키지는 만들지 않는다. (API 가 없는 기능에는 `controller/` 를 두지 않는다)
 - 서비스의 입출력(`XxxCommand` / `XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)은 `dto` 가 아니라 `service` 에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
+- `service` 안에서 역할이 다른 클래스는 역할 하위 패키지(`command/`, `result/`, `config/` 등)로 나눈다. 쓰는 역할만 만든다. → [../java/package-structure.md](../java/package-structure.md)
 - `global` 에는 비즈니스 규칙을 두지 않는다. 두 기능이 같은 개념을 쓴다고 `global` 로 올리지 않고, 기능 경계를 먼저 다시 본다.
   여러 컨텍스트가 같은 의미와 규칙으로 쓰는 값 객체는 `domain/shared` 에 둔다. → [../architecture.md](../architecture.md) 의 Shared Kernel
 - 외부 시스템 연동(결제, 메일 등)은 서비스가 쓰는 인터페이스를 `service` 에 두고, 구현은 `global/external/<시스템>` 에 둔다.
