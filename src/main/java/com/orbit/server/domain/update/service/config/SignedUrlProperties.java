@@ -1,4 +1,4 @@
-package com.orbit.server.domain.update.service;
+package com.orbit.server.domain.update.service.config;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;

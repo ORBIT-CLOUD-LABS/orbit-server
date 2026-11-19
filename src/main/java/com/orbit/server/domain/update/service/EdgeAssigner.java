@@ -6,6 +6,7 @@ import com.orbit.server.domain.edge.service.ObservedLocation;
 import com.orbit.server.domain.edge.service.SelectedEdge;
 import com.orbit.server.domain.update.service.EdgeAssignment.FallbackUrl;
 import com.orbit.server.domain.update.service.ManifestVehicleState.LastLocation;
+import com.orbit.server.domain.update.service.config.SignedUrlProperties;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
 import java.util.List;

@@ -2,6 +2,7 @@ package com.orbit.server.domain.update.service;
 
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.campaign.service.TargetVehicleCriteria;
+import com.orbit.server.domain.update.service.config.CheckInProperties;
 import com.orbit.server.domain.vehicle.service.VehicleProfile;
 import com.orbit.server.domain.vehicle.service.VehicleQueryService;
 import com.orbit.server.global.error.InvalidValueException;
