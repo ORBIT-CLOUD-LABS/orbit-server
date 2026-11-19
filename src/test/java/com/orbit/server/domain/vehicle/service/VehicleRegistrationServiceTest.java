@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.domain.VehicleSpec;
+import com.orbit.server.domain.vehicle.service.command.RegisterVehicleCommand;
+import com.orbit.server.domain.vehicle.service.result.VehicleRegistrationResult;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.persistence.EntityManager;
 import java.util.List;

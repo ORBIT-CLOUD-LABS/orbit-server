@@ -1,4 +1,4 @@
-package com.orbit.server.domain.vehicle.service;
+package com.orbit.server.domain.vehicle.service.command;
 
 import com.orbit.server.domain.vehicle.domain.Vehicle;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;

@@ -1,4 +1,4 @@
-package com.orbit.server.domain.vehicle.service;
+package com.orbit.server.domain.vehicle.service.result;
 
 /**
  * 체크인에서 쓰는 차량 정보. 상태를 기록할 차량 ID 와 캠페인 대상 판정에 쓸 차종·HW 버전·지역을 담는다. (VEHICLE-REQ-001)

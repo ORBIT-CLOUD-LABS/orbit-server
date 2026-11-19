@@ -1,4 +1,4 @@
-package com.orbit.server.domain.vehicle.service;
+package com.orbit.server.domain.vehicle.service.result;
 
 import com.orbit.server.domain.vehicle.domain.VehicleToken;
 import java.time.Instant;

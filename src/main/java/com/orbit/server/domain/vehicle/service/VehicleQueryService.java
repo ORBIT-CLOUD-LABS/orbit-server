@@ -2,6 +2,7 @@ package com.orbit.server.domain.vehicle.service;
 
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.repository.VehicleRepository;
+import com.orbit.server.domain.vehicle.service.result.VehicleProfile;
 import com.orbit.server.global.error.InvalidValueException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
