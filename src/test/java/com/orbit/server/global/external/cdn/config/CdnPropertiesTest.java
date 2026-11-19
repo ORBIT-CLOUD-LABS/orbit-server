@@ -1,8 +1,8 @@
-package com.orbit.server.global.external.cdn;
+package com.orbit.server.global.external.cdn.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.orbit.server.global.external.cdn.CdnProperties.EdgeProperties;
+import com.orbit.server.global.external.cdn.config.CdnProperties.EdgeProperties;
 import java.net.URI;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

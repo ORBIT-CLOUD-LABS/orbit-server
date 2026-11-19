@@ -1,4 +1,4 @@
-package com.orbit.server.global.external.cdn;
+package com.orbit.server.global.external.cdn.config;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.Duration;
@@ -17,5 +17,5 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("orbit.cdn.health-check")
-record EdgeHealthProbeProperties(
+public record EdgeHealthProbeProperties(
         @NotNull @DurationMin(millis = 1) Duration timeout) {}

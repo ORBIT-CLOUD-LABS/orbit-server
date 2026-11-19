@@ -1,4 +1,4 @@
-package com.orbit.server.global.external.cdn;
+package com.orbit.server.global.external.cdn.config;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -21,7 +21,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("orbit.cdn.url-signing")
-record UrlSigningProperties(
+public record UrlSigningProperties(
         @NotNull @Pattern(regexp = KEY_ID_PATTERN) String keyId,
 
         @NotNull @Size(min = MIN_SECRET_LENGTH) @Pattern(regexp = NO_WHITESPACE_PATTERN)

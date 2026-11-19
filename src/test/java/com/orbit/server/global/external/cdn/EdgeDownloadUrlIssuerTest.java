@@ -2,6 +2,7 @@ package com.orbit.server.global.external.cdn;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.orbit.server.global.external.cdn.config.UrlSigningProperties;
 import java.net.URI;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;

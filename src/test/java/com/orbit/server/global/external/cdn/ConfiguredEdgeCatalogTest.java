@@ -7,6 +7,7 @@ import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.domain.edge.service.EdgeCatalog;
 import com.orbit.server.global.error.InvalidValueException;
+import com.orbit.server.global.external.cdn.config.CdnConfig;
 import java.net.URI;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

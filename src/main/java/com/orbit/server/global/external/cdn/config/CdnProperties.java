@@ -1,4 +1,4 @@
-package com.orbit.server.global.external.cdn;
+package com.orbit.server.global.external.cdn.config;
 
 import com.orbit.server.domain.edge.domain.Coordinates;
 import com.orbit.server.domain.edge.domain.Edge;
@@ -25,7 +25,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("orbit.cdn")
-record CdnProperties(
+public record CdnProperties(
         String defaultEdgeId,
         // 목록이 빠지면 null 이 아니라 빈 목록으로 받아, 비어 있다는 같은 이유로 Edges 가 거부하게 한다
         @DefaultValue List<@Valid EdgeProperties> edges) {
@@ -36,7 +36,7 @@ record CdnProperties(
      * @return 검증을 마친 Edge 목록
      * @throws InvalidValueException 목록이 비었거나, id 가 겹치거나, 기본 Edge 가 없거나, Edge 값이 잘못된 경우
      */
-    Edges toEdges() {
+    public Edges toEdges() {
         List<Edge> configured = edges.stream().map(EdgeProperties::toEdge).toList();
         return new Edges(configured, defaultEdgeId);
     }

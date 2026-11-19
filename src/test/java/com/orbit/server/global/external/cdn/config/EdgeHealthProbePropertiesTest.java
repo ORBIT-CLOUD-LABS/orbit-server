@@ -1,4 +1,4 @@
-package com.orbit.server.global.external.cdn;
+package com.orbit.server.global.external.cdn.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

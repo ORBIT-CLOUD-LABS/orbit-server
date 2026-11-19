@@ -2,6 +2,7 @@ package com.orbit.server.global.external.cdn;
 
 import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.service.EdgeHealthProbe;
+import com.orbit.server.global.external.cdn.config.EdgeHealthProbeProperties;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;

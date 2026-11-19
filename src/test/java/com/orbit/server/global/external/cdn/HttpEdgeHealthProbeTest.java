@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.domain.edge.domain.Coordinates;
 import com.orbit.server.domain.edge.domain.Edge;
+import com.orbit.server.global.external.cdn.config.EdgeHealthProbeProperties;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
