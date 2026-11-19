@@ -45,7 +45,7 @@ com.orbit.server/
 - 서비스의 입출력(`XxxCommand` / `XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)은 `dto` 가 아니라 `service` 에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
 - 레이어 안에서 역할이 다른 클래스는 클래스가 적어도 역할 하위 패키지로 나눈다. 쓰는 역할만 만든다. → [../java/package-structure.md](../java/package-structure.md)
   `service` 의 역할 이름은 `command/`(입력), `result/`(출력·조회 결과), `config/`(설정), `listener/`(이벤트 구독), `scheduler/`(주기 작업)를 기본으로 쓴다. → 아래 "클래스를 추가할 때"
-  여기에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 구독자 관리·주기 전송 같은 전송 기반), `count/`(GROUP BY 집계 행과 그 일급 컬렉션)
+  여기에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 구독자 관리·변경분 전송 같은 전송 기반. 주기 등록은 `scheduler/`), `count/`(GROUP BY 집계 행과 그 일급 컬렉션)
   역할 하위 패키지에는 그 역할의 클래스만 둔다. 유스케이스 서비스는 `service` 루트에 두고 역할 하위 패키지를 쓴다. (`VehicleStatusStreamService` 는 루트, 전송 기반은 `stream/`)
   여러 역할 패키지가 함께 쓰는 enum·값 객체는 역할 패키지가 아니라 컨텍스트의 `domain` 에 둔다. (`UpdateFailureReason`)
   검색 조건처럼 입력이지만 커맨드가 아닌 record 는 `service` 에 그대로 둔다.

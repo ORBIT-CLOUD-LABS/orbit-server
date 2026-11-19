@@ -1,6 +1,8 @@
-package com.orbit.server.domain.monitoring.service.stream;
+package com.orbit.server.domain.monitoring.service.scheduler;
 
 import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
+import com.orbit.server.domain.monitoring.service.stream.VehicleStatusBroadcaster;
+import com.orbit.server.domain.monitoring.service.stream.VehicleStatusSubscribers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
@@ -13,7 +15,7 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
  */
 @Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
-class VehicleStatusStreamSchedule implements SchedulingConfigurer {
+class VehicleStatusStreamScheduler implements SchedulingConfigurer {
 
     private final VehicleStatusBroadcaster broadcaster;
     private final VehicleStatusSubscribers subscribers;
