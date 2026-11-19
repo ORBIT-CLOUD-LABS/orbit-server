@@ -42,12 +42,17 @@ com.orbit.server/
 - 서비스의 입출력(`XxxCommand` / `XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)은 `dto` 가 아니라 `service` 에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
 - 레이어 안에서 역할이 다른 클래스는 클래스가 적어도 역할 하위 패키지로 나눈다. 쓰는 역할만 만든다. → [../java/package-structure.md](../java/package-structure.md)
   `service` 의 역할 이름은 `command/`(입력), `result/`(출력·조회 결과), `config/`(설정)을 기본으로 쓴다.
-  이 셋에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 전송), `count/`(집계 행)
+  이 셋에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 구독자 관리·주기 전송 같은 전송 기반), `count/`(GROUP BY 집계 행과 그 일급 컬렉션)
+  역할 하위 패키지에는 그 역할의 클래스만 둔다. 유스케이스 서비스는 `service` 루트에 두고 역할 하위 패키지를 쓴다. (`VehicleStatusStreamService` 는 루트, 전송 기반은 `stream/`)
+  여러 역할 패키지가 함께 쓰는 enum·값 객체는 역할 패키지가 아니라 컨텍스트의 `domain` 에 둔다. (`UpdateFailureReason`)
   검색 조건처럼 입력이지만 커맨드가 아닌 record 는 `service` 에 그대로 둔다.
 - 레이어 안에 기능 하위 패키지(`service/alert/`)를 만들지 않는다. 레이어 안에서 새 도메인 명사가 보이면 최상위 기능 패키지로 꺼낸다.
-- 하위 패키지로 나누느라 package-private 멤버를 못 쓰게 되면 필요한 멤버만 `public` 으로 연다.
+  역할 이름을 붙였더라도 유스케이스·스케줄·결과를 한 기능으로 묶어 담으면 기능 하위 패키지다.
+- 하위 패키지로 나누느라 package-private 멤버를 못 쓰게 되면 쓰는 쪽에 필요한 멤버만 `public` 으로 연다.
   예: 결과 record 의 팩토리(`CampaignDetail.of`), 설정에서 만드는 구현의 생성자(`SecureLinkSigner`).
-  엔티티를 인자로 받는 팩토리는 다른 컨텍스트가 그 엔티티를 참조할 수 없으므로(`ContextBoundaryTest`) 열어도 실제로 부를 수 있는 곳이 늘지 않는다.
+  - 연 멤버는 같은 컨텍스트의 다른 레이어와 그 포트를 구현하는 `global/external` 에서도 부를 수 있다. 다른 컨텍스트는 그 엔티티를 참조할 수 없어(`ContextBoundaryTest`) 엔티티를 인자로 받는 팩토리를 부를 수 없다.
+  - 테스트를 대상 클래스와 같은 패키지로 옮기면서 `@Configuration` 클래스를 테스트에서 띄워야 하면 그 설정 클래스는 `public` 으로 연다. (`SecurityConfig`, `CdnConfig`)
+  - 테스트 때문에 동작 메서드를 열지는 않는다. 그 메서드를 검증하는 테스트를 대상 클래스의 패키지로 옮긴다. (`SecureLinkSigner.sign`)
 - `global` 에는 비즈니스 규칙을 두지 않는다. 두 기능이 같은 개념을 쓴다고 `global` 로 올리지 않고, 기능 경계를 먼저 다시 본다.
   여러 컨텍스트가 같은 의미와 규칙으로 쓰는 값 객체는 `domain/shared` 에 둔다. → [../architecture.md](../architecture.md) 의 Shared Kernel
 - 외부 시스템 연동(결제, 메일 등)은 서비스가 쓰는 인터페이스를 `service` 에 두고, 구현은 `global/external/<시스템>` 에 둔다.
