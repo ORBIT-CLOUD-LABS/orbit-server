@@ -11,6 +11,7 @@
 - 기능 안은 레이어로 나눈다. 쓰지 않는 레이어는 만들지 않는다.
 - 레이어 안에서 역할이 다른 클래스는 역할 하위 패키지로 나눈다. 예: `domain/event/`, `service/result/`, `service/config/`
 - 레이어 안에 기능 하위 패키지(`service/alert/`)를 만들지 않는다. 레이어 안에서 새 도메인 명사가 보이면 최상위 기능 패키지로 꺼낸다.
+- 새 클래스를 추가할 때 그 패키지의 기존 클래스와 목적이 같은지 먼저 본다. 다르면 패키지를 새로 만든다.
 - 하위 패키지로 나누면 package-private 멤버를 다른 하위 패키지에서 쓸 수 없다. 이때는 나누기를 포기하지 않고, 쓰는 쪽에 필요한 멤버만 `public` 으로 연다.
 
 ## 의존성 추가
@@ -47,8 +48,11 @@ JUnit 5 를 쓰도록 `tasks.test { useJUnitPlatform() }` (Kotlin) 또는 `test 
 
 크기 초과 메시지의 역할 분포(`config 3, service 7, record 13, 기타 6`)를 보고 위에서부터 판단한다.
 
+역할 분포는 역할이 얼마나 섞였는지 보는 신호일 뿐이다. `record`·`기타`·`@Entity·@Embeddable` 같은 분류 이름을 패키지 이름으로 쓰지 않는다.
+하위 패키지 이름은 클래스들의 목적(`event`, `listener`, `policy`)으로 짓고, `util`·`common`·`etc` 처럼 목적이 없는 이름은 쓰지 않는다.
+
 1. **역할이 섞여 있으면 역할 단위 하위 패키지로 나눈다.** 예: `domain/event/`, `service/config/`. 새 레이어 이름(`application/` 등)은 만들지 않는다. → [../spring-java/architecture.md](../spring-java/architecture.md)
-   분포가 한 역할로 몰려 있지 않고 두 가지 이상이 크게 섞여 있으면 이 단계다.
+   분포가 한 역할로 몰려 있지 않고 두 가지 이상이 섞여 있으면 이 단계다.
    한 역할 하위 패키지가 다시 크면 그 안에서 성격이 다른 묶음을 역할로 나눈다. 예: 조회 결과 record 를 서비스가 내보내는 결과(`result/`)와 GROUP BY 집계 행(`count/`)으로 나눈다.
 2. **새 도메인 개념이 섞여 있으면 최상위 기능 패키지로 꺼낸다.** 레이어 안에 기능 하위 패키지(`service/alert/`)를 만들지 않는다.
 3. **기능 경계가 애매하면 사람에게 묻는다.** 새 기능 패키지를 만들지, 기존 기능에 둘지 혼자 정하지 않는다.
@@ -61,7 +65,7 @@ JUnit 5 를 쓰도록 `tasks.test { useJUnitPlatform() }` (Kotlin) 또는 `test 
 | 2 | controller | `@RestController`, `@Controller` |
 | 3 | service | `@Service`, `@Component` |
 | 4 | repository | `@Repository`, 또는 `org.springframework.data.repository.Repository` 를 상속 |
-| 5 | entity | `@Entity`, `@Embeddable` |
+| 5 | @Entity·@Embeddable | `@Entity`, `@Embeddable`. 패키지 이름이 아니라 JPA 매핑 클래스를 가리키므로 어노테이션으로 표시한다 |
 | 6 | record | `record` |
 | 7 | 기타 | 위에 해당하지 않는 것 |
 
