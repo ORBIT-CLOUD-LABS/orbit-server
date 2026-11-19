@@ -7,6 +7,8 @@ import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import com.orbit.server.domain.vehicle.domain.VehicleToken;
 import com.orbit.server.domain.vehicle.repository.VehicleCredentialRepository;
 import com.orbit.server.domain.vehicle.repository.VehicleRepository;
+import com.orbit.server.domain.vehicle.service.command.RegisterVehicleCommand;
+import com.orbit.server.domain.vehicle.service.result.VehicleRegistrationResult;
 import com.orbit.server.global.error.InvalidValueException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

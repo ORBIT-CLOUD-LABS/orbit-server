@@ -8,6 +8,7 @@ import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import com.orbit.server.domain.vehicle.domain.VehicleToken;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
+import com.orbit.server.domain.vehicle.service.command.RegisterVehicleCommand;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.ErrorCode;
 import com.orbit.server.global.security.AuthErrorCode;

@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.dto.response;
 
-import com.orbit.server.domain.artifact.service.ArtifactRegistrationResult;
+import com.orbit.server.domain.artifact.service.result.ArtifactRegistrationResult;
 
 /**
  * Origin 파일 등록 응답.

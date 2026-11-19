@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.dto.response;
 
-import com.orbit.server.domain.monitoring.service.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
 import java.time.Instant;
 import java.util.Optional;
 

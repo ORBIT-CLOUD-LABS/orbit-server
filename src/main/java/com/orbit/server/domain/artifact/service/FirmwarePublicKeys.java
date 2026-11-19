@@ -12,7 +12,7 @@ import java.util.Optional;
  * <p>공개 키가 하나도 없거나 하나라도 잘못되면 모든 등록이 실패하거나 일부 키 버전의 서명만 조용히 거부되므로, 만들 때 모두 검증해 앱을 띄우지
  * 않는다.
  */
-final class FirmwarePublicKeys {
+public final class FirmwarePublicKeys {
 
     private final Map<String, FirmwarePublicKey> keysById;
 
@@ -25,7 +25,7 @@ final class FirmwarePublicKeys {
      * @return 검증을 마친 공개 키 목록
      * @throws InvalidValueException 목록이 비었거나, 키 버전이 {@code v1} 형식이 아니거나, 공개 키가 잘못된 경우
      */
-    static FirmwarePublicKeys fromBase64(Map<String, String> base64KeysById) {
+    public static FirmwarePublicKeys fromBase64(Map<String, String> base64KeysById) {
         if (base64KeysById == null || base64KeysById.isEmpty()) {
             throw new InvalidValueException("펌웨어 서명 공개 키가 하나 이상 있어야 합니다.");
         }

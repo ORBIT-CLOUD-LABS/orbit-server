@@ -1,6 +1,7 @@
 package com.orbit.server.global.external.cdn;
 
 import com.orbit.server.domain.update.service.DownloadUrlIssuer;
+import com.orbit.server.global.external.cdn.config.UrlSigningProperties;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;

@@ -1,7 +1,7 @@
 package com.orbit.server.domain.campaign.dto.response;
 
 import com.orbit.server.domain.campaign.domain.CampaignStatus;
-import com.orbit.server.domain.campaign.service.CampaignDetail;
+import com.orbit.server.domain.campaign.service.result.CampaignDetail;
 import java.time.Instant;
 
 /**

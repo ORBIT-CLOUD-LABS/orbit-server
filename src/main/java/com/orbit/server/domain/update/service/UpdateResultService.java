@@ -4,6 +4,7 @@ import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.update.domain.UpdateOutcome;
 import com.orbit.server.domain.update.repository.UpdateResultRepository;
 import com.orbit.server.domain.update.repository.VehicleEventRepository;
+import com.orbit.server.domain.update.service.command.ReportUpdateResultCommand;
 import com.orbit.server.global.error.InvalidValueException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

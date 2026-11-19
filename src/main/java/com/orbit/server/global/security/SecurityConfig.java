@@ -1,5 +1,11 @@
 package com.orbit.server.global.security;
 
+import com.orbit.server.global.security.filter.AdminTokenAuthenticationFilter;
+import com.orbit.server.global.security.filter.EnrollmentKeyAuthenticationFilter;
+import com.orbit.server.global.security.filter.VehicleTokenAuthenticationFilter;
+import com.orbit.server.global.security.handler.ErrorResponseAccessDeniedHandler;
+import com.orbit.server.global.security.handler.ErrorResponseAuthenticationEntryPoint;
+import com.orbit.server.global.security.handler.SecurityErrorResponder;
 import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -28,7 +34,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({AdminProperties.class, EnrollmentProperties.class})
-class SecurityConfig {
+public class SecurityConfig {
 
     static final String HEALTH_PATHS = "/actuator/health/**";
     static final String PROMETHEUS_PATH = "/actuator/prometheus";

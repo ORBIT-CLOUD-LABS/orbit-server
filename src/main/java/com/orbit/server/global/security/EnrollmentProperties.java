@@ -13,4 +13,4 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("orbit.enrollment")
-record EnrollmentProperties(@NotBlank String key) {}
+public record EnrollmentProperties(@NotBlank String key) {}

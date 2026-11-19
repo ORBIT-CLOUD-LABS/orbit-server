@@ -1,5 +1,6 @@
 package com.orbit.server.domain.edge.service;
 
+import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;

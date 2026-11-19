@@ -2,7 +2,7 @@ package com.orbit.server.domain.campaign.repository;
 
 import com.orbit.server.domain.campaign.domain.Campaign;
 import com.orbit.server.domain.campaign.service.CampaignFilter;
-import com.orbit.server.domain.campaign.service.CampaignSummary;
+import com.orbit.server.domain.campaign.service.result.CampaignSummary;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -43,7 +43,7 @@ public interface CampaignRepository extends JpaRepository<Campaign, Long> {
      */
     // 필터 조합마다 메서드를 나누지 않도록 값이 없는 조건은 is null 로 건너뛴다
     @Query("""
-            select new com.orbit.server.domain.campaign.service.CampaignSummary(
+            select new com.orbit.server.domain.campaign.service.result.CampaignSummary(
                 c.id, c.artifactId, c.name.value, c.condition.target.model, c.status,
                 c.condition.period.startAt, c.condition.period.endAt, c.createdAt)
             from Campaign c

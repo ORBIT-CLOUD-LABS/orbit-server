@@ -1,10 +1,13 @@
 package com.orbit.server.domain.update.service;
 
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.campaign.service.TargetVehicleCriteria;
-import com.orbit.server.domain.vehicle.service.VehicleProfile;
+import com.orbit.server.domain.update.service.result.EdgeAssignment;
+import com.orbit.server.domain.update.service.result.ManifestResult;
+import com.orbit.server.domain.update.service.result.ManifestVehicleState;
 import com.orbit.server.domain.vehicle.service.VehicleQueryService;
+import com.orbit.server.domain.vehicle.service.result.VehicleProfile;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Clock;
 import java.time.Instant;

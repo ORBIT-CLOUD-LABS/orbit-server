@@ -44,7 +44,8 @@ orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 �
 문서를 다 읽지 못했더라도 아래는 반드시 지킨다.
 
 - 패키지는 최상위 `domain` / `global` 로 나눈다. `domain` 아래는 바운디드 컨텍스트별로 `controller` / `dto` (`request`, `response`) / `service` / `repository` / `domain` / `exception` 을 둔다.
-  컨텍스트 안의 `domain` 에는 엔티티, 값 객체, enum, 도메인 이벤트를 둔다. (`com.orbit.server.domain.<컨텍스트>.domain`)
+  컨텍스트 안의 `domain` 에는 엔티티, 값 객체, enum 을 두고, 도메인 이벤트는 `domain/event` 에 둔다. (`com.orbit.server.domain.<컨텍스트>.domain`)
+  레이어 안에서 역할이 다르면 클래스가 적어도 역할 하위 패키지로 나눈다. 새 클래스의 위치는 [docs/spring-java/architecture.md](docs/spring-java/architecture.md) 의 "클래스를 추가할 때" 를 따른다.
 - 의존 방향은 `controller → service → repository → domain`, 최상위 `domain → global`. 다른 컨텍스트는 `service` 나 이벤트로만 접근한다.
 - `global` 에는 설정·전역 예외·보안 같은 기술 기반만 둔다. 비즈니스 규칙은 두지 않는다.
   외부 시스템 연동 구현은 `global/external/{시스템}` 에 두고, `service` 의 포트(인터페이스)를 구현한다.
@@ -64,7 +65,7 @@ orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 �
 - 필드 주입 대신 생성자 주입을 쓴다.
 - 엔티티를 API 요청·응답으로 쓰지 않는다. DTO(record)로 바꾼다.
 - `@Transactional` 은 service 에 두고, 조회는 `readOnly = true`. 트랜잭션 안에서 외부 API 를 부르지 않는다.
-- ArchUnit 기준선(archunit_store), PackageSizeTest 의 큰 패키지 상한, 순환 허용 목록을 늘리지 않는다. 넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
+- ArchUnit 기준선(archunit_store), PackageSizeTest 의 큰 패키지 상한, 순환 허용 목록을 늘리지 않는다. 넘으면 패키지를 나누고, 순환은 의존 방향 정리 → 함께 쓰는 개념 분리 → 도메인 이벤트 순으로 끊는다. ([docs/spring-java/architecture.md](docs/spring-java/architecture.md) 의 "순환을 끊는 순서")
 
 중첩, 인자 개수, 값 객체, 일급 컬렉션, getter, 협력 객체 수, 디미터 법칙 같은 코드 단위 기준은 [docs/java/checklist.md](docs/java/checklist.md),
 null·매직 넘버·예외는 [docs/java/clean-code.md](docs/java/clean-code.md), Javadoc·주석은 [docs/java/code-style.md](docs/java/code-style.md) 에 있다.

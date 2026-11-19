@@ -2,8 +2,8 @@ package com.orbit.server.domain.vehicle.controller;
 
 import com.orbit.server.domain.vehicle.dto.request.RegisterVehicleRequest;
 import com.orbit.server.domain.vehicle.dto.response.VehicleRegistrationResponse;
-import com.orbit.server.domain.vehicle.service.VehicleRegistrationResult;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationService;
+import com.orbit.server.domain.vehicle.service.result.VehicleRegistrationResult;
 import com.orbit.server.global.common.ApiResponse;
 import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.config.ApiTags;

@@ -1,6 +1,7 @@
 package com.orbit.server.domain.monitoring.service;
 
 import com.orbit.server.domain.monitoring.repository.VehicleUpdateHistoryRepository;
+import com.orbit.server.domain.monitoring.service.result.VehicleUpdateAttempt;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import java.util.List;

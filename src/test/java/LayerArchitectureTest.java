@@ -125,9 +125,10 @@ class LayerArchitectureTest {
     // 기준선에 두지 않는다. 순환 위반 문장에 경로상의 모든 의존이 들어가서, 순환에 걸친 클래스를 고칠 때마다
     // 같은 순환이 새 위반으로 잡히기 때문이다. 대신 알려진 역방향 의존만 클래스 단위로 허용한다.
     //
-    // 허용 목록을 늘리지 않는다. 새 순환은 도메인 이벤트(ApplicationEventPublisher, @TransactionalEventListener)로 끊고,
-    // 이벤트로 끊은 의존은 목록에서 지운다. 허용하는 이유를 한 줄씩 적는다. 예:
-    //   // vehicle → update: 차량 등록이 초기 상태를 만들려고 VehicleStateService 를 부른다. 이벤트로 끊으면 이 줄을 지운다
+    // 허용 목록을 늘리지 않는다. 새 순환은 docs/spring-java/architecture.md 의 "순환을 끊는 순서"
+    // (의존 방향 정리 → 함께 쓰는 개념을 별도 기능으로 → 즉시 결과가 필요 없는 일만 도메인 이벤트)로 끊고,
+    // 끊은 의존은 목록에서 지운다. 허용하는 이유를 한 줄씩 적는다. 예:
+    //   // vehicle → update: 차량 등록이 초기 상태를 만들려고 VehicleStateService 를 부른다. 순환을 끊으면 이 줄을 지운다
     //   .ignoreDependency(
     //           "com.example.app.vehicle.service.VehicleRegistrationService",
     //           "com.example.app.update.service.VehicleStateService")
@@ -138,10 +139,11 @@ class LayerArchitectureTest {
             // global 로 들어가고 나가는 의존은 순환으로 보지 않는다. global 이 기능을 알면 규칙 3 이 잡는다.
             .ignoreDependency(resideInAPackage(GLOBAL_PACKAGE + ".."), DescribedPredicate.alwaysTrue())
             .ignoreDependency(DescribedPredicate.alwaysTrue(), resideInAPackage(GLOBAL_PACKAGE + ".."))
-            // vehicle → update: 차량 등록이 초기 상태를 만들려고 VehicleStateService 를 부른다. 이벤트로 끊으면 이 줄을 지운다
+            // vehicle → update: 차량 등록이 초기 상태를 만들려고 VehicleStateService 를 부른다. 순환을 끊으면 이 줄을 지운다
             // 클래스 리터럴로 적어 이름을 바꾸거나 옮기면 컴파일 단계에서 드러나게 한다
             .ignoreDependency(VehicleRegistrationService.class, VehicleStateService.class)
-            .because("기능끼리 서로를 알면 한쪽 변경이 다른 쪽으로 번진다. 역방향이 필요하면 도메인 이벤트로 끊는다" + " → docs/spring-java/architecture.md");
+            .because("기능끼리 서로를 알면 한쪽 변경이 다른 쪽으로 번진다. 의존 방향 정리, 함께 쓰는 개념 분리, 도메인 이벤트 순으로 끊는다"
+                    + " → docs/spring-java/architecture.md");
 
     /** 기능 패키지의 클래스. FEATURES_PACKAGE 바로 아래 패키지의 클래스는 포함하고, GLOBAL_PACKAGE 는 뺀다. */
     private static DescribedPredicate<JavaClass> featureClasses() {

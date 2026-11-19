@@ -5,7 +5,8 @@ import static org.assertj.core.api.Assertions.within;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.update.domain.VehicleLocation;
-import com.orbit.server.domain.update.service.EdgeAssignment.FallbackUrl;
+import com.orbit.server.domain.update.service.result.EdgeAssignment;
+import com.orbit.server.domain.update.service.result.EdgeAssignment.FallbackUrl;
 import com.orbit.server.domain.vehicle.domain.Vehicle;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.domain.VehicleSpec;
