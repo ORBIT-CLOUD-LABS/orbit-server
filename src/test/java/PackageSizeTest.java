@@ -43,7 +43,8 @@ class PackageSizeTest {
         CONTROLLER("controller"),
         SERVICE("service"),
         REPOSITORY("repository"),
-        ENTITY("entity"),
+        // 패키지 이름 entity 와 헷갈리지 않게, 이 역할로 세는 어노테이션을 그대로 적는다.
+        ENTITY("@Entity·@Embeddable"),
         RECORD("record"),
         OTHER("기타");
 
@@ -88,7 +89,8 @@ class PackageSizeTest {
     private static String oversizeMessage(String packageName, List<JavaClass> members, int limit) {
         return "패키지 " + packageName + " 의 클래스가 " + members.size() + "개로 상한 " + limit + "개를 넘었습니다"
                 + " (기본 상한 " + MAX_CLASSES_PER_PACKAGE + ").\n"
-                + "역할 분포: " + roleDistribution(members) + "\n"
+                + "역할 분포: " + roleDistribution(members)
+                + " (섞인 정도를 보는 신호입니다. 하위 패키지 이름은 분류 이름이 아니라 목적으로 짓습니다. 예: event, listener, policy)\n"
                 + "나누는 순서: 1) 역할이 섞여 있으면 역할 단위 하위 패키지로"
                 + " 2) 새 도메인 개념이 섞여 있으면 최상위 기능 패키지로 꺼낸다 (레이어 안에 기능 하위 패키지는 만들지 않는다)"
                 + " 3) 기능 경계가 애매하면 사람에게 묻는다\n"
