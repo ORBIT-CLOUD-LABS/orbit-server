@@ -1,4 +1,4 @@
-package com.orbit.server.domain.monitoring.service.count;
+package com.orbit.server.domain.monitoring.domain;
 
 /**
  * 진행 현황에서 실패 수를 나눠 보여 주는 실패 사유. 보고된 적 없는 사유도 0 으로 보여 주려면 사유 목록이 필요하다.

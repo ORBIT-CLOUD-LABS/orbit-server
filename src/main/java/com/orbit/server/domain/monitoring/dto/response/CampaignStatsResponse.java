@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.dto.response;
 
-import com.orbit.server.domain.monitoring.service.count.UpdateFailureReason;
+import com.orbit.server.domain.monitoring.domain.UpdateFailureReason;
 import com.orbit.server.domain.monitoring.service.result.CampaignStats;
 import java.util.Map;
 
