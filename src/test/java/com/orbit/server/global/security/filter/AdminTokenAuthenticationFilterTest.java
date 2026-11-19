@@ -1,7 +1,8 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.orbit.server.global.security.AdminProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

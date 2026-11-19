@@ -1,6 +1,10 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
 import com.orbit.server.global.error.BusinessException;
+import com.orbit.server.global.security.AuthErrorCode;
+import com.orbit.server.global.security.VehicleTokenAuthenticator;
+import com.orbit.server.global.security.handler.ErrorResponseAuthenticationEntryPoint;
+import com.orbit.server.global.security.handler.SecurityErrorResponder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,10 +24,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>필터에서 난 오류는 {@code @RestControllerAdvice} 를 거치지 않으므로, {@link ErrorResponseAuthenticationEntryPoint} 와
  * 같은 이유로 {@link SecurityErrorResponder} 를 통해 전역 예외 처리기로 넘긴다.
  */
-class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
+public class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
 
-    static final String VEHICLE_ROLE = "VEHICLE";
-    static final String VEHICLE_ID = "vehicleId";
+    public static final String VEHICLE_ROLE = "VEHICLE";
+    public static final String VEHICLE_ID = "vehicleId";
 
     private final RequestMatcher vehiclePaths;
     private final VehicleTokenAuthenticator authenticator;
@@ -35,7 +39,7 @@ class VehicleTokenAuthenticationFilter extends OncePerRequestFilter {
      * @param authenticator 차량 토큰 확인 포트
      * @param errorResponder 전역 예외 처리기로 오류 응답을 위임하는 응답기
      */
-    VehicleTokenAuthenticationFilter(
+    public VehicleTokenAuthenticationFilter(
             RequestMatcher vehiclePaths,
             VehicleTokenAuthenticator authenticator,
             SecurityErrorResponder errorResponder) {

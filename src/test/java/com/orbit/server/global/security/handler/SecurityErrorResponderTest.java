@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.InvalidValueException;
+import com.orbit.server.global.security.AuthErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

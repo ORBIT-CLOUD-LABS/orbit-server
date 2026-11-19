@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +9,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.orbit.server.global.error.BusinessException;
+import com.orbit.server.global.security.AuthErrorCode;
+import com.orbit.server.global.security.EnrollmentProperties;
+import com.orbit.server.global.security.handler.SecurityErrorResponder;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

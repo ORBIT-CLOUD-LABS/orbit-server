@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.handler;
 
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.CommonErrorCode;
@@ -15,14 +15,14 @@ import org.springframework.security.web.AuthenticationEntryPoint;
  * {@link SecurityErrorResponder} 를 통해 전역 예외 처리기로 넘긴다. 요청 헤더나 인증 예외 메시지는 응답·로그에 옮기지 않아
  * 토큰 값이 남지 않는다.
  */
-class ErrorResponseAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class ErrorResponseAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final SecurityErrorResponder errorResponder;
 
     /**
      * @param errorResponder 전역 예외 처리기로 오류 응답을 위임하는 응답기
      */
-    ErrorResponseAuthenticationEntryPoint(SecurityErrorResponder errorResponder) {
+    public ErrorResponseAuthenticationEntryPoint(SecurityErrorResponder errorResponder) {
         this.errorResponder = errorResponder;
     }
 

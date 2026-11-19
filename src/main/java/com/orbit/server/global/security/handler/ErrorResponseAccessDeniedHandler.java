@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.handler;
 
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.CommonErrorCode;
@@ -14,14 +14,14 @@ import org.springframework.security.web.access.AccessDeniedHandler;
  * <p>{@link ErrorResponseAuthenticationEntryPoint} 와 같은 이유로 {@link SecurityErrorResponder} 를 통해 전역 예외
  * 처리기로 넘긴다. 기본 처리기는 Spring Boot 오류 형식으로 응답해 다른 API 오류와 형식이 달라진다.
  */
-class ErrorResponseAccessDeniedHandler implements AccessDeniedHandler {
+public class ErrorResponseAccessDeniedHandler implements AccessDeniedHandler {
 
     private final SecurityErrorResponder errorResponder;
 
     /**
      * @param errorResponder 전역 예외 처리기로 오류 응답을 위임하는 응답기
      */
-    ErrorResponseAccessDeniedHandler(SecurityErrorResponder errorResponder) {
+    public ErrorResponseAccessDeniedHandler(SecurityErrorResponder errorResponder) {
         this.errorResponder = errorResponder;
     }
 

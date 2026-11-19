@@ -1,9 +1,11 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.global.error.CommonErrorCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
+import com.orbit.server.global.security.SecurityConfig;
+import com.orbit.server.global.security.VehicleTokenAuthenticator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

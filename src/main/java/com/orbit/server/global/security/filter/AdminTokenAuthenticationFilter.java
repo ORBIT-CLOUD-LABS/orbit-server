@@ -1,5 +1,6 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
+import com.orbit.server.global.security.AdminProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,9 +16,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>토큰이 없거나 다르면 거부하지 않고 인증 없이 다음 필터로 넘긴다. 같은 헤더로 차량 토큰·등록 키도 오기 때문이며, 거부할지는
  * 경로별 인가 규칙이 정한다.
  */
-class AdminTokenAuthenticationFilter extends OncePerRequestFilter {
+public class AdminTokenAuthenticationFilter extends OncePerRequestFilter {
 
-    static final String ADMIN_ROLE = "ADMIN";
+    public static final String ADMIN_ROLE = "ADMIN";
 
     private static final String ADMIN_PRINCIPAL = "admin";
 
@@ -26,7 +27,7 @@ class AdminTokenAuthenticationFilter extends OncePerRequestFilter {
     /**
      * @param properties 관리자 토큰 설정
      */
-    AdminTokenAuthenticationFilter(AdminProperties properties) {
+    public AdminTokenAuthenticationFilter(AdminProperties properties) {
         this.adminToken = properties.token().getBytes(StandardCharsets.UTF_8);
     }
 

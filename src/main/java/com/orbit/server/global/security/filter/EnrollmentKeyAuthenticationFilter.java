@@ -1,6 +1,10 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
 import com.orbit.server.global.error.BusinessException;
+import com.orbit.server.global.security.AuthErrorCode;
+import com.orbit.server.global.security.EnrollmentProperties;
+import com.orbit.server.global.security.handler.ErrorResponseAuthenticationEntryPoint;
+import com.orbit.server.global.security.handler.SecurityErrorResponder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,9 +25,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>필터에서 난 오류는 {@code @RestControllerAdvice} 를 거치지 않으므로, {@link ErrorResponseAuthenticationEntryPoint} 와
  * 같은 이유로 {@link SecurityErrorResponder} 를 통해 전역 예외 처리기로 넘긴다.
  */
-class EnrollmentKeyAuthenticationFilter extends OncePerRequestFilter {
+public class EnrollmentKeyAuthenticationFilter extends OncePerRequestFilter {
 
-    static final String ENROLLMENT_ROLE = "ENROLLMENT";
+    public static final String ENROLLMENT_ROLE = "ENROLLMENT";
 
     private static final String ENROLLMENT_PRINCIPAL = "enrollment";
 
@@ -36,7 +40,7 @@ class EnrollmentKeyAuthenticationFilter extends OncePerRequestFilter {
      * @param properties 공통 등록 키 설정
      * @param errorResponder 전역 예외 처리기로 오류 응답을 위임하는 응답기
      */
-    EnrollmentKeyAuthenticationFilter(
+    public EnrollmentKeyAuthenticationFilter(
             RequestMatcher registerPath, EnrollmentProperties properties, SecurityErrorResponder errorResponder) {
         this.registerPath = registerPath;
         this.enrollmentKey = properties.key().getBytes(StandardCharsets.UTF_8);

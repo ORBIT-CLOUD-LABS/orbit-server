@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -13,6 +13,9 @@ import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.ErrorCode;
 import com.orbit.server.global.error.InvalidValueException;
+import com.orbit.server.global.security.AuthErrorCode;
+import com.orbit.server.global.security.VehicleTokenAuthenticator;
+import com.orbit.server.global.security.handler.SecurityErrorResponder;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

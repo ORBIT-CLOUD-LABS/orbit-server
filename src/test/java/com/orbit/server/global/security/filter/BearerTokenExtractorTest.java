@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

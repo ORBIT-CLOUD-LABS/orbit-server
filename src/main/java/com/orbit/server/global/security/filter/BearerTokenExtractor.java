@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;

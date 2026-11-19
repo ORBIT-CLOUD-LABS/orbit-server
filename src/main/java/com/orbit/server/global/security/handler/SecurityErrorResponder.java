@@ -1,4 +1,4 @@
-package com.orbit.server.global.security;
+package com.orbit.server.global.security.handler;
 
 import com.orbit.server.global.error.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,14 +18,14 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * 끝난다. 그래서 그때는 공통 형식을 포기하고 상태 코드만으로라도 거부한다.
  */
 @Slf4j
-final class SecurityErrorResponder {
+public final class SecurityErrorResponder {
 
     private final HandlerExceptionResolver exceptionResolver;
 
     /**
      * @param exceptionResolver 전역 예외 처리기로 위임하는 MVC 예외 해석기
      */
-    SecurityErrorResponder(HandlerExceptionResolver exceptionResolver) {
+    public SecurityErrorResponder(HandlerExceptionResolver exceptionResolver) {
         this.exceptionResolver = exceptionResolver;
     }
 
@@ -37,7 +37,8 @@ final class SecurityErrorResponder {
      * @param exception 응답으로 바꿀 예외
      * @throws IOException 상태 코드만으로 거부하는 응답을 쓰지 못한 경우
      */
-    void respond(HttpServletRequest request, HttpServletResponse response, Exception exception) throws IOException {
+    public void respond(HttpServletRequest request, HttpServletResponse response, Exception exception)
+            throws IOException {
         if (exceptionResolver.resolveException(request, response, null, exception) != null) {
             return;
         }
