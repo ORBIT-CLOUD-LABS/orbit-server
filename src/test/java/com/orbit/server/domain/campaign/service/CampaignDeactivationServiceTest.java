@@ -17,6 +17,7 @@ import com.orbit.server.domain.campaign.domain.CampaignTarget;
 import com.orbit.server.domain.campaign.domain.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.campaign.service.result.CampaignDetail;
 import com.orbit.server.global.error.BusinessException;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;

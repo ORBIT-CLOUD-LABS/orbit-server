@@ -4,7 +4,7 @@ import com.orbit.server.domain.campaign.domain.CampaignName;
 import com.orbit.server.domain.campaign.domain.CampaignPeriod;
 import com.orbit.server.domain.campaign.domain.TargetRelease;
 import com.orbit.server.domain.campaign.domain.VersionRange;
-import com.orbit.server.domain.campaign.service.RegisterCampaignCommand;
+import com.orbit.server.domain.campaign.service.command.RegisterCampaignCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

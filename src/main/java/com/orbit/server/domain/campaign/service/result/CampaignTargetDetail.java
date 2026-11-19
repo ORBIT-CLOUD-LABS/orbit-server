@@ -1,4 +1,4 @@
-package com.orbit.server.domain.campaign.service;
+package com.orbit.server.domain.campaign.service.result;
 
 import com.orbit.server.domain.campaign.domain.CampaignCondition;
 import com.orbit.server.domain.campaign.domain.CampaignTarget;

@@ -16,6 +16,7 @@ import com.orbit.server.domain.campaign.domain.CampaignStatus;
 import com.orbit.server.domain.campaign.domain.CampaignTarget;
 import com.orbit.server.domain.campaign.domain.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.campaign.service.result.CampaignListItem;
 import jakarta.persistence.EntityManager;
 import java.time.Duration;
 import java.time.Instant;

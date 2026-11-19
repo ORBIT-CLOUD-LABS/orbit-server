@@ -3,6 +3,7 @@ package com.orbit.server.domain.campaign.service;
 import com.orbit.server.domain.campaign.domain.Campaign;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.campaign.service.result.CampaignDetail;
 import com.orbit.server.global.error.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.orbit.server.domain.campaign.service;
+package com.orbit.server.domain.campaign.service.result;
 
 import com.orbit.server.domain.campaign.domain.Campaign;
 import com.orbit.server.domain.campaign.domain.CampaignCondition;
@@ -37,7 +37,7 @@ public record CampaignDetail(
      * @param targetVersion 캠페인이 배포하는 Artifact 의 버전
      * @return 캠페인 상세
      */
-    static CampaignDetail of(Campaign campaign, String targetVersion) {
+    public static CampaignDetail of(Campaign campaign, String targetVersion) {
         CampaignCondition condition = campaign.getCondition();
         CampaignPeriod period = condition.getPeriod();
         return new CampaignDetail(

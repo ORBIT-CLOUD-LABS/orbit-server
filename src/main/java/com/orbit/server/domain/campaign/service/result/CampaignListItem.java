@@ -1,4 +1,4 @@
-package com.orbit.server.domain.campaign.service;
+package com.orbit.server.domain.campaign.service.result;
 
 /**
  * 캠페인 목록의 한 항목. 캠페인 정보에 Artifact 에서 읽은 목표 버전을 붙인다.

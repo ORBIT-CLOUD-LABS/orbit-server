@@ -18,6 +18,7 @@ import com.orbit.server.domain.campaign.domain.TargetRelease;
 import com.orbit.server.domain.campaign.domain.VersionRange;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
+import com.orbit.server.domain.campaign.service.command.RegisterCampaignCommand;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.InvalidValueException;
 import java.time.Duration;
