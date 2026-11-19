@@ -7,10 +7,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
-import com.orbit.server.domain.monitoring.service.CampaignResultCount;
-import com.orbit.server.domain.monitoring.service.CampaignResultCounts;
 import com.orbit.server.domain.monitoring.service.CampaignStats;
 import com.orbit.server.domain.monitoring.service.CampaignStatsService;
+import com.orbit.server.domain.monitoring.service.count.CampaignResultCount;
+import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
 import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.BusinessException;
 import com.orbit.server.global.error.GlobalExceptionHandler;

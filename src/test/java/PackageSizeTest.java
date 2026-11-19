@@ -36,8 +36,7 @@ class PackageSizeTest {
      *   <li>패키지가 {@link #MAX_CLASSES_PER_PACKAGE} 이하로 줄거나 사라지면 테스트가 실패하니 항목을 지운다.
      * </ul>
      */
-    private static final Map<String, Integer> KNOWN_LARGE_PACKAGES =
-            Map.of("com.orbit.server.domain.monitoring.service", 28);
+    private static final Map<String, Integer> KNOWN_LARGE_PACKAGES = Map.of();
 
     private enum Role {
         CONFIG("config"),

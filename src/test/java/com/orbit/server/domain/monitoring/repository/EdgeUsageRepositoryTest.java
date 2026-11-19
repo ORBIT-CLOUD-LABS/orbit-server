@@ -4,8 +4,8 @@ import static com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture.S
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.monitoring.service.EdgeDownloadCount;
-import com.orbit.server.domain.monitoring.service.EdgeVehicleCount;
+import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount;
+import com.orbit.server.domain.monitoring.service.count.EdgeVehicleCount;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;

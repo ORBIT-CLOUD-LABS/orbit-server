@@ -1,5 +1,7 @@
 package com.orbit.server.domain.monitoring.service;
 
+import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
+import com.orbit.server.domain.monitoring.service.count.UpdateFailureReason;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;

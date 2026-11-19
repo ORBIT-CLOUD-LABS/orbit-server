@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.dto.response;
 
-import com.orbit.server.domain.monitoring.service.EdgeDownloadCount;
+import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount;
 
 /**
  * [Phase2] 한 Edge 에서 파일을 받은 차량의 한 캠페인 업데이트 성공·실패 수.

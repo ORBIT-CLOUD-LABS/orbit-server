@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.entry;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.campaign.exception.CampaignErrorCode;
+import com.orbit.server.domain.monitoring.service.count.UpdateFailureReason;
 import com.orbit.server.global.error.BusinessException;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;

@@ -1,6 +1,9 @@
 package com.orbit.server.domain.monitoring.service;
 
 import com.orbit.server.domain.edge.service.EdgeStatus;
+import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount;
+import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCounts;
+import com.orbit.server.domain.monitoring.service.count.EdgeVehicleCounts;
 import java.util.List;
 import java.util.Objects;
 

@@ -1,8 +1,8 @@
 package com.orbit.server.domain.monitoring.repository;
 
 import com.orbit.server.domain.monitoring.domain.CampaignResultRecord;
-import com.orbit.server.domain.monitoring.service.EdgeDownloadCount;
-import com.orbit.server.domain.monitoring.service.EdgeVehicleCount;
+import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount;
+import com.orbit.server.domain.monitoring.service.count.EdgeVehicleCount;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -47,7 +47,7 @@ public interface EdgeUsageRepository extends Repository<CampaignResultRecord, Lo
      */
     // edge_id 에는 인덱스가 없어 update_result 전체를 읽는다. 배정 차량 수와 같은 이유로 인덱스를 두지 않았다 (#88)
     @Query("""
-            select new com.orbit.server.domain.monitoring.service.EdgeDownloadCount(
+            select new com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount(
                 r.edgeId, r.campaignId,
                 sum(case when r.result = 'SUCCEEDED' then 1L else 0L end),
                 sum(case when r.result = 'FAILED' then 1L else 0L end))

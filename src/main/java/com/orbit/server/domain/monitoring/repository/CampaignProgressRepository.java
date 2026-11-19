@@ -1,9 +1,9 @@
 package com.orbit.server.domain.monitoring.repository;
 
 import com.orbit.server.domain.monitoring.domain.CampaignResultRecord;
-import com.orbit.server.domain.monitoring.service.CampaignResultCount;
-import com.orbit.server.domain.monitoring.service.CampaignResultCounts;
 import com.orbit.server.domain.monitoring.service.UnreportedVehicle;
+import com.orbit.server.domain.monitoring.service.count.CampaignResultCount;
+import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
@@ -34,7 +34,7 @@ public interface CampaignProgressRepository extends Repository<CampaignResultRec
      */
     // idx_update_result_campaign_result(campaign_id, result) 로 캠페인의 결과를 좁혀 센다
     @Query("""
-            select new com.orbit.server.domain.monitoring.service.CampaignResultCount(
+            select new com.orbit.server.domain.monitoring.service.count.CampaignResultCount(
                 r.result, r.failureReason, count(r))
             from CampaignResultRecord r
             where r.campaignId = :campaignId
