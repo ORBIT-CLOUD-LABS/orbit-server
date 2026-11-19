@@ -1,4 +1,4 @@
-package com.orbit.server.domain.monitoring.service;
+package com.orbit.server.domain.monitoring.service.stream;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
+import com.orbit.server.domain.monitoring.service.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.VehicleStatusFixture;
 import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
 import java.time.Clock;
 import java.time.Duration;

@@ -1,7 +1,9 @@
-package com.orbit.server.domain.monitoring.service;
+package com.orbit.server.domain.monitoring.service.stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.orbit.server.domain.monitoring.service.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.VehicleStatusFixture;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;

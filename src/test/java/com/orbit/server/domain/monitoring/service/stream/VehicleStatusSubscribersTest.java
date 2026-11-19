@@ -1,7 +1,10 @@
-package com.orbit.server.domain.monitoring.service;
+package com.orbit.server.domain.monitoring.service.stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.orbit.server.domain.monitoring.service.VehicleLastLocation;
+import com.orbit.server.domain.monitoring.service.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.VehicleStatusFixture;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;

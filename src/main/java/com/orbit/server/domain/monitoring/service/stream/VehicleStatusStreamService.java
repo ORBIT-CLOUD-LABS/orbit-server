@@ -1,4 +1,4 @@
-package com.orbit.server.domain.monitoring.service;
+package com.orbit.server.domain.monitoring.service.stream;
 
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
