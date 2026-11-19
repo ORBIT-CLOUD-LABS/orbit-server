@@ -10,6 +10,7 @@ import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.domain.edge.exception.EdgeErrorCode;
 import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
 import com.orbit.server.domain.edge.service.config.EdgeSelectionProperties;
+import com.orbit.server.domain.edge.service.result.SelectedEdge;
 import com.orbit.server.global.error.BusinessException;
 import java.net.URI;
 import java.time.Duration;

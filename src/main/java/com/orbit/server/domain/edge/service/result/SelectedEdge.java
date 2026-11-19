@@ -1,4 +1,4 @@
-package com.orbit.server.domain.edge.service;
+package com.orbit.server.domain.edge.service.result;
 
 import com.orbit.server.domain.edge.domain.Edge;
 import java.net.URI;
@@ -13,11 +13,11 @@ import java.util.OptionalDouble;
  */
 public record SelectedEdge(String edgeId, URI baseUrl, OptionalDouble distanceKm) {
 
-    static SelectedEdge nearest(Edge edge, double distanceKm) {
+    public static SelectedEdge nearest(Edge edge, double distanceKm) {
         return new SelectedEdge(edge.id(), edge.baseUrl(), OptionalDouble.of(distanceKm));
     }
 
-    static SelectedEdge withoutDistance(Edge edge) {
+    public static SelectedEdge withoutDistance(Edge edge) {
         return new SelectedEdge(edge.id(), edge.baseUrl(), OptionalDouble.empty());
     }
 }

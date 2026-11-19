@@ -1,5 +1,6 @@
 package com.orbit.server.domain.edge.service;
 
+import com.orbit.server.domain.edge.service.result.SelectedEdge;
 import java.util.List;
 
 /**

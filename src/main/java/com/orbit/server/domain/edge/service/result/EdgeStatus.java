@@ -1,4 +1,4 @@
-package com.orbit.server.domain.edge.service;
+package com.orbit.server.domain.edge.service.result;
 
 import com.orbit.server.domain.edge.domain.Coordinates;
 import com.orbit.server.domain.edge.domain.Edge;
@@ -16,7 +16,7 @@ import com.orbit.server.domain.edge.domain.Edge;
  */
 public record EdgeStatus(String edgeId, String name, double latitude, double longitude, boolean healthy) {
 
-    static EdgeStatus of(Edge edge, boolean healthy) {
+    public static EdgeStatus of(Edge edge, boolean healthy) {
         Coordinates coordinates = edge.coordinates();
         return new EdgeStatus(edge.id(), edge.name(), coordinates.latitude(), coordinates.longitude(), healthy);
     }

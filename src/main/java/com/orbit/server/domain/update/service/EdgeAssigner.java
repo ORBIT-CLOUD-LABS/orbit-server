@@ -3,7 +3,7 @@ package com.orbit.server.domain.update.service;
 import com.orbit.server.domain.edge.service.EdgeSelection;
 import com.orbit.server.domain.edge.service.EdgeSelector;
 import com.orbit.server.domain.edge.service.ObservedLocation;
-import com.orbit.server.domain.edge.service.SelectedEdge;
+import com.orbit.server.domain.edge.service.result.SelectedEdge;
 import com.orbit.server.domain.update.service.config.SignedUrlProperties;
 import com.orbit.server.domain.update.service.result.EdgeAssignment;
 import com.orbit.server.domain.update.service.result.EdgeAssignment.FallbackUrl;

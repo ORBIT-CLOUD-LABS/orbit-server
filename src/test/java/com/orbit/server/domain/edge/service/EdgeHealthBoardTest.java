@@ -7,6 +7,7 @@ import com.orbit.server.domain.edge.domain.Coordinates;
 import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
+import com.orbit.server.domain.edge.service.result.EdgeStatus;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;

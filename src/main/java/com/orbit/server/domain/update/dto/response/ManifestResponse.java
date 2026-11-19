@@ -1,6 +1,6 @@
 package com.orbit.server.domain.update.dto.response;
 
-import com.orbit.server.domain.edge.service.SelectedEdge;
+import com.orbit.server.domain.edge.service.result.SelectedEdge;
 import com.orbit.server.domain.update.service.result.EdgeAssignment.FallbackUrl;
 import com.orbit.server.domain.update.service.result.ManifestResult;
 import java.time.Instant;

@@ -3,6 +3,7 @@ package com.orbit.server.domain.edge.service;
 import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.domain.EdgeHealth;
 import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
+import com.orbit.server.domain.edge.service.result.EdgeStatus;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -1,7 +1,7 @@
 package com.orbit.server.domain.update.service.result;
 
 import com.orbit.server.domain.artifact.service.ArtifactSummary;
-import com.orbit.server.domain.edge.service.SelectedEdge;
+import com.orbit.server.domain.edge.service.result.SelectedEdge;
 import com.orbit.server.domain.update.service.result.EdgeAssignment.FallbackUrl;
 import java.time.Instant;
 import java.util.List;
