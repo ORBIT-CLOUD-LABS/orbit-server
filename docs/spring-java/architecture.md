@@ -19,8 +19,11 @@ com.orbit.server/
         command/          서비스 입력 (XxxCommand)
         result/           서비스 출력·조회 결과 (XxxResult, XxxDetail)
         config/           이 컨텍스트의 설정 (XxxConfig, XxxProperties)
+        listener/         이벤트 리스너 (XxxListener)
+        scheduler/        주기 작업 등록 (XxxScheduler)
       repository/         Spring Data 인터페이스
-      domain/             엔티티, 값 객체, enum, 도메인 이벤트
+      domain/             엔티티, 값 객체, enum
+        event/            도메인 이벤트
       exception/          이 컨텍스트의 오류 코드, 예외
     campaign/
     shared/               Shared Kernel: 여러 컨텍스트가 같은 의미로 쓰는 값 객체 (하위 패키지 없음)
@@ -41,8 +44,8 @@ com.orbit.server/
 - 쓰지 않는 레이어는 만들지 않는다. (API 가 없는 기능에는 `controller/` 를 두지 않는다)
 - 서비스의 입출력(`XxxCommand` / `XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)은 `dto` 가 아니라 `service` 에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
 - 레이어 안에서 역할이 다른 클래스는 클래스가 적어도 역할 하위 패키지로 나눈다. 쓰는 역할만 만든다. → [../java/package-structure.md](../java/package-structure.md)
-  `service` 의 역할 이름은 `command/`(입력), `result/`(출력·조회 결과), `config/`(설정)을 기본으로 쓴다.
-  이 셋에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 구독자 관리·주기 전송 같은 전송 기반), `count/`(GROUP BY 집계 행과 그 일급 컬렉션)
+  `service` 의 역할 이름은 `command/`(입력), `result/`(출력·조회 결과), `config/`(설정), `listener/`(이벤트 구독), `scheduler/`(주기 작업)를 기본으로 쓴다. → 아래 "클래스를 추가할 때"
+  여기에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 구독자 관리·주기 전송 같은 전송 기반), `count/`(GROUP BY 집계 행과 그 일급 컬렉션)
   역할 하위 패키지에는 그 역할의 클래스만 둔다. 유스케이스 서비스는 `service` 루트에 두고 역할 하위 패키지를 쓴다. (`VehicleStatusStreamService` 는 루트, 전송 기반은 `stream/`)
   여러 역할 패키지가 함께 쓰는 enum·값 객체는 역할 패키지가 아니라 컨텍스트의 `domain` 에 둔다. (`UpdateFailureReason`)
   검색 조건처럼 입력이지만 커맨드가 아닌 record 는 `service` 에 그대로 둔다.
@@ -57,6 +60,33 @@ com.orbit.server/
   여러 컨텍스트가 같은 의미와 규칙으로 쓰는 값 객체는 `domain/shared` 에 둔다. → [../architecture.md](../architecture.md) 의 Shared Kernel
 - 외부 시스템 연동(결제, 메일 등)은 서비스가 쓰는 인터페이스를 `service` 에 두고, 구현은 `global/external/<시스템>` 에 둔다.
   구현은 그 포트(interface·`record`)와 `domain`·`exception` 에만 의존한다. 유스케이스 서비스나 도메인 서비스를 직접 부르지 않는다.
+
+## 클래스를 추가할 때
+
+패키지는 커진 뒤에 나누지 않고, 클래스를 추가할 때마다 위치를 정해서 자라게 한다. 위에서부터 답한다.
+
+1. **어느 컨텍스트의 개념인가?** 기존 컨텍스트에 없는 도메인 명사면 새 컨텍스트를 만든다. 경계가 애매하면 사람에게 묻는다.
+   여러 컨텍스트가 같은 의미와 규칙으로 쓰는 값 객체는 어느 한쪽에 두거나 복사하지 않고 `domain/shared` 에 둔다.
+2. **어느 레이어인가?** 아래 이름 규칙의 접미사로 정한다.
+3. **같은 목적의 클래스가 있는가?** 있으면 함께 두고, 없으면 레이어 안에 목적 이름의 하위 패키지를 만든다.
+   기존 클래스도 함께 옮겨야 하면 파일 이동만 하는 별도 커밋으로 옮긴다. → [../java/package-structure.md](../java/package-structure.md) 의 "재구성 작업 방식"
+4. **새 의존이 기존 컨텍스트 의존의 역방향인가?** 그러면 순환이다. 아래 "의존 방향" 을 따른다.
+
+| 이름 | 위치 |
+| --- | --- |
+| `XxxController` | `controller/` |
+| `XxxRequest`, `XxxResponse` | `dto/request/`, `dto/response/` |
+| `XxxService`, 도메인 서비스(`XxxPolicy` 등), 외부 연동 포트 | `service/` |
+| `XxxCommand` | `service/command/` |
+| `XxxResult`, 조회 결과(`XxxSummary`, `XxxDetail`) | `service/result/` |
+| `XxxListener`, `XxxScheduler` | `service/listener/`, `service/scheduler/` |
+| 컨텍스트 전용 `@Configuration`·`@ConfigurationProperties` (`XxxConfig`, `XxxProperties`) | `service/config/`. 여러 컨텍스트가 쓰는 기술 설정은 `global/config/` |
+| `XxxRepository` | `repository/` |
+| 엔티티, 값 객체, enum | `domain/` |
+| 도메인 이벤트. 일어난 일을 과거형으로 짓는다 (`VehicleDeparted`) | `domain/event/` |
+| `XxxException`, `XxxErrorCode` | `exception/` |
+
+이름 규칙에 없는 역할은 접미사를 정하고 같은 방식으로 하위 패키지를 만든다. 하위 패키지 이름은 목적(`event`, `listener`, `policy`)으로 짓고, `util`·`common`·`etc` 처럼 목적이 없는 이름은 쓰지 않는다.
 
 ## 의존 방향
 

@@ -44,7 +44,8 @@ orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 �
 문서를 다 읽지 못했더라도 아래는 반드시 지킨다.
 
 - 패키지는 최상위 `domain` / `global` 로 나눈다. `domain` 아래는 바운디드 컨텍스트별로 `controller` / `dto` (`request`, `response`) / `service` / `repository` / `domain` / `exception` 을 둔다.
-  컨텍스트 안의 `domain` 에는 엔티티, 값 객체, enum, 도메인 이벤트를 둔다. (`com.orbit.server.domain.<컨텍스트>.domain`)
+  컨텍스트 안의 `domain` 에는 엔티티, 값 객체, enum 을 두고, 도메인 이벤트는 `domain/event` 에 둔다. (`com.orbit.server.domain.<컨텍스트>.domain`)
+  레이어 안에서 역할이 다르면 클래스가 적어도 역할 하위 패키지로 나눈다. 새 클래스의 위치는 [docs/spring-java/architecture.md](docs/spring-java/architecture.md) 의 "클래스를 추가할 때" 를 따른다.
 - 의존 방향은 `controller → service → repository → domain`, 최상위 `domain → global`. 다른 컨텍스트는 `service` 나 이벤트로만 접근한다.
 - `global` 에는 설정·전역 예외·보안 같은 기술 기반만 둔다. 비즈니스 규칙은 두지 않는다.
   외부 시스템 연동 구현은 `global/external/{시스템}` 에 두고, `service` 의 포트(인터페이스)를 구현한다.
