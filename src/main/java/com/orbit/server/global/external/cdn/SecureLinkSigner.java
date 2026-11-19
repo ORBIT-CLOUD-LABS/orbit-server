@@ -36,7 +36,7 @@ public final class SecureLinkSigner {
      *     값을 받는다
      * @return 쿼리 {@code md5} 에 그대로 넣을 수 있는 base64url 서명(패딩 없음)
      */
-    public String sign(String path, long expires) {
+    String sign(String path, long expires) {
         String signed = expires + path + SECRET_SEPARATOR + secret;
         byte[] digest = newDigest().digest(signed.getBytes(StandardCharsets.UTF_8));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
