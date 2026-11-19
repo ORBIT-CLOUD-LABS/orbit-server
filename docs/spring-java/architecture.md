@@ -135,6 +135,15 @@ controller → service → repository
 | global/external | 외부 시스템 연동 구현 | 비즈니스 규칙 |
 | controller, dto | 요청 검증(형식), DTO 변환, 응답 코드 | 비즈니스 로직 |
 
+## 서비스가 커질 때
+
+컨텍스트마다 서비스 하나(`OrderService`)로 시작하고, 커지면 유스케이스 단위로 나눈다.
+
+- 나눌 신호: 생성자 의존이 5개를 넘는다. 또는 서로 다른 필드·의존만 쓰는 메서드 묶음이 한 클래스에 있다.
+- 나누는 단위: 함께 바뀌는 유스케이스끼리 묶는다. 예: `OrderPlaceService`(주문·결제 요청), `OrderCancelService`(취소·환불), `OrderQueryService`(조회)
+- 나눈 서비스가 서로를 부르기 시작하면 공통 로직을 도메인 객체나 `XxxPolicy` 로 내린다.
+- 검사는 하지 않는다. 의존 수만으로는 나눌지 판단할 수 없어서 신호로만 쓴다.
+
 ## 빈과 주입
 
 - 생성자로 주입한다. 필드 주입(`@Autowired` 필드)을 쓰지 않는다. 생성자가 하나면 `@Autowired` 를 붙이지 않는다.
