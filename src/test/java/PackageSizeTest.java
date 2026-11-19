@@ -90,8 +90,8 @@ class PackageSizeTest {
                 + " (기본 상한 " + MAX_CLASSES_PER_PACKAGE + ").\n"
                 + "역할 분포: " + roleDistribution(members) + "\n"
                 + "나누는 순서: 1) 역할이 섞여 있으면 역할 단위 하위 패키지로"
-                + " 2) 한 역할 안에서도 크면 기능 단위 하위 패키지로"
-                + " 3) 컨텍스트 경계가 의심되면 사람에게 묻는다\n"
+                + " 2) 새 도메인 개념이 섞여 있으면 최상위 기능 패키지로 꺼낸다 (레이어 안에 기능 하위 패키지는 만들지 않는다)"
+                + " 3) 기능 경계가 애매하면 사람에게 묻는다\n"
                 + "→ docs/java/package-structure.md";
     }
 

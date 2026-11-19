@@ -27,17 +27,27 @@ com.orbit.server/
   global/                 설정, 전역 예외 처리, 보안 같은 기술 기반
     config/               Spring 설정 (JPA, Web, Swagger 등)
     error/                공통 예외 계층, 전역 예외 핸들러, 오류 코드
-    security/             인증·인가
+    security/             인증·인가 설정과 차량 인증 포트
+      filter/             인증 필터
+      handler/            인증·인가 실패를 공통 오류 형식으로 응답
     common/               공통 응답(ApiResponse, SuccessCode)과 공통 검증
     external/<시스템>/     외부 시스템 연동 구현 (origin: AWS S3, 로컬은 S3 호환 SeaweedFS)
+      config/             이 연동의 설정
 ```
 
 - 컨텍스트 안의 `domain` 은 최상위 `domain` 과 이름이 같다. 경로는 `com.orbit.server.domain.<컨텍스트>.domain` 이 된다.
   이 문서에서 레이어를 말할 때 `domain` 은 컨텍스트 안의 `domain` 을 뜻한다.
 - 컨텍스트 이름은 [요구사항](../requirements.md)의 용어(유비쿼터스 언어)를 따른다. 새 컨텍스트를 만들기 전에 기존 컨텍스트에 속하는지 먼저 검토한다.
-- 필요 없는 하위 패키지는 만들지 않는다. (API 가 없는 기능에는 `controller/` 를 두지 않는다)
+- 쓰지 않는 레이어는 만들지 않는다. (API 가 없는 기능에는 `controller/` 를 두지 않는다)
 - 서비스의 입출력(`XxxCommand` / `XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)은 `dto` 가 아니라 `service` 에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
-- `service` 안에서 역할이 다른 클래스는 역할 하위 패키지(`command/`, `result/`, `config/` 등)로 나눈다. 쓰는 역할만 만든다. → [../java/package-structure.md](../java/package-structure.md)
+- 레이어 안에서 역할이 다른 클래스는 클래스가 적어도 역할 하위 패키지로 나눈다. 쓰는 역할만 만든다. → [../java/package-structure.md](../java/package-structure.md)
+  `service` 의 역할 이름은 `command/`(입력), `result/`(출력·조회 결과), `config/`(설정)을 기본으로 쓴다.
+  이 셋에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 전송), `count/`(집계 행)
+  검색 조건처럼 입력이지만 커맨드가 아닌 record 는 `service` 에 그대로 둔다.
+- 레이어 안에 기능 하위 패키지(`service/alert/`)를 만들지 않는다. 레이어 안에서 새 도메인 명사가 보이면 최상위 기능 패키지로 꺼낸다.
+- 하위 패키지로 나누느라 package-private 멤버를 못 쓰게 되면 필요한 멤버만 `public` 으로 연다.
+  예: 결과 record 의 팩토리(`CampaignDetail.of`), 설정에서 만드는 구현의 생성자(`SecureLinkSigner`).
+  엔티티를 인자로 받는 팩토리는 다른 컨텍스트가 그 엔티티를 참조할 수 없으므로(`ContextBoundaryTest`) 열어도 실제로 부를 수 있는 곳이 늘지 않는다.
 - `global` 에는 비즈니스 규칙을 두지 않는다. 두 기능이 같은 개념을 쓴다고 `global` 로 올리지 않고, 기능 경계를 먼저 다시 본다.
   여러 컨텍스트가 같은 의미와 규칙으로 쓰는 값 객체는 `domain/shared` 에 둔다. → [../architecture.md](../architecture.md) 의 Shared Kernel
 - 외부 시스템 연동(결제, 메일 등)은 서비스가 쓰는 인터페이스를 `service` 에 두고, 구현은 `global/external/<시스템>` 에 둔다.
