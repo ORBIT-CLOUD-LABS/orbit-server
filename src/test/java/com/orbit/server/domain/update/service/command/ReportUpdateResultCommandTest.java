@@ -1,4 +1,4 @@
-package com.orbit.server.domain.update.service;
+package com.orbit.server.domain.update.service.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

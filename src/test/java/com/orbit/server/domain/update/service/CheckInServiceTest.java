@@ -17,6 +17,8 @@ import com.orbit.server.domain.campaign.domain.VersionRange;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import com.orbit.server.domain.campaign.service.CampaignDeactivationService;
 import com.orbit.server.domain.update.domain.VehicleLocation;
+import com.orbit.server.domain.update.service.command.CheckInCommand;
+import com.orbit.server.domain.update.service.command.ReportUpdateResultCommand;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import com.orbit.server.domain.vehicle.service.RegisterVehicleCommand;

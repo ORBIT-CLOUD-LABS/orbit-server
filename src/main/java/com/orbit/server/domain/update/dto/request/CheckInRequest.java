@@ -1,6 +1,6 @@
 package com.orbit.server.domain.update.dto.request;
 
-import com.orbit.server.domain.update.service.CheckInCommand;
+import com.orbit.server.domain.update.service.command.CheckInCommand;
 import com.orbit.server.global.error.InvalidValueException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

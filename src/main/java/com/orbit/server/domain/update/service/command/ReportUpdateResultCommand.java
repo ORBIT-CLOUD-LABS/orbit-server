@@ -1,4 +1,4 @@
-package com.orbit.server.domain.update.service;
+package com.orbit.server.domain.update.service.command;
 
 import com.orbit.server.domain.update.domain.FailureReason;
 import com.orbit.server.domain.update.domain.UpdateFailure;

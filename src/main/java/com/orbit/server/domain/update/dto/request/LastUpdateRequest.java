@@ -1,6 +1,6 @@
 package com.orbit.server.domain.update.dto.request;
 
-import com.orbit.server.domain.update.service.ReportUpdateResultCommand;
+import com.orbit.server.domain.update.service.command.ReportUpdateResultCommand;
 
 /**
  * 체크인에 담아 보내는 업데이트 결과. 차량은 체크인이 성공할 때까지 같은 결과를 다시 보낸다. (UPDATE-REQ-001)
