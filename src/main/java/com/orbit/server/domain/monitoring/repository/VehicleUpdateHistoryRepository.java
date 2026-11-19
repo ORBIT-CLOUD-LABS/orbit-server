@@ -1,7 +1,7 @@
 package com.orbit.server.domain.monitoring.repository;
 
 import com.orbit.server.domain.monitoring.domain.VehicleEventRecord;
-import com.orbit.server.domain.monitoring.service.VehicleUpdateAttempt;
+import com.orbit.server.domain.monitoring.service.result.VehicleUpdateAttempt;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Limit;
@@ -39,7 +39,7 @@ public interface VehicleUpdateHistoryRepository extends Repository<VehicleEventR
      */
     // idx_vehicle_event_vehicle_finished(vehicle_id, finished_at) 를 역순으로 읽어 정렬 없이 limit 만큼만 읽는다
     @Query("""
-            select new com.orbit.server.domain.monitoring.service.VehicleUpdateAttempt(
+            select new com.orbit.server.domain.monitoring.service.result.VehicleUpdateAttempt(
                 e.campaignId, e.version, e.result, e.failureReason, e.failureDetail, e.edgeId, e.finishedAt)
             from VehicleEventRecord e
             where e.vehicleId = :vehicleKey

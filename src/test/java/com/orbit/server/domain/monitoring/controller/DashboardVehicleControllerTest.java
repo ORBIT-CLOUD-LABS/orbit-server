@@ -11,14 +11,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.orbit.server.domain.monitoring.service.VehicleDetail;
-import com.orbit.server.domain.monitoring.service.VehicleLastLocation;
-import com.orbit.server.domain.monitoring.service.VehicleLastUpdate;
-import com.orbit.server.domain.monitoring.service.VehicleStatus;
 import com.orbit.server.domain.monitoring.service.VehicleStatusQueryService;
-import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
-import com.orbit.server.domain.monitoring.service.VehicleUpdateAttempt;
 import com.orbit.server.domain.monitoring.service.VehicleUpdateHistoryService;
+import com.orbit.server.domain.monitoring.service.result.VehicleDetail;
+import com.orbit.server.domain.monitoring.service.result.VehicleLastLocation;
+import com.orbit.server.domain.monitoring.service.result.VehicleLastUpdate;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusSnapshot;
+import com.orbit.server.domain.monitoring.service.result.VehicleUpdateAttempt;
 import com.orbit.server.domain.monitoring.service.stream.VehicleStatusStreamService;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.common.SuccessCode;

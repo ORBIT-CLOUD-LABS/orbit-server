@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.dto.response;
 
-import com.orbit.server.domain.monitoring.service.VehicleUpdateAttempt;
+import com.orbit.server.domain.monitoring.service.result.VehicleUpdateAttempt;
 import java.util.List;
 
 /**

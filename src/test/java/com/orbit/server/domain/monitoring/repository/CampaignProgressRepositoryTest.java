@@ -4,9 +4,9 @@ import static com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture.S
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.monitoring.service.UnreportedVehicle;
 import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
 import com.orbit.server.domain.monitoring.service.count.UpdateFailureReason;
+import com.orbit.server.domain.monitoring.service.result.UnreportedVehicle;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,4 +1,4 @@
-package com.orbit.server.domain.monitoring.service;
+package com.orbit.server.domain.monitoring.service.result;
 
 import java.time.Instant;
 import java.util.List;

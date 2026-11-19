@@ -4,6 +4,7 @@ import com.orbit.server.domain.edge.service.EdgeHealthBoard;
 import com.orbit.server.domain.monitoring.repository.EdgeUsageRepository;
 import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCounts;
 import com.orbit.server.domain.monitoring.service.count.EdgeVehicleCounts;
+import com.orbit.server.domain.monitoring.service.result.CdnEdgeStatus;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

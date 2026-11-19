@@ -1,6 +1,8 @@
 package com.orbit.server.domain.monitoring.service;
 
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
+import com.orbit.server.domain.monitoring.service.result.VehicleDetail;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusSnapshot;
 import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import lombok.RequiredArgsConstructor;

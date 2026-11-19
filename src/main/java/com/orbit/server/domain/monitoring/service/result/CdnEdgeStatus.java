@@ -1,4 +1,4 @@
-package com.orbit.server.domain.monitoring.service;
+package com.orbit.server.domain.monitoring.service.result;
 
 import com.orbit.server.domain.edge.service.EdgeStatus;
 import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount;

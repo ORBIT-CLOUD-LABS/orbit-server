@@ -6,9 +6,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.orbit.server.domain.monitoring.service.CdnEdgeStatus;
 import com.orbit.server.domain.monitoring.service.CdnEdgeStatusService;
 import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount;
+import com.orbit.server.domain.monitoring.service.result.CdnEdgeStatus;
 import com.orbit.server.global.common.SuccessCode;
 import com.orbit.server.global.error.GlobalExceptionHandler;
 import java.util.List;

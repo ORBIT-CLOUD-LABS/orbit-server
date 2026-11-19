@@ -1,9 +1,9 @@
 package com.orbit.server.domain.monitoring.repository;
 
 import com.orbit.server.domain.monitoring.domain.CampaignResultRecord;
-import com.orbit.server.domain.monitoring.service.UnreportedVehicle;
 import com.orbit.server.domain.monitoring.service.count.CampaignResultCount;
 import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
+import com.orbit.server.domain.monitoring.service.result.UnreportedVehicle;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;

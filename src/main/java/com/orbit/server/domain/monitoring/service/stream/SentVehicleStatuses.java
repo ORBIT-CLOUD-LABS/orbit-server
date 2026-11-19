@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.service.stream;
 
-import com.orbit.server.domain.monitoring.service.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;

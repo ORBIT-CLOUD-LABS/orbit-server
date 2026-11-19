@@ -5,6 +5,8 @@ import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.campaign.service.TargetVehicleCriteria;
 import com.orbit.server.domain.monitoring.repository.CampaignProgressRepository;
 import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
+import com.orbit.server.domain.monitoring.service.result.CampaignStats;
+import com.orbit.server.domain.monitoring.service.result.UnreportedVehicle;
 import com.orbit.server.global.error.BusinessException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
