@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
+import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
 import com.orbit.server.domain.update.service.CheckInService;
 import com.orbit.server.domain.update.service.command.CheckInCommand;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;

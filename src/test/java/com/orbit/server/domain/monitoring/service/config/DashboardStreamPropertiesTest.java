@@ -1,4 +1,4 @@
-package com.orbit.server.domain.monitoring.service;
+package com.orbit.server.domain.monitoring.service.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

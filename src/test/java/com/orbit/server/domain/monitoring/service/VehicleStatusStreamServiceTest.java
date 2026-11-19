@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
+import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;

@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.service;
 
+import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
