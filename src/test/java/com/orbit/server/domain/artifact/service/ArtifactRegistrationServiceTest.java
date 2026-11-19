@@ -17,6 +17,8 @@ import com.orbit.server.domain.artifact.domain.FirmwareSignaturePayload;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.repository.ArtifactRepository;
+import com.orbit.server.domain.artifact.service.command.RegisterArtifactCommand;
+import com.orbit.server.domain.artifact.service.result.ArtifactRegistrationResult;
 import com.orbit.server.global.error.BusinessException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

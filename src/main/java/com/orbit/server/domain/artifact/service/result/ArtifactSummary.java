@@ -1,4 +1,4 @@
-package com.orbit.server.domain.artifact.service;
+package com.orbit.server.domain.artifact.service.result;
 
 import java.time.Instant;
 

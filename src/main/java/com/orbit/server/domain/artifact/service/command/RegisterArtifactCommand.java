@@ -1,4 +1,4 @@
-package com.orbit.server.domain.artifact.service;
+package com.orbit.server.domain.artifact.service.command;
 
 import com.orbit.server.domain.artifact.domain.ArtifactRelease;
 import java.util.Objects;

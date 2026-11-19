@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.repository.ArtifactRepository;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
 import java.util.List;

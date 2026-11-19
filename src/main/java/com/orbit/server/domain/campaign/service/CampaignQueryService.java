@@ -1,7 +1,7 @@
 package com.orbit.server.domain.campaign.service;
 
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import com.orbit.server.domain.campaign.domain.Campaign;
 import com.orbit.server.domain.campaign.domain.TargetCampaign;
 import com.orbit.server.domain.campaign.domain.TargetVehicle;

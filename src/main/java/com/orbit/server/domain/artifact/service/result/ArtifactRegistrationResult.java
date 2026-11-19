@@ -1,4 +1,4 @@
-package com.orbit.server.domain.artifact.service;
+package com.orbit.server.domain.artifact.service.result;
 
 import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.domain.ArtifactSignature;
@@ -14,7 +14,7 @@ import com.orbit.server.domain.artifact.domain.ArtifactSignature;
  */
 public record ArtifactRegistrationResult(Long artifactId, long fileSize, String sha256, String path, String keyId) {
 
-    static ArtifactRegistrationResult of(Long artifactId, ArtifactFile file, ArtifactSignature signature) {
+    public static ArtifactRegistrationResult of(Long artifactId, ArtifactFile file, ArtifactSignature signature) {
         return new ArtifactRegistrationResult(
                 artifactId, file.sizeBytes(), file.sha256(), file.path(), signature.keyId());
     }

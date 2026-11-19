@@ -1,7 +1,7 @@
 package com.orbit.server.domain.artifact.repository;
 
 import com.orbit.server.domain.artifact.domain.Artifact;
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -46,7 +46,7 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      * @return 모든 Origin 파일. 최근 등록한 순서. 없으면 빈 목록
      */
     @Query("""
-            select new com.orbit.server.domain.artifact.service.ArtifactSummary(
+            select new com.orbit.server.domain.artifact.service.result.ArtifactSummary(
                 a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
                 a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a
@@ -59,7 +59,7 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      * @return 이 차종의 Origin 파일. 최근 등록한 순서. 없으면 빈 목록
      */
     @Query("""
-            select new com.orbit.server.domain.artifact.service.ArtifactSummary(
+            select new com.orbit.server.domain.artifact.service.result.ArtifactSummary(
                 a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
                 a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a
@@ -75,7 +75,7 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      * @return 이 ID 의 Origin 파일. 없으면 빈 값
      */
     @Query("""
-            select new com.orbit.server.domain.artifact.service.ArtifactSummary(
+            select new com.orbit.server.domain.artifact.service.result.ArtifactSummary(
                 a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
                 a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a
@@ -90,7 +90,7 @@ public interface ArtifactRepository extends JpaRepository<Artifact, Long> {
      * @return 이 ID 들의 Origin 파일. 순서는 정하지 않으며 없는 ID 는 빠진다
      */
     @Query("""
-            select new com.orbit.server.domain.artifact.service.ArtifactSummary(
+            select new com.orbit.server.domain.artifact.service.result.ArtifactSummary(
                 a.id, a.release.model, a.release.version, a.file.sizeBytes, a.file.sha256, a.file.path,
                 a.signature.signature, a.signature.keyId, a.createdAt)
             from Artifact a

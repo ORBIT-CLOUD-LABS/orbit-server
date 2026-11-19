@@ -7,7 +7,7 @@ import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.artifact.domain.Artifact;
 import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.domain.ArtifactRelease;
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.orbit.server.domain.artifact.dto.response;
 
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import java.time.Instant;
 
 /**

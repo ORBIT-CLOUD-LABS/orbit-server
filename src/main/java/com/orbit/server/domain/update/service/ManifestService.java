@@ -1,6 +1,6 @@
 package com.orbit.server.domain.update.service;
 
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import com.orbit.server.domain.campaign.service.CampaignQueryService;
 import com.orbit.server.domain.campaign.service.TargetVehicleCriteria;
 import com.orbit.server.domain.update.service.result.EdgeAssignment;

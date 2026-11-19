@@ -1,7 +1,7 @@
 package com.orbit.server.domain.campaign.service;
 
 import com.orbit.server.domain.artifact.service.ArtifactQueryService;
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import com.orbit.server.domain.campaign.repository.CampaignRepository;
 import java.util.List;
 import java.util.Map;
