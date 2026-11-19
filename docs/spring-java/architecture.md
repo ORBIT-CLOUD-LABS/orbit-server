@@ -70,7 +70,7 @@ com.orbit.server/
 2. **어느 레이어인가?** 아래 이름 규칙의 접미사로 정한다.
 3. **같은 목적의 클래스가 있는가?** 있으면 함께 두고, 없으면 레이어 안에 목적 이름의 하위 패키지를 만든다.
    기존 클래스도 함께 옮겨야 하면 파일 이동만 하는 별도 커밋으로 옮긴다. → [../java/package-structure.md](../java/package-structure.md) 의 "재구성 작업 방식"
-4. **새 의존이 기존 컨텍스트 의존의 역방향인가?** 그러면 순환이다. 아래 "의존 방향" 을 따른다.
+4. **새 의존이 기존 컨텍스트 의존의 역방향인가?** 그러면 순환이다. 아래 "순환을 끊는 순서" 를 따른다.
 
 | 이름 | 위치 |
 | --- | --- |
@@ -105,7 +105,7 @@ controller → service → repository
   - `JpaRepository` 기본 메서드와 헷갈리지 않도록 메서드 이름에 결과 종류를 넣는다. (`findById` 가 아니라 `findSummaryById`)
 - 다른 컨텍스트의 `domain`·`repository` 를 직접 참조하지 않는다. → [../architecture.md](../architecture.md) 의 컨텍스트 간 통신
 - 기능 사이에 즉시 결과가 필요 없는 일은 도메인 이벤트(`ApplicationEventPublisher`, `@TransactionalEventListener`)로 나눈다.
-- 기능끼리 순환하지 않는다. 역방향이 필요하면 도메인 이벤트로 끊는다.
+- 기능끼리 순환하지 않는다. 순환이 생기면 아래 순서로 끊는다. 순환을 피하려고 기능을 한 패키지로 합치지 않는다.
 - 의존 방향, 클래스 위치, 기능 간 순환은 `src/test/java/LayerArchitectureTest.java` 가 검사한다. 패키지 크기는 Java 프리셋의 `PackageSizeTest` 가 검사한다.
   orbit 은 `FEATURES_PACKAGE` 를 `com.orbit.server.domain`, `GLOBAL_PACKAGE` 를 `com.orbit.server.global` 로 두었다. → [testing.md](testing.md)
   - 컨텍스트 간 내부 참조 금지와 `global/external` 의 포트 규칙은 템플릿에 없는 orbit 규칙이라 `com.orbit.server.ContextBoundaryTest` 가 따로 검사한다.
@@ -113,7 +113,17 @@ controller → service → repository
     예외는 `global/external` 규칙 하나다. 템플릿 규칙은 `service` 레이어 전체를 허용하는 근사라 orbit 은 더 엄격한 규칙을 함께 둔다.
     그래서 `external` 이 `controller`·`repository` 를 쓰면 두 테스트가 함께 실패한다. 유스케이스·도메인 서비스를 직접 부르면 `ContextBoundaryTest` 만 실패한다.
 - 순환 허용 목록(`LayerArchitectureTest` 의 `ignoreDependency`), 큰 패키지 상한(`PackageSizeTest` 의 `KNOWN_LARGE_PACKAGES`), ArchUnit 기준선(`archunit_store`)은 늘리거나 고치지 않는다.
-  넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
+  넘으면 패키지를 나누고, 순환은 아래 순서로 끊는다.
+
+### 순환을 끊는 순서
+
+1. **의존 방향을 한쪽으로 정리한다.** 상위 개념이 하위 개념을 부르고 반대로는 부르지 않는다.
+   예: `campaign` 은 `artifact` 를 부르고, `artifact` 는 `campaign` 을 모른다. 하위 컨텍스트에 필요한 값은 상위 컨텍스트가 인자로 넘긴다.
+2. **두 컨텍스트가 함께 쓰는 개념을 별도 컨텍스트로 꺼낸다.** 두 컨텍스트가 그 컨텍스트만 바라보게 해서 서로를 모르게 한다.
+   같은 의미와 규칙의 상태 없는 값 객체라면 `domain/shared` 에 둔다. → [../architecture.md](../architecture.md) 의 Shared Kernel
+3. **즉시 결과가 필요 없는 일만 도메인 이벤트로 끊는다.** 결과를 돌려받으려고 이벤트를 주고받지 않는다.
+
+어느 방법도 맞지 않으면 컨텍스트 경계가 잘못 나뉜 신호다. 혼자 정하지 않고 사람에게 묻는다.
 
 ## 레이어별 책임
 

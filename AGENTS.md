@@ -65,7 +65,7 @@ orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 �
 - 필드 주입 대신 생성자 주입을 쓴다.
 - 엔티티를 API 요청·응답으로 쓰지 않는다. DTO(record)로 바꾼다.
 - `@Transactional` 은 service 에 두고, 조회는 `readOnly = true`. 트랜잭션 안에서 외부 API 를 부르지 않는다.
-- ArchUnit 기준선(archunit_store), PackageSizeTest 의 큰 패키지 상한, 순환 허용 목록을 늘리지 않는다. 넘으면 패키지를 나누고, 역방향 의존은 도메인 이벤트로 끊는다.
+- ArchUnit 기준선(archunit_store), PackageSizeTest 의 큰 패키지 상한, 순환 허용 목록을 늘리지 않는다. 넘으면 패키지를 나누고, 순환은 의존 방향 정리 → 함께 쓰는 개념 분리 → 도메인 이벤트 순으로 끊는다. ([docs/spring-java/architecture.md](docs/spring-java/architecture.md) 의 "순환을 끊는 순서")
 
 중첩, 인자 개수, 값 객체, 일급 컬렉션, getter, 협력 객체 수, 디미터 법칙 같은 코드 단위 기준은 [docs/java/checklist.md](docs/java/checklist.md),
 null·매직 넘버·예외는 [docs/java/clean-code.md](docs/java/clean-code.md), Javadoc·주석은 [docs/java/code-style.md](docs/java/code-style.md) 에 있다.
