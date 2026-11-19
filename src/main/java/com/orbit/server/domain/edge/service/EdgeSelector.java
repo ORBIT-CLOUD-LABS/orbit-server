@@ -3,6 +3,7 @@ package com.orbit.server.domain.edge.service;
 import com.orbit.server.domain.edge.domain.Coordinates;
 import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.exception.EdgeErrorCode;
+import com.orbit.server.domain.edge.service.config.EdgeSelectionProperties;
 import com.orbit.server.global.error.BusinessException;
 import java.util.ArrayList;
 import java.util.Comparator;

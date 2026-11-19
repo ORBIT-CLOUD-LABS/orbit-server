@@ -1,4 +1,4 @@
-package com.orbit.server.domain.edge.service;
+package com.orbit.server.domain.edge.service.config;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

@@ -1,4 +1,4 @@
-package com.orbit.server.domain.edge.service;
+package com.orbit.server.domain.edge.service.config;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

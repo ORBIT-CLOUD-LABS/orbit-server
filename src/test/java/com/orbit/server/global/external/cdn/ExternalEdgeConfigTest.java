@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.domain.edge.domain.Edges;
 import com.orbit.server.domain.edge.service.EdgeCatalog;
-import com.orbit.server.domain.edge.service.EdgeSelectionProperties;
+import com.orbit.server.domain.edge.service.config.EdgeSelectionProperties;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;

@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import com.orbit.server.domain.edge.domain.Coordinates;
 import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.domain.Edges;
+import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
