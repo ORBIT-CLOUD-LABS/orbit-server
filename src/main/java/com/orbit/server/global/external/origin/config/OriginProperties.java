@@ -1,4 +1,4 @@
-package com.orbit.server.global.external.origin;
+package com.orbit.server.global.external.origin.config;
 
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
@@ -17,7 +17,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("orbit.origin")
-record OriginProperties(
+public record OriginProperties(
         URI endpoint,
         @NotBlank String region,
         @NotBlank String bucket,

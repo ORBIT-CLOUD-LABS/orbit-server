@@ -1,4 +1,4 @@
-package com.orbit.server.global.external.origin;
+package com.orbit.server.global.external.origin.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
