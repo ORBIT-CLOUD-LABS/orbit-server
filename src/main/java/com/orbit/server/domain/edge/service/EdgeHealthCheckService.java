@@ -4,12 +4,12 @@ import com.orbit.server.domain.edge.domain.Edge;
 import org.springframework.stereotype.Service;
 
 /**
- * 설정된 모든 Edge 의 상태를 한 번 확인해 결과를 기록한다. 주기 실행은 {@link EdgeHealthCheckSchedule} 이 맡는다.
+ * 설정된 모든 Edge 의 상태를 한 번 확인해 결과를 기록한다. 주기 실행은 {@code scheduler.EdgeHealthCheckScheduler} 가 맡는다.
  *
  * <p>Edge Deployment 를 0 으로 줄이는 것처럼 운영 중에 Edge 를 빼는 일은 설정 변경 없이 이 확인이 처리한다.
  */
 @Service
-class EdgeHealthCheckService {
+public class EdgeHealthCheckService {
 
     private final EdgeCatalog catalog;
     private final EdgeHealthProbe probe;
@@ -21,7 +21,7 @@ class EdgeHealthCheckService {
         this.board = board;
     }
 
-    void checkAll() {
+    public void checkAll() {
         catalog.edges().all().forEach(this::check);
     }
 

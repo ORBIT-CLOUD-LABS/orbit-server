@@ -1,5 +1,6 @@
-package com.orbit.server.domain.edge.service;
+package com.orbit.server.domain.edge.service.scheduler;
 
+import com.orbit.server.domain.edge.service.EdgeHealthCheckService;
 import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
  * 가므로, 빈이 아니라 여기서 직접 만들고 수명을 관리한다.
  */
 @Component
-class EdgeHealthCheckSchedule implements SmartLifecycle {
+class EdgeHealthCheckScheduler implements SmartLifecycle {
 
     static final String THREAD_NAME_PREFIX = "edge-health-check-";
 
@@ -21,7 +22,7 @@ class EdgeHealthCheckSchedule implements SmartLifecycle {
     private final EdgeHealthCheckProperties properties;
     private ThreadPoolTaskScheduler scheduler;
 
-    EdgeHealthCheckSchedule(EdgeHealthCheckService checkService, EdgeHealthCheckProperties properties) {
+    EdgeHealthCheckScheduler(EdgeHealthCheckService checkService, EdgeHealthCheckProperties properties) {
         this.checkService = checkService;
         this.properties = properties;
     }
