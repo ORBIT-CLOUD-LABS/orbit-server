@@ -3,6 +3,7 @@ package com.orbit.server.domain.artifact.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.orbit.server.domain.artifact.service.config.SigningConfig;
 import com.orbit.server.global.error.InvalidValueException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class FirmwarePublicKeysTest {
 
@@ -68,6 +70,22 @@ class FirmwarePublicKeysTest {
                 .isInstanceOf(InvalidValueException.class)
                 .hasMessageContaining("v2")
                 .hasMessageNotContaining(keyOf31Bytes);
+    }
+
+    // 설정 바인딩·기동 실패 검증은 config/SigningPropertiesTest 에 있다. 만든 키로 실제 검증되는지는 find·verifies 를 써야 해서 여기서 본다
+    @Test
+    @DisplayName("ORIGIN-POL-001: 키 버전별 공개 키 설정을 읽어 서명 검증에 쓸 공개 키 목록을 만든다")
+    void createsPublicKeysFromConfiguration() {
+        byte[] signature = decode(signer.sign(MESSAGE));
+
+        new ApplicationContextRunner()
+                .withUserConfiguration(SigningConfig.class)
+                .withPropertyValues("orbit.signing.public-keys.v1=" + signer.publicKeyBase64())
+                .run(context -> assertThat(context.getBean(FirmwarePublicKeys.class)
+                                .find("v1")
+                                .orElseThrow()
+                                .verifies(MESSAGE, signature))
+                        .isTrue());
     }
 
     private static byte[] decode(String base64) {
