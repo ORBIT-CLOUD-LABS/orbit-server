@@ -14,8 +14,6 @@ import org.springframework.util.StringUtils;
 
 /**
  * 캠페인 등록 때 고를 수 있도록 등록한 Origin 파일을 조회한다. (ORIGIN-REQ-001, CAMPAIGN-REQ-001)
- *
- * <p>잠금 조회를 뺀 나머지는 조회 한 번뿐이라 트랜잭션으로 묶지 않는다.
  */
 @Service
 @RequiredArgsConstructor
@@ -29,6 +27,7 @@ public class ArtifactQueryService {
      * @param model 차종. 선택이며, null 이거나 공백이면 필터링하지 않는다
      * @return 최근 등록한 순서의 Origin 파일. 없으면 빈 목록
      */
+    @Transactional(readOnly = true)
     public List<ArtifactSummary> findAll(String model) {
         // ?model= 처럼 값 없이 온 필터는 필터가 없는 것으로 본다
         if (!StringUtils.hasText(model)) {
@@ -45,6 +44,7 @@ public class ArtifactQueryService {
      * @return 이 ID 의 Origin 파일
      * @throws BusinessException 파일이 없으면 ARTIFACT_NOT_FOUND
      */
+    @Transactional(readOnly = true)
     public ArtifactSummary getById(Long artifactId) {
         return artifactRepository
                 .findSummaryById(artifactId)
@@ -57,6 +57,7 @@ public class ArtifactQueryService {
      * @param artifactIds Artifact ID. 비어 있으면 빈 목록
      * @return 이 ID 들의 Origin 파일. 순서는 정하지 않으며 없는 ID 는 빠진다
      */
+    @Transactional(readOnly = true)
     public List<ArtifactSummary> findAllByIds(Collection<Long> artifactIds) {
         return artifactRepository.findSummariesByIds(artifactIds);
     }

@@ -8,11 +8,10 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 대시보드에서 고른 차량이 어떤 버전의 업데이트를 언제 시도해 성공·실패했는지 조회한다.
- *
- * <p>이력은 차량이 결과를 보고할 때마다 쌓이고 수정하지 않으므로, 차량 확인과 이력 조회를 트랜잭션으로 묶지 않는다.
  */
 @Service
 @RequiredArgsConstructor
@@ -30,6 +29,8 @@ public class VehicleUpdateHistoryService {
      * @return 최근 업데이트 시도. 시도한 적이 없으면 빈 목록
      * @throws BusinessException 차량이 없으면 VEHICLE_NOT_FOUND
      */
+    // 차량 확인과 이력 조회를 두 번에 나눠 읽으므로 같은 스냅샷에서 읽도록 한 트랜잭션으로 묶는다
+    @Transactional(readOnly = true)
     public List<VehicleUpdateAttempt> getRecentAttempts(String vehicleId) {
         Long vehicleKey = vehicleUpdateHistoryRepository
                 .findVehicleKey(vehicleId)

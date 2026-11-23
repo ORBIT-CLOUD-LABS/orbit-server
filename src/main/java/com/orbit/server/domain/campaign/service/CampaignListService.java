@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 관리자가 보는 캠페인 목록을 조회한다.
@@ -29,6 +30,8 @@ public class CampaignListService {
      * @param filter 상태·차종 필터
      * @return 필터에 맞는 캠페인과 목표 버전. 최근 등록한 순서. 없으면 빈 목록
      */
+    // 캠페인 요약과 목표 버전을 두 번에 나눠 읽으므로 같은 스냅샷에서 읽도록 한 트랜잭션으로 묶는다
+    @Transactional(readOnly = true)
     public List<CampaignListItem> findAll(CampaignFilter filter) {
         List<CampaignSummary> campaigns = campaignRepository.findAllSummaries(filter);
         Map<Long, String> targetVersions = targetVersionsOf(campaigns);
