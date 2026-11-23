@@ -25,6 +25,16 @@ public class VehicleStateService {
     private final VehicleStateRepository vehicleStateRepository;
 
     /**
+     * 차량이 보낸 현재 버전이 기록할 수 있는 값인지 확인한다. 차량 행을 만들기 전에 실패할 요청을 걸러 낼 때 쓴다.
+     *
+     * @param currentVersion 차량이 보낸 현재 버전
+     * @throws InvalidValueException 버전이 비어 있거나 50자를 넘거나 점으로 나눈 숫자 형식이 아닌 경우
+     */
+    public void validateCurrentVersion(String currentVersion) {
+        new SoftwareVersion(currentVersion);
+    }
+
+    /**
      * 차량의 현재 버전을 기록한다. 처음이면 상태를 만들고, 있으면 현재 버전만 덮어쓴다. 마지막 체크인 시각은 체크인만 바꾼다.
      *
      * <p>같은 차량의 요청이 동시에 오면 상태를 두 번 만들 수 있으므로, 호출한 쪽이 차량 행을 잠근 트랜잭션 안에서 불러야 한다.
