@@ -49,6 +49,32 @@ public interface VehicleStateRepository extends JpaRepository<VehicleState, Long
     int recordAssignedEdge(@Param("vehicleId") Long vehicleId, @Param("edgeId") String edgeId);
 
     /**
+     * 재등록한 차량의 현재 버전만 덮어쓴다. 등록은 체크인이 아니므로 마지막 체크인 시각은 그대로 둔다.
+     *
+     * @param vehicleId 차량 ID
+     * @param currentVersion 차량이 보낸 현재 버전
+     * @return 조건에 맞은 행 수. 상태가 없는 차량이면 0
+     */
+    default int recordCurrentVersion(Long vehicleId, SoftwareVersion currentVersion) {
+        return updateCurrentVersion(vehicleId, currentVersion.value());
+    }
+
+    /**
+     * {@link #recordCurrentVersion} 이 쓰는 갱신 쿼리. 값 객체를 컬럼 값으로 풀어서 받으므로 직접 쓰지 않고 {@link
+     * #recordCurrentVersion} 을 쓴다.
+     */
+    // 이 컬럼만 바꾸는 native UPDATE 로 쓴다. 엔티티를 읽어 변경 감지로 저장하면 last_seen_at 도 다시 쓰므로, 그 사이 폐기 전 토큰으로
+    // 커밋된 체크인의 마지막 체크인 시각을 읽어 둔 옛 값으로 되돌린다.
+    // 반환값은 updateCheckIn 처럼 Connector/J 기본값(useAffectedRows=false)에 기대므로 같은 버전으로 재등록해도 1 이다
+    @Modifying(flushAutomatically = true)
+    @Query(value = """
+                    UPDATE vehicle_state
+                    SET current_version = :currentVersion
+                    WHERE vehicle_id = :vehicleId
+                    """, nativeQuery = true)
+    int updateCurrentVersion(@Param("vehicleId") Long vehicleId, @Param("currentVersion") String currentVersion);
+
+    /**
      * 체크인한 차량의 현재 버전과 마지막 체크인 시각을 덮어쓴다. 마지막 체크인 시각은 DB 시계로 기록한다.
      *
      * @param vehicleId 차량 ID

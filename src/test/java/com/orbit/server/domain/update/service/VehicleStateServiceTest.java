@@ -69,6 +69,21 @@ class VehicleStateServiceTest {
     }
 
     @Test
+    @DisplayName("VEHICLE-REQ-002: 재등록은 그 사이 기록된 체크인의 마지막 체크인 시각을 이전 값으로 되돌리지 않는다")
+    void reregistrationKeepsLastSeenAtRecordedByCheckIn() {
+        // 상태 엔티티가 마지막 체크인 시각 없이 영속성 컨텍스트에 남은 채 체크인이 native UPDATE 로 시각을 기록한다.
+        // 재등록이 상태를 읽은 뒤 다른 트랜잭션의 체크인이 커밋된 경우와 같다
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.0");
+        vehicleStateService.recordCheckIn(vehicleId, "1.0.0");
+        Object checkedInAt = lastSeenAt();
+
+        vehicleStateService.recordCurrentVersion(vehicleId, "1.0.1");
+
+        assertThat(currentVersions()).containsExactly("1.0.1");
+        assertThat(lastSeenAt()).isNotNull().isEqualTo(checkedInAt);
+    }
+
+    @Test
     @DisplayName("VEHICLE-REQ-002: 현재 버전이 비어 있으면 거부한다")
     void rejectsBlankVersion() {
         assertThatThrownBy(() -> vehicleStateService.recordCurrentVersion(vehicleId, " "))
@@ -200,6 +215,15 @@ class VehicleStateServiceTest {
                 .setParameter("vehicleId", vehicleId)
                 .getSingleResult();
         return ((Number) recorded).intValue() == 1;
+    }
+
+    // 영속성 컨텍스트에 남은 변경을 먼저 반영해 DB 에 실제로 저장된 시각을 확인한다
+    private Object lastSeenAt() {
+        entityManager.flush();
+        return entityManager
+                .createNativeQuery("SELECT last_seen_at FROM vehicle_state WHERE vehicle_id = :vehicleId")
+                .setParameter("vehicleId", vehicleId)
+                .getSingleResult();
     }
 
     // 영속성 컨텍스트가 아닌 DB 에 실제로 저장된 버전을 확인한다
