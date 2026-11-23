@@ -84,9 +84,9 @@ public class DashboardVehicleController {
      * <p>{@code EventSource} 는 헤더를 붙이지 못하므로 대시보드는 fetch 기반 SSE 로 관리자 토큰을 {@code Authorization} 헤더에
      * 담아 연결한다.
      *
-     * @param lastEventId 재연결 때 마지막으로 받은 이벤트 id. 처음 연결이면 없다
      * <p>이벤트가 이어지는 스트림이라 응답 한 건을 감싸는 공통 응답 형식({@code ApiResponse})을 쓰지 않는다.
      *
+     * @param lastEventId 재연결 때 마지막으로 받은 이벤트 id. 처음 연결이면 없다
      * @return 200 과 {@code text/event-stream}. 재연결이면 놓친 변경분을 먼저 보낸다
      */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
