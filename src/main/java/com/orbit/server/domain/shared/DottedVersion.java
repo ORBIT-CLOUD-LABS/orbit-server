@@ -46,6 +46,19 @@ public final class DottedVersion implements Comparable<DottedVersion> {
         return new DottedVersion(segments);
     }
 
+    /**
+     * 두 버전 문자열이 표기와 관계없이 비교 규칙상 같은지 판정한다. ({@code 1.0} 과 {@code 1.0.0} 은 같다)
+     *
+     * @param value 버전 문자열
+     * @param other 비교할 버전 문자열
+     * @param name 오류 메시지에 쓸 값 이름
+     * @return 숫자 자리로 비교해 같으면 true
+     * @throws InvalidValueException 어느 한쪽이 점으로 나눈 숫자 형식이 아닌 경우
+     */
+    public static boolean isSame(String value, String other, String name) {
+        return of(value, name).equals(of(other, name));
+    }
+
     @Override
     public int compareTo(DottedVersion other) {
         int length = Math.max(segments.size(), other.segments.size());

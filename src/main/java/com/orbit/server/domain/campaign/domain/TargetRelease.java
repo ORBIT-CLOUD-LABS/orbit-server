@@ -35,12 +35,9 @@ public record TargetRelease(String model, String version) {
      * @throws InvalidValueException 차종이 다르거나 비교 규칙상 버전이 다른 경우
      */
     public void requireSameAs(TargetRelease artifactRelease) {
-        if (!model.equals(artifactRelease.model()) || !isSameVersionAs(artifactRelease)) {
+        if (!model.equals(artifactRelease.model())
+                || !DottedVersion.isSame(version, artifactRelease.version(), VERSION_NAME)) {
             throw new InvalidValueException("대상 차종·목표 버전이 고른 파일의 차종·버전과 다릅니다.");
         }
-    }
-
-    private boolean isSameVersionAs(TargetRelease other) {
-        return DottedVersion.of(version, VERSION_NAME).equals(DottedVersion.of(other.version(), VERSION_NAME));
     }
 }

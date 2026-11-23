@@ -23,9 +23,4 @@ public enum CommonErrorCode implements ErrorCode {
         this.status = status;
         this.message = message;
     }
-
-    @Override
-    public String getCode() {
-        return name();
-    }
 }

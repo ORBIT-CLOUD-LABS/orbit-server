@@ -1,9 +1,8 @@
 package com.orbit.server.global.external.cdn;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import org.springframework.util.DigestUtils;
 
 /**
  * CDN Edge 의 nginx {@code secure_link} 가 검증하는 다운로드 URL 서명을 만든다.
@@ -16,7 +15,6 @@ import java.util.Base64;
  */
 public final class SecureLinkSigner {
 
-    private static final String ALGORITHM = "MD5";
     private static final String SECRET_SEPARATOR = " ";
 
     private final String secret;
@@ -38,15 +36,7 @@ public final class SecureLinkSigner {
      */
     String sign(String path, long expires) {
         String signed = expires + path + SECRET_SEPARATOR + secret;
-        byte[] digest = newDigest().digest(signed.getBytes(StandardCharsets.UTF_8));
+        byte[] digest = DigestUtils.md5Digest(signed.getBytes(StandardCharsets.UTF_8));
         return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
-    }
-
-    private static MessageDigest newDigest() {
-        try {
-            return MessageDigest.getInstance(ALGORITHM);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(ALGORITHM + " 을 지원하지 않는 실행 환경입니다.", e);
-        }
     }
 }
