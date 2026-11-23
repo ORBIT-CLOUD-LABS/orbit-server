@@ -38,7 +38,8 @@ public class CampaignStatsService {
     @Transactional(readOnly = true)
     public CampaignStats getStats(Long campaignId) {
         String model = campaignDetailService.getById(campaignId).target().model();
-        CampaignResultCounts results = campaignProgressRepository.countResults(campaignId);
+        CampaignResultCounts results =
+                new CampaignResultCounts(campaignProgressRepository.findResultCounts(campaignId));
         List<TargetVehicleCriteria> unreported =
                 campaignProgressRepository.findUnreportedVehicles(campaignId, model).stream()
                         .map(CampaignStatsService::toCriteria)

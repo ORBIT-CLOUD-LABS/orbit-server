@@ -52,6 +52,20 @@ class ContextBoundaryTest {
             .dependOnClassesThat(resideInAPackage("..domain..").and(not(PORT_OR_PORT_TYPE)))
             .because("외부 연동 구현은 service 의 포트를 구현할 뿐 다른 계층이나 비즈니스 규칙을 거치지 않는다");
 
+    // 목록·대시보드 조회는 @Query 생성자 표현식으로 service 의 조회 결과를 바로 만들어서 repository → service 의존이 생긴다.
+    // 허용할 하위 패키지(result, count …)를 나열하면 패키지가 생길 때마다 예외가 늘어나므로, 데이터만 담는 record 로 기준을 잡는다.
+    // 서비스·포트·정책·일급 컬렉션을 쓰면 repository 가 비즈니스 규칙에 기대게 되므로 막는다
+    @ArchTest
+    static final ArchRule repositoriesDependOnlyOnServiceRecords = noClasses()
+            .that()
+            .resideInAPackage(DOMAIN_PACKAGE + "*.repository..")
+            .should()
+            .dependOnClassesThat(resideInAPackage(DOMAIN_PACKAGE + "*.service..")
+                    .and(not(assignableTo(Record.class)))
+                    .as("service classes other than records"))
+            .because("repository 는 조회 결과·집계 행·검색 조건 같은 service 의 record 만 만들거나 받는다."
+                    + " 감싸거나 계산하는 일은 service 가 한다 → docs/spring-java/architecture.md 의 의존 방향");
+
     // 기존 위반은 archunit_store 에 기록해 두고 새 위반만 막는다. 위반을 고치면 기록에서 자동으로 빠진다.
     // 규칙 설명(조건 이름 포함)이 기준선의 키라서 바꾸지 않는다. 바꾸면 새 규칙으로 보고 그 시점의 위반을 조용히 기록한다
     @ArchTest

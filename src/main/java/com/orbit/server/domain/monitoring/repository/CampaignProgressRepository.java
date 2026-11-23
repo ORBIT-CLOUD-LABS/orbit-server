@@ -2,7 +2,6 @@ package com.orbit.server.domain.monitoring.repository;
 
 import com.orbit.server.domain.monitoring.domain.CampaignResultRecord;
 import com.orbit.server.domain.monitoring.service.count.CampaignResultCount;
-import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
 import com.orbit.server.domain.monitoring.service.result.UnreportedVehicle;
 import java.util.List;
 import org.springframework.data.jpa.repository.Query;
@@ -23,14 +22,7 @@ public interface CampaignProgressRepository extends Repository<CampaignResultRec
      * 캠페인의 업데이트 결과를 결과·실패 사유별로 센다. 결과는 차량·캠페인당 하나라 행 수가 차량 수다.
      *
      * @param campaignId 캠페인 ID
-     * @return 결과·실패 사유별 차량 수. 결과가 없으면 모두 0
-     */
-    default CampaignResultCounts countResults(Long campaignId) {
-        return new CampaignResultCounts(findResultCounts(campaignId));
-    }
-
-    /**
-     * {@link #countResults} 가 쓰는 집계. 목록 그대로 돌려주므로 직접 쓰지 않고 {@link #countResults} 를 쓴다.
+     * @return 결과·실패 사유 조합마다 한 행. 결과가 없는 조합은 행이 없고, 결과가 하나도 없으면 빈 목록
      */
     // idx_update_result_campaign_result(campaign_id, result) 로 캠페인의 결과를 좁혀 센다
     @Query("""

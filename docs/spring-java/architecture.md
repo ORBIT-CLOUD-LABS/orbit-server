@@ -101,14 +101,16 @@ controller → service → repository
 - `global` 은 기능 패키지에 의존하지 않는다. (`global/external` 은 위 패키지 절의 포트 규칙만 예외)
 - `exception` 은 어느 레이어에서든 쓸 수 있다.
 - 목록·검색·대시보드처럼 필요한 컬럼만 읽는 조회는 Repository 의 `@Query` 에서 JPQL 생성자 표현식으로 조회 결과(`XxxSummary` 등)를 바로 만든다.
-  조회 결과 타입은 `service` 에 두므로, 이때만 `repository → service` 의존을 허용한다. (예: `ArtifactRepository.findAllSummaries()`)
+  조회 결과 타입은 `service` 에 두므로, `repository → service` 의존은 service 의 `record`(조회 결과, 집계 행, 검색 조건)에만 허용한다. (예: `ArtifactRepository.findAllSummaries()`)
+  - 서비스·포트·정책·일급 컬렉션 같은 class 는 참조하지 않는다. repository 는 행을 record 로 돌려주고, 감싸거나 계산하는 일은 service 가 한다. (`CampaignResultCounts` 는 `CampaignStatsService` 가 만든다)
+  - 허용 기준을 하위 패키지(`result/`, `count/` …)가 아니라 `record` 로 잡아, 역할 하위 패키지가 늘어도 예외를 넓히지 않는다. `ContextBoundaryTest` 가 검사한다.
   - `JpaRepository` 기본 메서드와 헷갈리지 않도록 메서드 이름에 결과 종류를 넣는다. (`findById` 가 아니라 `findSummaryById`)
 - 다른 컨텍스트의 `domain`·`repository` 를 직접 참조하지 않는다. → [../architecture.md](../architecture.md) 의 컨텍스트 간 통신
 - 기능 사이에 즉시 결과가 필요 없는 일은 도메인 이벤트(`ApplicationEventPublisher`, `@TransactionalEventListener`)로 나눈다.
 - 기능끼리 순환하지 않는다. 순환이 생기면 아래 순서로 끊는다. 순환을 피하려고 기능을 한 패키지로 합치지 않는다.
 - 의존 방향, 클래스 위치, 기능 간 순환은 `src/test/java/LayerArchitectureTest.java` 가 검사한다. 패키지 크기는 Java 프리셋의 `PackageSizeTest` 가 검사한다.
   orbit 은 `FEATURES_PACKAGE` 를 `com.orbit.server.domain`, `GLOBAL_PACKAGE` 를 `com.orbit.server.global` 로 두었다. → [testing.md](testing.md)
-  - 컨텍스트 간 내부 참조 금지와 `global/external` 의 포트 규칙은 템플릿에 없는 orbit 규칙이라 `com.orbit.server.ContextBoundaryTest` 가 따로 검사한다.
+  - 컨텍스트 간 내부 참조 금지, `global/external` 의 포트 규칙, `repository → service` 의 record 제한은 템플릿에 없는 orbit 규칙이라 `com.orbit.server.ContextBoundaryTest` 가 따로 검사한다.
     `LayerArchitectureTest` 와 같은 규칙을 `ContextBoundaryTest` 에 두지 않는다. 같은 위반이 두 번 보고된다.
     예외는 `global/external` 규칙 하나다. 템플릿 규칙은 `service` 레이어 전체를 허용하는 근사라 orbit 은 더 엄격한 규칙을 함께 둔다.
     그래서 `external` 이 `controller`·`repository` 를 쓰면 두 테스트가 함께 실패한다. 유스케이스·도메인 서비스를 직접 부르면 `ContextBoundaryTest` 만 실패한다.
