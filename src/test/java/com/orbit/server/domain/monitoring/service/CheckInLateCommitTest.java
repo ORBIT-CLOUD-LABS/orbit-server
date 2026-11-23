@@ -6,7 +6,7 @@ import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
 import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
-import com.orbit.server.domain.monitoring.service.stream.VehicleStatusChanges;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusChanges;
 import com.orbit.server.domain.update.service.CheckInService;
 import com.orbit.server.domain.update.service.command.CheckInCommand;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;

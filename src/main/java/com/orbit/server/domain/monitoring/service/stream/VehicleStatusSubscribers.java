@@ -1,5 +1,6 @@
 package com.orbit.server.domain.monitoring.service.stream;
 
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusChanges;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

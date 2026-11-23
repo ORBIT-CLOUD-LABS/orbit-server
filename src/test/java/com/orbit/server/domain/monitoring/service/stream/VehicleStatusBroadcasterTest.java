@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
 import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
 import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusChanges;
 import com.orbit.server.domain.monitoring.service.result.VehicleStatusFixture;
 import java.time.Clock;
 import java.time.Duration;
