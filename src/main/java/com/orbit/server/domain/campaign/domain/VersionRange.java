@@ -98,7 +98,7 @@ public record VersionRange(
         if (bound == null || otherBound == null) {
             return bound == null && otherBound == null;
         }
-        return DottedVersion.of(bound, name).equals(DottedVersion.of(otherBound, name));
+        return DottedVersion.isSame(bound, otherBound, name);
     }
 
     private boolean isAtLeastMin(DottedVersion current) {

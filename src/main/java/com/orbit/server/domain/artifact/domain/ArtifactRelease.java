@@ -49,7 +49,7 @@ public record ArtifactRelease(
      * @return 숫자 자리로 비교해 같으면 true
      */
     public boolean isSameVersionAs(String registeredVersion) {
-        return DottedVersion.of(version, VERSION_NAME).equals(DottedVersion.of(registeredVersion, VERSION_NAME));
+        return DottedVersion.isSame(version, registeredVersion, VERSION_NAME);
     }
 
     // '/' 를 허용하면 다른 차종·버전 조합이 같은 경로를 만들어 기존 파일을 덮어쓸 수 있다
