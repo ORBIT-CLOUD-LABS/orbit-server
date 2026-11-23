@@ -2,12 +2,18 @@ package com.orbit.server.domain.edge.service.scheduler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 
+import com.orbit.server.domain.edge.domain.Coordinates;
+import com.orbit.server.domain.edge.domain.Edge;
+import com.orbit.server.domain.edge.domain.Edges;
+import com.orbit.server.domain.edge.service.EdgeCatalog;
+import com.orbit.server.domain.edge.service.EdgeHealthBoard;
 import com.orbit.server.domain.edge.service.EdgeHealthCheckService;
+import com.orbit.server.domain.edge.service.EdgeHealthProbe;
 import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
+import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,6 +24,8 @@ import org.junit.jupiter.api.Test;
 class EdgeHealthCheckSchedulerTest {
 
     private static final Duration INTERVAL = Duration.ofMillis(20);
+    private static final Edge SEOUL =
+            new Edge("edge-seoul", "서울", URI.create("http://cdn.test:30081"), new Coordinates(37.5665, 126.9780));
 
     private final AtomicInteger checks = new AtomicInteger();
     private final Set<String> threadNames = ConcurrentHashMap.newKeySet();
@@ -61,16 +69,15 @@ class EdgeHealthCheckSchedulerTest {
         assertThat(checks.get()).isEqualTo(checksAtStop);
     }
 
-    // 확인 내용은 EdgeHealthCheckServiceTest 가 검증한다. 여기서는 언제·어느 스레드에서 불리는지만 본다
     private EdgeHealthCheckScheduler schedulerCountingChecks() {
-        EdgeHealthCheckService checkService = mock(EdgeHealthCheckService.class);
-        doAnswer(invocation -> {
-                    threadNames.add(Thread.currentThread().getName());
-                    checks.incrementAndGet();
-                    return null;
-                })
-                .when(checkService)
-                .checkAll();
-        return new EdgeHealthCheckScheduler(checkService, new EdgeHealthCheckProperties(INTERVAL, 3));
+        EdgeCatalog catalog = () -> new Edges(List.of(SEOUL), "edge-seoul");
+        EdgeHealthCheckProperties properties = new EdgeHealthCheckProperties(INTERVAL, 3);
+        EdgeHealthProbe countingProbe = edge -> {
+            threadNames.add(Thread.currentThread().getName());
+            checks.incrementAndGet();
+            return true;
+        };
+        EdgeHealthBoard board = new EdgeHealthBoard(catalog, properties);
+        return new EdgeHealthCheckScheduler(new EdgeHealthCheckService(catalog, countingProbe, board), properties);
     }
 }

@@ -15,7 +15,7 @@ public class EdgeHealthCheckService {
     private final EdgeHealthProbe probe;
     private final EdgeHealthBoard board;
 
-    EdgeHealthCheckService(EdgeCatalog catalog, EdgeHealthProbe probe, EdgeHealthBoard board) {
+    public EdgeHealthCheckService(EdgeCatalog catalog, EdgeHealthProbe probe, EdgeHealthBoard board) {
         this.catalog = catalog;
         this.probe = probe;
         this.board = board;
