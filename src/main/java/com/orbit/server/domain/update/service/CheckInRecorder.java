@@ -1,5 +1,6 @@
 package com.orbit.server.domain.update.service;
 
+import com.orbit.server.domain.update.service.command.CheckInCommand;
 import com.orbit.server.global.error.InvalidValueException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

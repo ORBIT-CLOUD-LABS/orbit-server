@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.exception.OriginFileExistsException;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
+import com.orbit.server.global.external.origin.config.OriginProperties;
+import com.orbit.server.global.external.origin.config.OriginStorageConfig;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.AfterAll;

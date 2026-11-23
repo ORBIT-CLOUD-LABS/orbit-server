@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties("orbit.admin")
-record AdminProperties(@NotBlank String token) {
+public record AdminProperties(@NotBlank String token) {
 
     private static final String MASKED = "AdminProperties[token=****]";
 

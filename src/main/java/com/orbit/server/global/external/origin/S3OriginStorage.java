@@ -4,6 +4,7 @@ import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.exception.OriginFileExistsException;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
 import com.orbit.server.domain.artifact.service.OriginStorage;
+import com.orbit.server.global.external.origin.config.OriginProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;

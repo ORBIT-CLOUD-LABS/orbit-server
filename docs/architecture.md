@@ -33,7 +33,7 @@ orbit 의 도메인 구조는 DDD 를 따른다. [spring-java/architecture.md](s
 ## 도메인 이벤트
 
 - 과거형으로 이름 짓는다. (`VehicleDeparted`)
-- `domain` 에 정의하고, 발행·구독 처리는 `service` 에서 한다.
+- `domain/event` 에 정의하고, 발행은 `service` 에서, 구독은 `service/listener` 에서 한다.
 
 ## 컨텍스트 간 통신
 

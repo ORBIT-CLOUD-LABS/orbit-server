@@ -8,6 +8,7 @@ import com.orbit.server.domain.vehicle.domain.Vehicle;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.domain.VehicleSpec;
 import com.orbit.server.domain.vehicle.repository.VehicleRepository;
+import com.orbit.server.domain.vehicle.service.result.VehicleProfile;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

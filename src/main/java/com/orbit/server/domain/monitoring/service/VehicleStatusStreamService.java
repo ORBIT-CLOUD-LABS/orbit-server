@@ -1,6 +1,9 @@
 package com.orbit.server.domain.monitoring.service;
 
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
+import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusChanges;
+import com.orbit.server.domain.monitoring.service.stream.VehicleStatusSubscribers;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;

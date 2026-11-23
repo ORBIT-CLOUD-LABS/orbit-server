@@ -1,7 +1,7 @@
 package com.orbit.server.domain.artifact.dto.request;
 
 import com.orbit.server.domain.artifact.domain.ArtifactRelease;
-import com.orbit.server.domain.artifact.service.RegisterArtifactCommand;
+import com.orbit.server.domain.artifact.service.command.RegisterArtifactCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

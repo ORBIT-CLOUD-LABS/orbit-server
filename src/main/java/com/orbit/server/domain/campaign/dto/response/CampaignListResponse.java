@@ -1,6 +1,6 @@
 package com.orbit.server.domain.campaign.dto.response;
 
-import com.orbit.server.domain.campaign.service.CampaignListItem;
+import com.orbit.server.domain.campaign.service.result.CampaignListItem;
 import java.util.List;
 
 /**

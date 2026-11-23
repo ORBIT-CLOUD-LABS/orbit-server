@@ -8,7 +8,7 @@ import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.artifact.domain.Artifact;
 import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.domain.ArtifactRelease;
-import com.orbit.server.domain.artifact.service.ArtifactSummary;
+import com.orbit.server.domain.artifact.service.result.ArtifactSummary;
 import com.orbit.server.domain.campaign.domain.Campaign;
 import com.orbit.server.domain.campaign.domain.CampaignCondition;
 import com.orbit.server.domain.campaign.domain.CampaignName;

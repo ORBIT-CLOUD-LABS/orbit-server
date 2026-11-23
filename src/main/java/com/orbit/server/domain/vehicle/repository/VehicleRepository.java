@@ -2,7 +2,7 @@ package com.orbit.server.domain.vehicle.repository;
 
 import com.orbit.server.domain.vehicle.domain.Vehicle;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
-import com.orbit.server.domain.vehicle.service.VehicleProfile;
+import com.orbit.server.domain.vehicle.service.result.VehicleProfile;
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,7 +37,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
      */
     // uk_vehicle_external_id 인덱스로 찾는다
     @Query("""
-            select new com.orbit.server.domain.vehicle.service.VehicleProfile(
+            select new com.orbit.server.domain.vehicle.service.result.VehicleProfile(
                 v.id, v.spec.model, v.spec.hwVersion, v.spec.region)
             from Vehicle v
             where v.externalId = :externalId

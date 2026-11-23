@@ -2,6 +2,8 @@ package com.orbit.server.domain.edge.service;
 
 import com.orbit.server.domain.edge.domain.Edge;
 import com.orbit.server.domain.edge.domain.EdgeHealth;
+import com.orbit.server.domain.edge.service.config.EdgeHealthCheckProperties;
+import com.orbit.server.domain.edge.service.result.EdgeStatus;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +27,7 @@ public class EdgeHealthBoard {
     // 기록은 헬스체크 스레드 하나만 하고 조회는 요청 스레드들이 하므로, 원자적 갱신보다 쓰기 결과가 바로 보이는 것이 필요하다
     private final Map<String, EdgeHealth> healths = new ConcurrentHashMap<>();
 
-    EdgeHealthBoard(EdgeCatalog catalog, EdgeHealthCheckProperties properties) {
+    public EdgeHealthBoard(EdgeCatalog catalog, EdgeHealthCheckProperties properties) {
         this.catalog = catalog;
         this.properties = properties;
     }

@@ -1,7 +1,7 @@
 package com.orbit.server.domain.update.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.orbit.server.domain.update.service.CheckInResult;
+import com.orbit.server.domain.update.service.result.CheckInResult;
 
 /**
  * 체크인 응답. (VEHICLE-REQ-001)

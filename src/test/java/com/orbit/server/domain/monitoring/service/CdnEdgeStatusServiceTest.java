@@ -5,8 +5,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 import com.orbit.server.domain.edge.service.EdgeHealthBoard;
-import com.orbit.server.domain.edge.service.EdgeStatus;
+import com.orbit.server.domain.edge.service.result.EdgeStatus;
 import com.orbit.server.domain.monitoring.repository.EdgeUsageRepository;
+import com.orbit.server.domain.monitoring.service.count.EdgeDownloadCount;
+import com.orbit.server.domain.monitoring.service.count.EdgeVehicleCount;
+import com.orbit.server.domain.monitoring.service.result.CdnEdgeStatus;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

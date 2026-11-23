@@ -14,7 +14,7 @@ import java.util.Base64;
  * <p>MD5 는 nginx 기본 {@code secure_link} 모듈이 지원하는 유일한 방식이라 쓴다. 알고리즘을 바꿀 때 이 클래스만 고치면 되도록 서명 계산을
  * 여기에 모은다.
  */
-final class SecureLinkSigner {
+public final class SecureLinkSigner {
 
     private static final String ALGORITHM = "MD5";
     private static final String SECRET_SEPARATOR = " ";
@@ -24,7 +24,7 @@ final class SecureLinkSigner {
     /**
      * @param secret 모든 Edge 와 함께 쓰는 서명 비밀 값
      */
-    SecureLinkSigner(String secret) {
+    public SecureLinkSigner(String secret) {
         this.secret = secret;
     }
 

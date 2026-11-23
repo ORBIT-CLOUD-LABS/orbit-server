@@ -1,6 +1,6 @@
 package com.orbit.server.domain.vehicle.dto.response;
 
-import com.orbit.server.domain.vehicle.service.VehicleRegistrationResult;
+import com.orbit.server.domain.vehicle.service.result.VehicleRegistrationResult;
 import java.time.Instant;
 
 /**

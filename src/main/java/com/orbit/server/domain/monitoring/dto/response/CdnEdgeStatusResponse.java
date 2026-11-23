@@ -1,6 +1,6 @@
 package com.orbit.server.domain.monitoring.dto.response;
 
-import com.orbit.server.domain.monitoring.service.CdnEdgeStatus;
+import com.orbit.server.domain.monitoring.service.result.CdnEdgeStatus;
 import java.util.List;
 
 /**

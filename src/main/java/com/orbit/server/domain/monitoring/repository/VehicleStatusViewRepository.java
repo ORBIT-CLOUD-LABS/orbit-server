@@ -1,10 +1,10 @@
 package com.orbit.server.domain.monitoring.repository;
 
 import com.orbit.server.domain.monitoring.domain.VehicleStatusView;
-import com.orbit.server.domain.monitoring.service.VehicleDetail;
-import com.orbit.server.domain.monitoring.service.VehicleStatus;
-import com.orbit.server.domain.monitoring.service.VehicleStatusChanges;
-import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
+import com.orbit.server.domain.monitoring.service.result.VehicleDetail;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusChanges;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusSnapshot;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +62,7 @@ public interface VehicleStatusViewRepository extends Repository<VehicleStatusVie
      */
     // external_id 는 뷰가 MERGE 로 처리돼 uk_vehicle_external_id 로 한 행을 찾는다
     @Query("""
-            select new com.orbit.server.domain.monitoring.service.VehicleDetail(
+            select new com.orbit.server.domain.monitoring.service.result.VehicleDetail(
                 s.vehicleId, s.model, s.hwVersion, s.region, s.currentVersion, s.lastSeenAt, s.updatedAt,
                 s.latitude, s.longitude, s.locationUpdatedAt, s.assignedEdgeId,
                 s.campaignId, s.lastResult, s.failureReason, s.failureDetail, s.downloadedEdgeId, s.finishedAt)
@@ -85,7 +85,7 @@ public interface VehicleStatusViewRepository extends Repository<VehicleStatusVie
      * {@link #findSnapshot} 이 쓰는 조회. 기준 시각 없이 읽으므로 직접 쓰지 않고 {@link #findSnapshot} 을 쓴다.
      */
     @Query("""
-            select new com.orbit.server.domain.monitoring.service.VehicleStatus(
+            select new com.orbit.server.domain.monitoring.service.result.VehicleStatus(
                 s.vehicleId, s.model, s.currentVersion, s.lastSeenAt, s.updatedAt,
                 s.campaignId, s.lastResult, s.failureReason,
                 s.latitude, s.longitude, s.locationUpdatedAt, s.assignedEdgeId, s.downloadedEdgeId)
@@ -99,7 +99,7 @@ public interface VehicleStatusViewRepository extends Repository<VehicleStatusVie
      */
     // 뷰가 MERGE 로 처리돼 updated_at 조건이 vehicle_state 로 들어가므로 idx_vehicle_state_updated_at 을 탄다
     @Query("""
-            select new com.orbit.server.domain.monitoring.service.VehicleStatus(
+            select new com.orbit.server.domain.monitoring.service.result.VehicleStatus(
                 s.vehicleId, s.model, s.currentVersion, s.lastSeenAt, s.updatedAt,
                 s.campaignId, s.lastResult, s.failureReason,
                 s.latitude, s.longitude, s.locationUpdatedAt, s.assignedEdgeId, s.downloadedEdgeId)

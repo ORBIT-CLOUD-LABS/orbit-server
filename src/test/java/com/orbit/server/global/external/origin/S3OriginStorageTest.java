@@ -12,6 +12,7 @@ import com.orbit.server.domain.artifact.domain.ArtifactFile;
 import com.orbit.server.domain.artifact.exception.ArtifactErrorCode;
 import com.orbit.server.domain.artifact.exception.OriginFileExistsException;
 import com.orbit.server.domain.artifact.exception.OriginUploadException;
+import com.orbit.server.global.external.origin.config.OriginProperties;
 import java.io.IOException;
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;

@@ -4,12 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
 import com.orbit.server.domain.monitoring.repository.VehicleStatusViewRepository;
-import com.orbit.server.domain.update.service.CheckInCommand;
+import com.orbit.server.domain.monitoring.service.config.DashboardStreamProperties;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusChanges;
 import com.orbit.server.domain.update.service.CheckInService;
+import com.orbit.server.domain.update.service.command.CheckInCommand;
 import com.orbit.server.domain.vehicle.domain.VehicleExternalId;
 import com.orbit.server.domain.vehicle.domain.VehicleSpec;
-import com.orbit.server.domain.vehicle.service.RegisterVehicleCommand;
 import com.orbit.server.domain.vehicle.service.VehicleRegistrationService;
+import com.orbit.server.domain.vehicle.service.command.RegisterVehicleCommand;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;

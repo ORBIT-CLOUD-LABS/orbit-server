@@ -7,11 +7,11 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.Assertions.within;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.monitoring.service.VehicleLastLocation;
-import com.orbit.server.domain.monitoring.service.VehicleLastUpdate;
-import com.orbit.server.domain.monitoring.service.VehicleStatus;
-import com.orbit.server.domain.monitoring.service.VehicleStatusChanges;
-import com.orbit.server.domain.monitoring.service.VehicleStatusSnapshot;
+import com.orbit.server.domain.monitoring.service.result.VehicleLastLocation;
+import com.orbit.server.domain.monitoring.service.result.VehicleLastUpdate;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusChanges;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatusSnapshot;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;

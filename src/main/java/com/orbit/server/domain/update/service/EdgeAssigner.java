@@ -1,11 +1,14 @@
 package com.orbit.server.domain.update.service;
 
-import com.orbit.server.domain.edge.service.EdgeSelection;
 import com.orbit.server.domain.edge.service.EdgeSelector;
 import com.orbit.server.domain.edge.service.ObservedLocation;
-import com.orbit.server.domain.edge.service.SelectedEdge;
-import com.orbit.server.domain.update.service.EdgeAssignment.FallbackUrl;
-import com.orbit.server.domain.update.service.ManifestVehicleState.LastLocation;
+import com.orbit.server.domain.edge.service.result.EdgeSelection;
+import com.orbit.server.domain.edge.service.result.SelectedEdge;
+import com.orbit.server.domain.update.service.config.SignedUrlProperties;
+import com.orbit.server.domain.update.service.result.EdgeAssignment;
+import com.orbit.server.domain.update.service.result.EdgeAssignment.FallbackUrl;
+import com.orbit.server.domain.update.service.result.ManifestVehicleState;
+import com.orbit.server.domain.update.service.result.ManifestVehicleState.LastLocation;
 import com.orbit.server.global.error.BusinessException;
 import java.time.Instant;
 import java.util.List;

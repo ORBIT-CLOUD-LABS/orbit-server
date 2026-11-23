@@ -2,8 +2,8 @@ package com.orbit.server.domain.monitoring.dto.response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.orbit.server.domain.monitoring.service.VehicleLastLocation;
-import com.orbit.server.domain.monitoring.service.VehicleStatus;
+import com.orbit.server.domain.monitoring.service.result.VehicleLastLocation;
+import com.orbit.server.domain.monitoring.service.result.VehicleStatus;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

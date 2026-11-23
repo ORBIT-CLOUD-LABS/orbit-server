@@ -3,6 +3,17 @@
 패키지 하나에 클래스가 쌓이면 어디에 무엇이 있는지 찾기 어려워지고, 역할이 다른 코드가 한 곳에 섞인다.
 `src/test/java/PackageSizeTest.java` 가 패키지당 최상위 클래스 수를 검사해서, 상한(기본 15개)을 넘으면 테스트를 실패시키고 이 문서로 안내한다.
 
+## 패키지를 나누는 기준
+
+패키지는 파일 수가 아니라 목적으로 나눈다. 기능·역할이 다르면 클래스가 적어도 처음부터 나누고, 15개 상한은 나누기를 놓쳤을 때 알려 주는 안전망으로 둔다.
+
+- 최상위는 기능(도메인)으로 나눈다. 새 도메인 개념이 생기면 클래스가 몇 개 안 돼도 새 기능 패키지를 만든다.
+- 기능 안은 레이어로 나눈다. 쓰지 않는 레이어는 만들지 않는다.
+- 레이어 안에서 역할이 다른 클래스는 역할 하위 패키지로 나눈다. 예: `domain/event/`, `service/result/`, `service/config/`
+- 레이어 안에 기능 하위 패키지(`service/alert/`)를 만들지 않는다. 레이어 안에서 새 도메인 명사가 보이면 최상위 기능 패키지로 꺼낸다.
+- 새 클래스를 추가할 때 그 패키지의 기존 클래스와 목적이 같은지 먼저 본다. 다르면 패키지를 새로 만든다.
+- 하위 패키지로 나누면 package-private 멤버를 다른 하위 패키지에서 쓸 수 없다. 이때는 나누기를 포기하지 않고, 쓰는 쪽에 필요한 멤버만 `public` 으로 연다.
+
 ## 의존성 추가
 
 `PackageSizeTest` 는 ArchUnit 으로 컴파일된 클래스를 읽는다. 이미 ArchUnit 이 있는 프로젝트는 이 단계를 건너뛴다.
@@ -37,10 +48,14 @@ JUnit 5 를 쓰도록 `tasks.test { useJUnitPlatform() }` (Kotlin) 또는 `test 
 
 크기 초과 메시지의 역할 분포(`config 3, service 7, record 13, 기타 6`)를 보고 위에서부터 판단한다.
 
+역할 분포는 역할이 얼마나 섞였는지 보는 신호일 뿐이다. `record`·`기타`·`@Entity·@Embeddable` 같은 분류 이름을 패키지 이름으로 쓰지 않는다.
+하위 패키지 이름은 클래스들의 목적(`event`, `listener`, `policy`)으로 짓고, `util`·`common`·`etc` 처럼 목적이 없는 이름은 쓰지 않는다.
+
 1. **역할이 섞여 있으면 역할 단위 하위 패키지로 나눈다.** 예: `domain/event/`, `service/config/`. 새 레이어 이름(`application/` 등)은 만들지 않는다. → [../spring-java/architecture.md](../spring-java/architecture.md)
-   분포가 한 역할로 몰려 있지 않고 두 가지 이상이 크게 섞여 있으면 이 단계다.
-2. **한 역할 안에서도 크면 기능 단위 하위 패키지로 나눈다.** 예: `service/` 안의 서비스가 모두 서비스인데 15개를 넘으면 `service/alert/`, `service/report/` 처럼 기능으로 묶는다.
-3. **컨텍스트 경계 자체가 의심되면 사람에게 묻는다.** 서로 다른 기능이 한 패키지에 들어와 있어 나누기보다 모듈·기능 패키지를 새로 만들어야 하는 경우다. 혼자 정하지 않는다.
+   분포가 한 역할로 몰려 있지 않고 두 가지 이상이 섞여 있으면 이 단계다.
+   한 역할 하위 패키지가 다시 크면 그 안에서 성격이 다른 묶음을 역할로 나눈다. 예: 조회 결과 record 를 서비스가 내보내는 결과(`result/`)와 GROUP BY 집계 행(`count/`)으로 나눈다.
+2. **새 도메인 개념이 섞여 있으면 최상위 기능 패키지로 꺼낸다.** → 위 "패키지를 나누는 기준"
+3. **기능 경계가 애매하면 사람에게 묻는다.** 새 기능 패키지를 만들지, 기존 기능에 둘지 혼자 정하지 않는다.
 
 역할 분류는 위에서부터 먼저 맞는 하나다. 어노테이션은 패키지를 뺀 단순 이름이 정확히 같은지로 비교한다.
 
@@ -50,7 +65,7 @@ JUnit 5 를 쓰도록 `tasks.test { useJUnitPlatform() }` (Kotlin) 또는 `test 
 | 2 | controller | `@RestController`, `@Controller` |
 | 3 | service | `@Service`, `@Component` |
 | 4 | repository | `@Repository`, 또는 `org.springframework.data.repository.Repository` 를 상속 |
-| 5 | entity | `@Entity`, `@Embeddable` |
+| 5 | @Entity·@Embeddable | `@Entity`, `@Embeddable`. 패키지 이름이 아니라 JPA 매핑 클래스를 가리키므로 어노테이션으로 표시한다 |
 | 6 | record | `record` |
 | 7 | 기타 | 위에 해당하지 않는 것 |
 

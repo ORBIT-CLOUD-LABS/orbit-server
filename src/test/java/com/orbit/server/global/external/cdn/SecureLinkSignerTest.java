@@ -2,8 +2,10 @@ package com.orbit.server.global.external.cdn;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.orbit.server.global.external.cdn.config.UrlSigningConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class SecureLinkSignerTest {
 
@@ -61,5 +63,16 @@ class SecureLinkSignerTest {
     void signsRawPath() {
         assertThat(signer.sign("/firmware/model A/1.1.0/firmware.bin", EXPIRES))
                 .isNotEqualTo(signer.sign("/firmware/model%20A/1.1.0/firmware.bin", EXPIRES));
+    }
+
+    @Test
+    @DisplayName("설정한 비밀 값으로 서명하는 서명 계산기를 만든다")
+    void createsSignerWithConfiguredSecret() {
+        new ApplicationContextRunner()
+                .withUserConfiguration(UrlSigningConfig.class)
+                .withPropertyValues("orbit.cdn.url-signing.key-id=v1", "orbit.cdn.url-signing.secret=" + SECRET)
+                .run(context -> assertThat(
+                                context.getBean(SecureLinkSigner.class).sign(PATH, EXPIRES))
+                        .isEqualTo(signer.sign(PATH, EXPIRES)));
     }
 }
