@@ -303,6 +303,22 @@ class CampaignAdminControllerTest {
     }
 
     @Test
+    @DisplayName("CAMPAIGN-REQ-001: 현재 버전 범위의 최소 버전이 최대 버전보다 크면 400 INVALID_INPUT 이고 등록하지 않는다")
+    void rejectsReversedVersionRange() throws Exception {
+        String body = """
+                {"name": "campaign", "artifactId": 1, "targetVersion": "1.0.1",
+                 "target": {"model": "model-a", "hwVersions": ["hw-1"], "regions": ["KR"],
+                            "currentVersionMin": "2.0", "currentVersionMax": "1.0"},
+                 "startAt": "%s", "endAt": "%s"}""".formatted(START_AT, END_AT);
+
+        perform(body)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(CommonErrorCode.INVALID_INPUT.getCode()));
+
+        verify(campaignRegistrationService, never()).register(any());
+    }
+
+    @Test
     @DisplayName("CAMPAIGN-REQ-001: 목표 버전이 점으로 나눈 숫자 형식이 아니면 400 INVALID_INPUT 이고 등록하지 않는다")
     void rejectsNonDottedTargetVersion() throws Exception {
         String body = """

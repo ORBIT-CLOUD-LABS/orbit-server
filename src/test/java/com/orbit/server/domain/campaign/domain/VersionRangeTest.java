@@ -75,6 +75,22 @@ class VersionRangeTest {
                 .isTrue();
     }
 
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: 최소 버전이 최대 버전보다 크면 대상이 될 차량이 없으므로 거부한다")
+    void rejectsMinGreaterThanMax() {
+        assertThatThrownBy(() -> new VersionRange("2.0", "1.0")).isInstanceOf(InvalidValueException.class);
+        assertThatThrownBy(() -> new VersionRange("1.0.10", "1.0.9")).isInstanceOf(InvalidValueException.class);
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: 최소 버전과 최대 버전이 비교 규칙상 같으면 그 버전만 대상인 범위로 받는다")
+    void acceptsMinEqualToMax() {
+        VersionRange single = new VersionRange("1.0.0", "1.0");
+
+        assertThat(single.contains("1.0")).isTrue();
+        assertThat(single.contains("1.0.1")).isFalse();
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"v1.0", "1.0.0-rc1", "1..0"})
     @DisplayName("VEHICLE-POL-001: 범위의 버전이 점으로 나눈 숫자 형식이 아니면 비교할 수 없어 거부한다")
