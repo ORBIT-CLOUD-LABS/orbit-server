@@ -82,6 +82,7 @@ public class VehicleStateService {
      * @throws IllegalStateException 차량의 상태가 없는 경우
      */
     // 등록할 때 상태를 함께 만들므로 인증을 통과한 차량에 상태가 없다면 데이터가 어긋난 것이라 서버 오류로 본다
+    @Transactional(readOnly = true)
     public ManifestVehicleState getManifestState(Long vehicleId) {
         ManifestStateRow row = vehicleStateRepository
                 .findManifestStateById(vehicleId)

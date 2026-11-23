@@ -6,6 +6,7 @@ import com.orbit.server.domain.vehicle.service.result.VehicleProfile;
 import com.orbit.server.global.error.InvalidValueException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 등록한 차량을 조회한다. 다른 컨텍스트(체크인)는 Vehicle 을 직접 읽지 않고 이 서비스로만 차량 정보를 얻는다. (VEHICLE-REQ-001)
@@ -25,6 +26,7 @@ public class VehicleQueryService {
      * @throws IllegalStateException 등록하지 않은 차량인 경우
      */
     // 토큰은 차량에 딸려 함께 삭제되므로 인증을 통과했는데 차량이 없다면 데이터가 어긋난 것이라 서버 오류로 본다
+    @Transactional(readOnly = true)
     public VehicleProfile getProfile(String vehicleId) {
         return vehicleRepository
                 .findProfileByExternalId(new VehicleExternalId(vehicleId))

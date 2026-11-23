@@ -7,11 +7,10 @@ import com.orbit.server.domain.vehicle.exception.VehicleErrorCode;
 import com.orbit.server.global.error.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 대시보드에 보여 줄 차량 상태와 차량 상세를 조회한다. (MONITORING-REQ-004)
- *
- * <p>조회 한 번에 기준 시각과 차량 목록을 읽는 순서만 지키면 되고, 상세는 한 번의 조회라 트랜잭션으로 묶지 않는다.
  */
 @Service
 @RequiredArgsConstructor
@@ -24,6 +23,7 @@ public class VehicleStatusQueryService {
      *
      * @return DB 시각 기준의 스냅샷. 차량은 vehicleId 오름차순, 없으면 빈 목록
      */
+    @Transactional(readOnly = true)
     public VehicleStatusSnapshot getSnapshot() {
         return vehicleStatusViewRepository.findSnapshot();
     }
@@ -35,6 +35,7 @@ public class VehicleStatusQueryService {
      * @return 차량 상세
      * @throws BusinessException 차량이 없으면 VEHICLE_NOT_FOUND
      */
+    @Transactional(readOnly = true)
     public VehicleDetail getDetail(String vehicleId) {
         return vehicleStatusViewRepository
                 .findDetail(vehicleId)
