@@ -47,6 +47,12 @@ class HttpEdgeHealthProbe implements EdgeHealthProbe {
             // 연결 거부·타임아웃처럼 원인이 메시지에 드러나므로, 주기마다 스택트레이스가 쌓이지 않게 메시지만 남긴다
             log.debug("Edge 헬스체크에 실패했습니다: edgeId={}, reason={}", edge.id(), e.getMessage());
             return false;
+        } catch (RuntimeException e) {
+            // 주소는 Edge 생성 때 검증하지만, 범위 밖 포트처럼 HTTP 클라이언트가 요청을 만들다 거부하는 경우가 남는다.
+            // 여기서 던지면 checkAll 순회가 멈춰 이 Edge 는 정상으로 남고 뒤의 Edge 는 확인되지 않으므로 실패로 본다.
+            // 위와 달리 원인을 메시지만으로 알기 어려워 스택트레이스를 함께 남긴다
+            log.debug("Edge 헬스체크 요청 중 예상 밖 오류가 났습니다: edgeId={}", edge.id(), e);
+            return false;
         }
     }
 

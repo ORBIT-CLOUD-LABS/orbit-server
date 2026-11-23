@@ -78,6 +78,17 @@ class ConfiguredEdgeCatalogTest {
     }
 
     @Test
+    @DisplayName("Edge 주소에 scheme 이 없으면 앱을 띄우지 않는다")
+    void failsWithBaseUrlWithoutScheme() {
+        contextRunner
+                .withPropertyValues(BUSAN + "base-url=edge-b:30083")
+                .run(context -> assertThat(context)
+                        .hasFailed()
+                        .getFailure()
+                        .hasRootCauseInstanceOf(InvalidValueException.class));
+    }
+
+    @Test
     @DisplayName("default-edge-id 가 목록에 없으면 앱을 띄우지 않는다")
     void failsWithUnknownDefaultEdgeId() {
         contextRunner

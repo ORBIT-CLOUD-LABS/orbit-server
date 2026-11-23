@@ -15,6 +15,9 @@ import java.util.Arrays;
  * <p>차량은 체크인이 성공할 때까지 같은 결과를 다시 보낸다. 형식이 틀린 결과 때문에 체크인 요청이 거부되면 그 차량의 체크인이 계속
  * 실패하므로, 요청을 읽을 때는 검증하지 않고 원문 그대로 받아 {@link #toOutcome()} 에서 한 번에 검증한다.
  *
+ * <p>검증 전 원문은 길이·내용을 믿을 수 없으므로 예외 메시지에는 원문 값을 넣지 않고 어느 항목이 틀렸는지만 적는다. 이 메시지는 오류
+ * 로그에 그대로 남는다.
+ *
  * @param campaignId 결과가 속한 캠페인 ID
  * @param result {@code SUCCEEDED} 또는 {@code FAILED}
  * @param failureReason 실패 사유. 실패일 때만 있다
@@ -73,7 +76,7 @@ public record ReportUpdateResultCommand(
         try {
             return Instant.parse(finishedAt);
         } catch (DateTimeParseException e) {
-            throw new InvalidValueException("업데이트 완료 시각은 ISO-8601 형식이어야 합니다: " + finishedAt, e);
+            throw new InvalidValueException("업데이트 완료 시각은 ISO-8601 형식이어야 합니다.", e);
         }
     }
 
@@ -82,7 +85,7 @@ public record ReportUpdateResultCommand(
         return Arrays.stream(type.getEnumConstants())
                 .filter(constant -> constant.name().equals(value))
                 .findFirst()
-                .orElseThrow(() -> new InvalidValueException(name + " 값이 올바르지 않습니다: " + value));
+                .orElseThrow(() -> new InvalidValueException(name + " 값이 올바르지 않습니다."));
     }
 
     private static boolean isBlank(String value) {
