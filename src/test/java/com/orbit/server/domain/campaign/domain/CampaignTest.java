@@ -28,6 +28,14 @@ class CampaignTest {
     }
 
     @Test
+    @DisplayName("CAMPAIGN-POL-001: 현재 버전 범위의 표기가 달라도 비교 규칙상 같으면 중복이다")
+    void duplicatesWhenVersionRangeIsEquivalent() {
+        Campaign other = campaignOf(ARTIFACT_ID, conditionOf(TARGET, new VersionRange("1.0", "1.0.9.0")));
+
+        assertThat(campaign.duplicates(other)).isTrue();
+    }
+
+    @Test
     @DisplayName("CAMPAIGN-POL-001: 적용 기간이 달라도 파일과 대상 조건이 같으면 중복이다")
     void duplicatesRegardlessOfPeriod() {
         CampaignPeriod later = new CampaignPeriod(START.plus(Duration.ofDays(7)), START.plus(Duration.ofDays(8)));

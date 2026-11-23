@@ -49,6 +49,48 @@ class VersionRangeTest {
         assertThat(new VersionRange(bound, "2.0").contains("0.1")).isTrue();
     }
 
+    @Test
+    @DisplayName("CAMPAIGN-POL-001: 양 끝의 표기가 달라도 비교 규칙상 같으면 같은 범위다")
+    void sameRangeWhenBoundsAreEquivalent() {
+        assertThat(new VersionRange("1.0", "2").isSameRangeAs(new VersionRange("1.0.0", "02.0")))
+                .isTrue();
+        assertThat(new VersionRange("1.0", null).isSameRangeAs(new VersionRange("1.0.0", null)))
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-POL-001: 비교 규칙상 한 끝이라도 다르면 다른 범위다")
+    void differentRangeWhenBoundDiffers() {
+        assertThat(range.isSameRangeAs(new VersionRange("1.0.9", "1.0.11"))).isFalse();
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-POL-001: 제한이 없는 쪽은 제한이 없는 쪽과만 같다")
+    void omittedBoundEqualsOnlyOmittedBound() {
+        assertThat(new VersionRange(null, "2.0").isSameRangeAs(new VersionRange("0", "2.0")))
+                .isFalse();
+        assertThat(new VersionRange("1.0", null).isSameRangeAs(new VersionRange("1.0", "99.0")))
+                .isFalse();
+        assertThat(VersionRange.unbounded().isSameRangeAs(VersionRange.unbounded()))
+                .isTrue();
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: 최소 버전이 최대 버전보다 크면 대상이 될 차량이 없으므로 거부한다")
+    void rejectsMinGreaterThanMax() {
+        assertThatThrownBy(() -> new VersionRange("2.0", "1.0")).isInstanceOf(InvalidValueException.class);
+        assertThatThrownBy(() -> new VersionRange("1.0.10", "1.0.9")).isInstanceOf(InvalidValueException.class);
+    }
+
+    @Test
+    @DisplayName("CAMPAIGN-REQ-001: 최소 버전과 최대 버전이 비교 규칙상 같으면 그 버전만 대상인 범위로 받는다")
+    void acceptsMinEqualToMax() {
+        VersionRange single = new VersionRange("1.0.0", "1.0");
+
+        assertThat(single.contains("1.0")).isTrue();
+        assertThat(single.contains("1.0.1")).isFalse();
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"v1.0", "1.0.0-rc1", "1..0"})
     @DisplayName("VEHICLE-POL-001: 범위의 버전이 점으로 나눈 숫자 형식이 아니면 비교할 수 없어 거부한다")

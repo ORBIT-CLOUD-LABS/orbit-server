@@ -40,13 +40,14 @@ public class CampaignCondition {
     }
 
     /**
-     * 적용 기간을 뺀 대상 조건(차종·HW·지역·현재 버전 범위)이 같은지 판정한다. (CAMPAIGN-POL-001)
+     * 적용 기간을 뺀 대상 조건(차종·HW·지역·현재 버전 범위)이 같은지 판정한다. 현재 버전 범위는 표기가 아니라 비교 규칙으로
+     * 비교한다. (CAMPAIGN-POL-001)
      *
      * @param other 비교할 조건
      * @return 대상 조건이 모두 같으면 true
      */
     boolean hasSameTargetAs(CampaignCondition other) {
-        return target.equals(other.target) && getCurrentVersionRange().equals(other.getCurrentVersionRange());
+        return target.equals(other.target) && getCurrentVersionRange().isSameRangeAs(other.getCurrentVersionRange());
     }
 
     /**
