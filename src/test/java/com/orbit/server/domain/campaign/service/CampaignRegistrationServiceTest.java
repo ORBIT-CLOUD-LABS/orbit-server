@@ -126,14 +126,27 @@ class CampaignRegistrationServiceTest {
         verify(campaignRepository, never()).save(any());
     }
 
+    @Test
+    @DisplayName("CAMPAIGN-POL-001: 현재 버전 범위의 표기만 다른 활성 캠페인이 있으면 409 ACTIVE_CAMPAIGN_EXISTS 이고 저장하지 않는다")
+    void rejectsDuplicateActiveCampaignWithEquivalentVersionRange() {
+        TargetRelease release = new TargetRelease("model-a", "1.0.1");
+        Campaign active =
+                commandOf(ARTIFACT_ID, release, new VersionRange("1.0", null)).toCampaign();
+        given(campaignRepository.findAllActiveByModel("model-a")).willReturn(List.of(active));
+        RegisterCampaignCommand command = commandOf(ARTIFACT_ID, release, new VersionRange("1.0.0", null));
+
+        assertThatThrownBy(() -> service.register(command))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", CampaignErrorCode.ACTIVE_CAMPAIGN_EXISTS);
+        verify(campaignRepository, never()).save(any());
+    }
+
     private static RegisterCampaignCommand commandOf(Long artifactId, TargetRelease release) {
+        return commandOf(artifactId, release, VersionRange.unbounded());
+    }
+
+    private static RegisterCampaignCommand commandOf(Long artifactId, TargetRelease release, VersionRange range) {
         return new RegisterCampaignCommand(
-                new CampaignName("campaign"),
-                artifactId,
-                release,
-                Set.of("hw-1"),
-                Set.of("KR"),
-                VersionRange.unbounded(),
-                PERIOD);
+                new CampaignName("campaign"), artifactId, release, Set.of("hw-1"), Set.of("KR"), range, PERIOD);
     }
 }
