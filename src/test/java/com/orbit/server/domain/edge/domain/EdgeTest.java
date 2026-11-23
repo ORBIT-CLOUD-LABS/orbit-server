@@ -55,6 +55,23 @@ class EdgeTest {
     }
 
     @Test
+    @DisplayName("https 주소도 받는다")
+    void acceptsHttpsBaseUrl() {
+        URI baseUrl = URI.create("https://cdn.test");
+
+        assertThatCode(() -> new Edge(ID, NAME, baseUrl, SEOUL)).doesNotThrowAnyException();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"edge-b:30081", "/ota", "cdn.test:30081/ota", "ftp://cdn.test", "http:///ota"})
+    @DisplayName("주소가 호스트를 가진 http·https 절대 주소가 아니면 거부한다")
+    void rejectsNonHttpBaseUrl(String baseUrl) {
+        URI uri = URI.create(baseUrl);
+
+        assertThatThrownBy(() -> new Edge(ID, NAME, uri, SEOUL)).isInstanceOf(InvalidValueException.class);
+    }
+
+    @Test
     @DisplayName("좌표가 없으면 거부한다")
     void rejectsMissingCoordinates() {
         assertThatThrownBy(() -> new Edge(ID, NAME, BASE_URL, null)).isInstanceOf(InvalidValueException.class);

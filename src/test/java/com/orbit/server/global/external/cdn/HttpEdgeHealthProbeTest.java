@@ -87,6 +87,15 @@ class HttpEdgeHealthProbeTest {
         assertThat(probe.isUp(edgeAt("http://127.0.0.1:" + closedPort()))).isFalse();
     }
 
+    @Test
+    @DisplayName("요청을 만들다 예상 밖 예외가 나도 던지지 않고 실패로 본다")
+    void downWhenRequestCannotBeBuilt() {
+        // 범위를 벗어난 포트는 URI 로는 만들어지지만 HTTP 클라이언트가 IllegalArgumentException 으로 거부한다
+        Edge edge = edgeAt("http://127.0.0.1:99999");
+
+        assertThat(probe.isUp(edge)).isFalse();
+    }
+
     private void respond(HttpExchange exchange) throws IOException {
         requestedPath.set(exchange.getRequestURI().getPath());
         sleep(delay.get());
