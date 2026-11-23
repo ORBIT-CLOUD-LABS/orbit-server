@@ -16,7 +16,7 @@ orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 �
 프리셋 버전을 올릴 때는 `agentsmd init --force` 로 덮어쓰지 않는다. 이전 원본과 지금 문서의 차이(orbit 수정분)를 새 원본에 다시 적용한다.
 
 프리셋 문서가 설명하는 `LayerArchitectureTest`·`PackageSizeTest`·`CodingRulesTest`·`SpringCodingRulesTest` 는 템플릿 그대로 `src/test/java/`(기본 패키지)에 있다.
-템플릿에 없는 orbit 규칙(다른 컨텍스트 내부 참조 금지, `global/external` 포트 규칙)은 `com.orbit.server.ContextBoundaryTest` 가 검사한다.
+템플릿에 없는 orbit 규칙(다른 컨텍스트 내부 참조 금지, `global/external` 포트 규칙, repository 가 참조하는 service 타입을 record 로 제한)은 `com.orbit.server.ContextBoundaryTest` 가 검사한다.
 
 | 문서 | 읽는 시점 |
 | --- | --- |
@@ -51,7 +51,7 @@ orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 �
   외부 시스템 연동 구현은 `global/external/{시스템}` 에 두고, `service` 의 포트(인터페이스)를 구현한다.
 - `XxxService` 는 유스케이스를 조율하는 서비스만 쓴다. 도메인 서비스는 역할로 이름 짓는다. (`DispatchPolicy`)
 - Repository 는 `JpaRepository` 를 바로 상속하고 서비스가 직접 주입받는다. 포트와 구현으로 나누지 않는다.
-- 단건 상세 조회는 엔티티를 읽어 변환하고, 목록·대시보드는 Repository 의 `@Query` projection 으로 읽는다.
+- 단건 상세 조회는 엔티티를 읽어 변환하고, 목록·대시보드는 Repository 의 `@Query` projection 으로 읽는다. 이때 repository 는 service 의 `record` 만 참조한다.
 - API 는 성공·실패 모두 공통 응답 `ApiResponse` 로 응답한다. `ProblemDetail` 을 쓰지 않는다.
 - 빈 catch 금지. 커스텀 예외로 감싸고 cause 를 유지한다.
 - 인터페이스는 경계에만 둔다: 다른 모듈이 호출하는 진입점, 외부 시스템 연동, 구현이 둘 이상인 정책.
