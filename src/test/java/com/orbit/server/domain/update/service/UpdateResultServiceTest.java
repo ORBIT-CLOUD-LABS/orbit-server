@@ -26,8 +26,13 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
 @Transactional
+@ExtendWith(OutputCaptureExtension.class)
 class UpdateResultServiceTest {
 
     private static final Instant FINISHED_AT = Instant.parse("2026-10-01T12:00:00Z");
@@ -125,6 +131,22 @@ class UpdateResultServiceTest {
                 new ReportUpdateResultCommand(campaignId, "SUCCEEDED", null, "detail", FINISHED_AT.toString(), null));
 
         assertThat(allResults()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "RAW-VEHICLE-INPUT, , 2026-10-01T12:00:00Z, 업데이트 결과",
+        "FAILED, RAW-VEHICLE-INPUT, 2026-10-01T12:00:00Z, 실패 사유",
+        "SUCCEEDED, , RAW-VEHICLE-INPUT, 업데이트 완료 시각"
+    })
+    @DisplayName("형식이 틀린 보고를 버릴 때 차량이 보낸 원문은 로그에 남기지 않고 틀린 항목만 남긴다")
+    void logsRejectedFieldWithoutRawValue(
+            String result, String failureReason, String finishedAt, String field, CapturedOutput output) {
+        service.record(
+                vehicleId, new ReportUpdateResultCommand(campaignId, result, failureReason, null, finishedAt, null));
+
+        assertThat(output.getOut()).contains("형식이 틀린 업데이트 결과를 버립니다", field);
+        assertThat(output.getOut()).doesNotContain("RAW-VEHICLE-INPUT");
     }
 
     @Test

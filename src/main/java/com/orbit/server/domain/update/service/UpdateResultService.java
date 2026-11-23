@@ -46,7 +46,8 @@ public class UpdateResultService {
         vehicleEventRepository.record(vehicleId, report.campaignId(), outcome.get());
     }
 
-    // 형식이 틀린 보고는 차량 쪽 버그이므로 ERROR 로 남겨 드러낸다. 상세는 길이를 검증하지 못했으므로 로그에 남기지 않는다
+    // 형식이 틀린 보고는 차량 쪽 버그이므로 ERROR 로 남겨 드러낸다. 차량이 보낸 원문은 길이·내용을 검증하지 못했으므로 남기지 않는다.
+    // 메시지에는 틀린 항목만 담기지만 cause(날짜 파싱 오류 등)의 메시지에는 원문이 들어가므로 스택트레이스는 남기지 않는다
     private Optional<UpdateOutcome> validate(Long vehicleId, ReportUpdateResultCommand report) {
         try {
             return Optional.of(report.toOutcome());
@@ -55,8 +56,7 @@ public class UpdateResultService {
                     "형식이 틀린 업데이트 결과를 버립니다: vehicleId={}, campaignId={}, reason={}",
                     vehicleId,
                     report.campaignId(),
-                    e.getMessage(),
-                    e);
+                    e.getMessage());
             return Optional.empty();
         }
     }
