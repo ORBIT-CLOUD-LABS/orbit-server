@@ -42,7 +42,7 @@ com.orbit.server/
   이 문서에서 레이어를 말할 때 `domain` 은 컨텍스트 안의 `domain` 을 뜻한다.
 - 컨텍스트 이름은 [요구사항](../requirements.md)의 용어(유비쿼터스 언어)를 따른다. 새 컨텍스트를 만들기 전에 기존 컨텍스트에 속하는지 먼저 검토한다.
 - 쓰지 않는 레이어는 만들지 않는다. (API 가 없는 기능에는 `controller/` 를 두지 않는다)
-- 서비스의 입출력(`XxxCommand` / `XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)은 `dto` 가 아니라 `service` 에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
+- 서비스의 입출력은 `dto` 가 아니라 `service` 의 `command/`(`XxxCommand`), `result/`(`XxxResult`, 조회 결과 `XxxSummary` / `XxxDetail`)에 둔다. `dto` 는 API 계약(요청·응답)만 둔다.
 - 레이어 안에서 역할이 다른 클래스는 클래스가 적어도 역할 하위 패키지로 나눈다. 쓰는 역할만 만든다. → [../java/package-structure.md](../java/package-structure.md)
   `service` 의 역할 이름은 `command/`(입력), `result/`(출력·조회 결과), `config/`(설정), `listener/`(이벤트 구독), `scheduler/`(주기 작업)를 기본으로 쓴다. → 아래 "클래스를 추가할 때"
   여기에 맞지 않는 역할은 역할을 나타내는 이름을 붙인다. 예: `monitoring` 의 `stream/`(SSE 구독자 관리·변경분 전송 같은 전송 기반. 주기 등록은 `scheduler/`), `count/`(GROUP BY 집계 행과 그 일급 컬렉션)
