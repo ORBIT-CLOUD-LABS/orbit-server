@@ -2,12 +2,13 @@ package com.orbit.server.domain.artifact.service.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.orbit.server.domain.artifact.service.FirmwarePublicKeys;
 import java.util.Base64;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
-/** 설정 바인딩과 기동 실패를 본다. 만든 공개 키로 서명이 검증되는지는 {@code FirmwarePublicKeysTest} 가 본다. */
+/** 설정 바인딩과 기동 실패를 본다. 공개 키로 서명이 검증되는지는 {@code FirmwarePublicKeysTest} 가 본다. */
 class SigningPropertiesTest {
 
     private static final String PUBLIC_KEYS = "orbit.signing.public-keys.";
@@ -18,11 +19,11 @@ class SigningPropertiesTest {
             new ApplicationContextRunner().withUserConfiguration(SigningConfig.class);
 
     @Test
-    @DisplayName("ORIGIN-POL-001: 키 버전별 공개 키가 올바르면 앱을 띄운다")
-    void startsWithValidPublicKey() {
+    @DisplayName("ORIGIN-POL-001: 키 버전별 공개 키가 올바르면 서명 검증에 쓸 공개 키 목록을 만든다")
+    void createsPublicKeysWithValidPublicKey() {
         contextRunner
                 .withPropertyValues(PUBLIC_KEYS + "v1=" + VALID_PUBLIC_KEY)
-                .run(context -> assertThat(context).hasNotFailed());
+                .run(context -> assertThat(context).hasSingleBean(FirmwarePublicKeys.class));
     }
 
     @Test
