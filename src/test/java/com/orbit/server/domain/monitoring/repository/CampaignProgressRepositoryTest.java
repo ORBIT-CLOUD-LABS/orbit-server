@@ -4,8 +4,7 @@ import static com.orbit.server.domain.artifact.domain.ArtifactSignatureFixture.S
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.orbit.server.TestcontainersConfiguration;
-import com.orbit.server.domain.monitoring.domain.UpdateFailureReason;
-import com.orbit.server.domain.monitoring.service.count.CampaignResultCounts;
+import com.orbit.server.domain.monitoring.service.count.CampaignResultCount;
 import com.orbit.server.domain.monitoring.service.result.UnreportedVehicle;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
@@ -45,12 +44,9 @@ class CampaignProgressRepositoryTest {
     }
 
     @Test
-    @DisplayName("캠페인 진행 현황: 결과가 없으면 성공·실패가 0 이다")
-    void countsZeroWithoutResults() {
-        CampaignResultCounts counts = campaignProgressRepository.countResults(campaignId);
-
-        assertThat(counts.succeeded()).isZero();
-        assertThat(counts.failed()).isZero();
+    @DisplayName("캠페인 진행 현황: 결과가 없으면 집계 행이 없다")
+    void countsNothingWithoutResults() {
+        assertThat(campaignProgressRepository.findResultCounts(campaignId)).isEmpty();
     }
 
     @Test
@@ -62,14 +58,12 @@ class CampaignProgressRepositoryTest {
         insertResult(insertVehicle("vehicle-004", "model-a"), campaignId, "FAILED", "INSTALL_FAILED");
         insertResult(insertVehicle("vehicle-005", "model-a"), otherCampaignId, "FAILED", "INSTALL_FAILED");
 
-        CampaignResultCounts counts = campaignProgressRepository.countResults(campaignId);
-
-        assertThat(counts.succeeded()).isEqualTo(2);
-        assertThat(counts.failed()).isEqualTo(2);
-        assertThat(counts.failureReasons())
-                .containsEntry(UpdateFailureReason.HASH_MISMATCH, 1L)
-                .containsEntry(UpdateFailureReason.INSTALL_FAILED, 1L)
-                .containsEntry(UpdateFailureReason.DOWNLOAD_FAILED, 0L);
+        // 0 인 실패 사유를 채우는 일은 CampaignResultCountsTest 가 본다
+        assertThat(campaignProgressRepository.findResultCounts(campaignId))
+                .containsExactlyInAnyOrder(
+                        new CampaignResultCount("SUCCEEDED", null, 2),
+                        new CampaignResultCount("FAILED", "HASH_MISMATCH", 1),
+                        new CampaignResultCount("FAILED", "INSTALL_FAILED", 1));
     }
 
     @Test
