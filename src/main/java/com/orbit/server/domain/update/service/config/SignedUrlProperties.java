@@ -28,9 +28,13 @@ public record SignedUrlProperties(
      * 지금 발급하는 URL 의 만료 시각을 정한다.
      *
      * @param issuedAt 매니페스트를 발급하는 시각
-     * @return 만료 시각. URL 의 {@code expires}(Unix 초)와 응답의 만료 시각이 같은 시각을 가리키도록 초 아래는 버린다
+     * @return 만료 시각. URL 의 {@code expires}(Unix 초)와 응답의 만료 시각이 같은 시각을 가리키도록 초 단위로 맞춘다. 초 아래가
+     *     남으면 다음 초로 올려, 실제 유효 시간이 설정한 유효 기간보다 짧아지지 않게 한다
      */
     public Instant expiresAt(Instant issuedAt) {
-        return issuedAt.plus(signedUrlTtl).truncatedTo(ChronoUnit.SECONDS);
+        Instant exact = issuedAt.plus(signedUrlTtl);
+        Instant truncated = exact.truncatedTo(ChronoUnit.SECONDS);
+        // 버리면 최대 1초가 줄어 최소 유효 기간(1초)에서는 발급 직후 만료될 수 있다
+        return truncated.equals(exact) ? exact : truncated.plusSeconds(1);
     }
 }
