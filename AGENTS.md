@@ -30,6 +30,7 @@ orbit 이 프리셋과 다르게 정한 규칙은 따로 두지 않고 해당 �
 | [docs/java/testing.md](docs/java/testing.md) | 테스트를 쓸 때 |
 | [docs/java/logging-and-security.md](docs/java/logging-and-security.md) | 로그를 남길 때, 비밀값·외부 입력·의존성을 다룰 때 |
 | [docs/java/lint-and-ci.md](docs/java/lint-and-ci.md) | 린트·포맷·CI 설정 |
+| [docs/release.md](docs/release.md) | 이미지 발행·릴리스 워크플로, 버전·태그 규칙 |
 | [docs/java/package-structure.md](docs/java/package-structure.md) | 클래스를 추가할 때, 패키지가 커져 PackageSizeTest 가 실패할 때 |
 | [docs/spring-java/architecture.md](docs/spring-java/architecture.md) | 클래스·패키지를 만들 때. 패키지 구조, 의존 방향, 주입, DTO 경계, 설정 |
 | [docs/spring-java/data-jpa.md](docs/spring-java/data-jpa.md) | 엔티티·Repository·트랜잭션을 다룰 때. 지연 로딩, N+1, 스키마 마이그레이션 |
