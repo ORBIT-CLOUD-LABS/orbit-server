@@ -4,7 +4,7 @@ name: Release label
 # 라벨을 붙이거나 떼면 다시 검사한다. 필수 검사이므로 paths 필터를 두지 않는다.
 on:
   pull_request:
-    types: [ opened, reopened, synchronize, labeled, unlabeled ]
+    types: [ opened, reopened, synchronize, labeled, unlabeled, edited ]
 
 permissions: {}
 
@@ -19,12 +19,19 @@ jobs:
     steps:
       # PR 코드를 받지 않고 이벤트의 라벨 목록만 읽는다.
       - name: Check release label count
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           labels="$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH" \
             | grep -Ex 'release:(patch|minor|major)' || true)"
           count="$(printf '%s' "$labels" | grep -c . || true)"
           if [ "$count" -gt 1 ]; then
             echo "::error::릴리스 라벨은 하나만 붙일 수 있습니다: $(echo $labels)"
+            exit 1
+          fi
+          # 릴리스는 main 머지 때만 일어나므로 라벨도 develop → main PR에만 붙인다
+          if [ "$count" -gt 0 ] && [ "$BASE_REF" != "main" ]; then
+            echo "::error::릴리스 라벨은 main 대상 PR에만 붙입니다 (지금 대상: $BASE_REF)"
             exit 1
           fi
           if [ "$count" -eq 0 ]; then
