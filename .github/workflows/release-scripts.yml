@@ -1,0 +1,34 @@
+name: Release script tests
+
+# 릴리스 워크플로·스크립트를 바꾼 PR에서만 돈다. 필수 검사가 아니므로 paths 필터를 쓴다.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - '.github/workflows/release-scripts.yml'
+      - '.github/scripts/**'
+      - '.github/tests/**'
+      - '.github/requirements-release.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  release-scripts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install release script dependency
+        run: python -m pip install --disable-pip-version-check -r .github/requirements-release.txt
+
+      - name: Test version calculation and orbit-gitops update
+        run: python -m unittest discover -s .github/tests -v
