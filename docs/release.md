@@ -66,3 +66,28 @@ images:
 python3 -m pip install -r .github/requirements-release.txt
 python3 -m unittest discover -s .github/tests
 ```
+
+## GitHub·GHCR 설정 (관리자, 한 번)
+
+워크플로가 돌기 전에 아래를 설정한다. 비밀값은 저장소 설정에만 두고 문서·이슈에 적지 않는다.
+
+1. GitHub App `orbit-cloud-gitops-bot`
+   - 설치 저장소에 `orbit-server`, `orbit-gitops` 포함
+   - Repository permissions → Contents: Read and write (orbit-server 태그 생성, orbit-gitops 커밋)
+   - orbit-server 저장소 변수 `GITOPS_APP_CLIENT_ID`, 시크릿 `GITOPS_APP_PRIVATE_KEY`가 있는지 확인
+2. orbit-server 태그 ruleset (Settings → Rules → Rulesets → New tag ruleset)
+   - 대상: `v*`
+   - Restrict creations, Restrict updates, Restrict deletions 켜기
+   - Bypass list: `orbit-cloud-gitops-bot` (생성은 App만)
+3. orbit-gitops `develop` ruleset의 Bypass list에 `orbit-cloud-gitops-bot` 추가 (릴리스 커밋을 PR 없이 넣기 위해)
+4. GHCR 패키지 `orbit-server` (Org → Packages → orbit-server → Package settings)
+   - Change visibility → Public (클러스터에 pull Secret을 두지 않음)
+   - Manage Actions access: `orbit-server` 저장소 Admin (발행·태그·정리 워크플로가 버전을 지우려면 Admin 필요)
+
+## 설정 뒤 확인
+
+1. 라벨 없는 PR 머지 → `sha-<7자리>` 이미지만 생기고 Git 태그·orbit-gitops는 그대로인지
+2. `release:patch` PR 머지 (첫 릴리스) → Git 태그 `v1.0.0`, 이미지 태그 `1.0.0`(digest가 `sha-` 이미지와 같음), orbit-gitops 커밋이 생기는지
+3. 그 실행을 다시 돌림 → 새 태그·커밋 없이 끝나는지
+4. Argo CD에서 OTA Main·Sub가 같은 digest로 바뀌는지
+5. 정리 워크플로를 `dry-run`으로 수동 실행 → 버전 태그가 붙은 이미지는 대상에 없는지
