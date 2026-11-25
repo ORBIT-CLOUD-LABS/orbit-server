@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""릴리스한 orbit-server 이미지를 orbit-gitops ota/base에 반영한다.
+"""릴리스한 orbit-server 이미지를 orbit-gitops main 대상 배포 PR로 올린다.
 
 ota/base/kustomization.yaml의 images 항목 하나만 바꾼다. OTA Main·Sub overlay가 이 base를 쓰므로
-커밋 하나로 두 클러스터가 같은 digest로 바뀐다.
+PR 하나로 두 클러스터가 같은 digest로 바뀐다. main에 직접 쓰지 않는다. 사람이 PR을 승인·머지해야 배포된다.
 
     images:
       - name: ghcr.io/orbit-cloud-labs/orbit-server
         newTag: "1.2.4"
         digest: sha256:<64자리>
 
-- 같은 버전·digest가 이미 있으면 아무것도 하지 않는다 (재실행).
-- 더 높은 버전이 이미 있으면 덮어쓰지 않는다 (늦게 끝난 오래된 실행).
+- main에 같은 버전·digest가 이미 있으면 아무것도 하지 않는다.
+- main이나 열린 배포 PR에 더 높은 버전이 있으면 PR을 만들지 않는다 (늦게 끝난 오래된 실행).
 - 같은 버전에 다른 digest가 있으면 실패한다 (버전 태그는 옮기지 않는다).
+- 같은 버전의 배포 PR이 이미 열려 있으면 그대로 둔다 (재실행).
+- 새 PR을 열면 더 낮은 버전의 열린 배포 PR은 닫는다. 오래된 PR을 나중에 머지해 버전이 내려가지 않게 한다.
 - ota/base가 아직 없으면 경고만 하고 끝낸다.
-- push가 동시 변경으로 거절되면 최신 브랜치에서 다시 시도한다.
 """
 import argparse
 import copy
@@ -28,7 +29,9 @@ import yaml
 
 IMAGE = 'ghcr.io/orbit-cloud-labs/orbit-server'
 TARGET = Path('ota/base/kustomization.yaml')
-BRANCH = 'develop'
+BRANCH = 'main'
+REPOSITORY = 'ORBIT-CLOUD-LABS/orbit-gitops'
+RELEASE_PREFIX = 'release/orbit-server-'
 SHA = re.compile(r'[0-9a-f]{40}')
 DIGEST = re.compile(r'sha256:[0-9a-f]{64}')
 VERSION = re.compile(r'(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)')
@@ -111,7 +114,41 @@ def replace_values(text, entry_fields, version, digest):
     return text
 
 
-def update(repo, version, source_sha, digest, run_url, attempts=3):
+class GitHub:
+    """orbit-gitops PR API. 토큰은 환경 변수 GH_TOKEN으로 gh가 읽는다."""
+
+    def _api(self, *args):
+        result = subprocess.run(['gh', 'api', *args], text=True, capture_output=True)
+        if result.returncode:
+            raise UpdateError(f'GitHub API 실패: {args[0]} {args[1] if len(args) > 1 else ""}'.rstrip())
+        return json.loads(result.stdout) if result.stdout.strip() else None
+
+    def open_release_pulls(self):
+        pulls = self._api(f'repos/{REPOSITORY}/pulls?state=open&base={BRANCH}&per_page=100')
+        return [
+            {'number': pull['number'], 'branch': pull['head']['ref'], 'url': pull['html_url']}
+            for pull in pulls
+            if pull['head']['repo'] and pull['head']['repo']['full_name'] == REPOSITORY
+            and pull['head']['ref'].startswith(RELEASE_PREFIX)
+        ]
+
+    def create_pull(self, branch, title, body):
+        pull = self._api('-X', 'POST', f'repos/{REPOSITORY}/pulls',
+                         '-f', f'title={title}', '-f', f'head={branch}', '-f', f'base={BRANCH}', '-f', f'body={body}')
+        return pull['html_url']
+
+    def close_pull(self, number, comment):
+        self._api('-X', 'POST', f'repos/{REPOSITORY}/issues/{number}/comments', '-f', f'body={comment}')
+        self._api('-X', 'PATCH', f'repos/{REPOSITORY}/pulls/{number}', '-f', 'state=closed')
+
+
+def release_version(branch):
+    """배포 PR 브랜치 이름의 버전. 형식이 다르면 None (사람이 만든 브랜치는 건드리지 않는다)."""
+    text = branch[len(RELEASE_PREFIX):]
+    return parse_version(text) if VERSION.fullmatch(text) else None
+
+
+def update(repo, version, source_sha, digest, run_url, github):
     if not VERSION.fullmatch(version) or not SHA.fullmatch(source_sha) or not DIGEST.fullmatch(digest):
         raise UpdateError('버전, 소스 SHA, digest 형식이 잘못됐습니다')
     if not RUN_URL.fullmatch(run_url):
@@ -119,45 +156,56 @@ def update(repo, version, source_sha, digest, run_url, attempts=3):
     if git(repo, 'status', '--porcelain').stdout:
         raise UpdateError('orbit-gitops checkout이 깨끗하지 않습니다')
     wanted = parse_version(version)
-    for _ in range(attempts):
-        git(repo, 'fetch', '--no-tags', 'origin', f'refs/heads/{BRANCH}')
-        base = git(repo, 'rev-parse', 'FETCH_HEAD').stdout.strip()
-        # 처음에 깨끗했던 Actions 전용 checkout만 다시 맞춘다.
-        git(repo, 'reset', '--hard', base)
-        path = target_path(repo)
-        if path is None:
-            return 'skipped: orbit-gitops에 ota/base/kustomization.yaml이 아직 없음'
-        text = path.read_text(encoding='utf-8')
-        document, (index, entry, entry_fields) = image_entry(text)
-        current = parse_version(str(entry['newTag']))
-        if current == wanted:
-            if entry['digest'] == digest:
-                return 'no-op: 이미 같은 버전과 digest'
-            raise UpdateError('같은 버전에 다른 digest가 있습니다. 버전 태그를 옮기지 않습니다')
-        if current > wanted:
-            return f'skipped: 더 높은 버전 {entry["newTag"]}이 이미 반영됨'
-        changed = replace_values(text, entry_fields, version, digest)
-        expected = copy.deepcopy(document)
-        expected['images'][index]['newTag'] = version
-        expected['images'][index]['digest'] = digest
-        if yaml.safe_load(changed) != expected:
-            raise UpdateError('이미지 항목 밖까지 바뀌었습니다')
-        path.write_text(changed, encoding='utf-8')
-        git(repo, 'diff', '--check')
-        if git(repo, 'diff', '--name-only').stdout.splitlines() != [str(TARGET)]:
-            raise UpdateError('예상하지 않은 파일이 바뀌었습니다')
-        git(repo, 'add', '--', str(TARGET))
-        git(repo, 'commit', '-m', f'chore: orbit-server {version} 배포', '-m',
-            f'Version: {version}\nSource-Repository: ORBIT-CLOUD-LABS/orbit-server\n'
-            f'Source-SHA: {source_sha}\nImage-Digest: {digest}\nBuild-Run: {run_url}')
-        # 일반 push가 compare-and-swap 역할을 한다. 그 사이 브랜치가 바뀌면 거절된다.
-        result = git(repo, 'push', 'origin', f'HEAD:refs/heads/{BRANCH}', check=False)
-        if result.returncode == 0:
-            return 'updated: ' + git(repo, 'rev-parse', 'HEAD').stdout.strip()
-        git(repo, 'fetch', '--no-tags', 'origin', f'refs/heads/{BRANCH}')
-        if git(repo, 'rev-parse', 'FETCH_HEAD').stdout.strip() == base:
-            raise UpdateError('브랜치 변경 없이 push가 거절됐습니다. App 권한과 ruleset 우회 설정을 확인하세요')
-    raise UpdateError(f'{attempts}번 모두 push 중 orbit-gitops가 바뀌었습니다')
+    git(repo, 'fetch', '--no-tags', 'origin', f'refs/heads/{BRANCH}')
+    # 처음에 깨끗했던 Actions 전용 checkout만 main 최신으로 맞춘다.
+    git(repo, 'reset', '--hard', 'FETCH_HEAD')
+    path = target_path(repo)
+    if path is None:
+        return 'skipped: orbit-gitops에 ota/base/kustomization.yaml이 아직 없음'
+    text = path.read_text(encoding='utf-8')
+    document, (index, entry, entry_fields) = image_entry(text)
+    current = parse_version(str(entry['newTag']))
+    if current == wanted:
+        if entry['digest'] == digest:
+            return 'no-op: main에 이미 같은 버전과 digest'
+        raise UpdateError('같은 버전에 다른 digest가 있습니다. 버전 태그를 옮기지 않습니다')
+    if current > wanted:
+        return f'skipped: main에 더 높은 버전 {entry["newTag"]}이 이미 반영됨'
+
+    branch = RELEASE_PREFIX + version
+    pulls = github.open_release_pulls()
+    for pull in pulls:
+        if pull['branch'] == branch:
+            return f'exists: {pull["url"]}'
+        other = release_version(pull['branch'])
+        if other is not None and other > wanted:
+            return f'skipped: 더 높은 버전의 배포 PR이 열려 있음 {pull["url"]}'
+
+    changed = replace_values(text, entry_fields, version, digest)
+    expected = copy.deepcopy(document)
+    expected['images'][index]['newTag'] = version
+    expected['images'][index]['digest'] = digest
+    if yaml.safe_load(changed) != expected:
+        raise UpdateError('이미지 항목 밖까지 바뀌었습니다')
+    path.write_text(changed, encoding='utf-8')
+    git(repo, 'diff', '--check')
+    if git(repo, 'diff', '--name-only').stdout.splitlines() != [str(TARGET)]:
+        raise UpdateError('예상하지 않은 파일이 바뀌었습니다')
+    title = f'chore: orbit-server {version} 배포'
+    record = (f'Version: {version}\nSource-Repository: ORBIT-CLOUD-LABS/orbit-server\n'
+              f'Source-SHA: {source_sha}\nImage-Digest: {digest}\nBuild-Run: {run_url}')
+    git(repo, 'add', '--', str(TARGET))
+    git(repo, 'commit', '-m', title, '-m', record)
+    # 봇만 쓰는 브랜치다. 앞선 실행이 push만 하고 PR을 못 만들었으면 같은 내용으로 덮어쓴다.
+    git(repo, 'push', '--force', 'origin', f'HEAD:refs/heads/{branch}')
+    body = (f'orbit-server 릴리스 워크플로가 만든 배포 PR입니다. 머지하면 Argo CD가 OTA Main·Sub에 배포합니다.\n\n'
+            f'```\n{record}\n```\n\n바뀌는 곳은 `{TARGET}`의 orbit-server 이미지 항목 하나입니다.')
+    url = github.create_pull(branch, title, body)
+    for pull in pulls:
+        other = release_version(pull['branch'])
+        if other is not None and other < wanted:
+            github.close_pull(pull['number'], f'더 높은 버전 {version}의 배포 PR이 열려 닫습니다: {url}')
+    return f'opened: {url}'
 
 
 def main():
@@ -166,7 +214,7 @@ def main():
     args = parser.parse_args()
     try:
         result = update(args.gitops, os.environ['VERSION'], os.environ['SOURCE_SHA'],
-                        os.environ['IMAGE_DIGEST'], os.environ['BUILD_RUN_URL'])
+                        os.environ['IMAGE_DIGEST'], os.environ['BUILD_RUN_URL'], GitHub())
     except (UpdateError, KeyError, ValueError, OSError, yaml.YAMLError) as error:
         print(f'orbit-gitops 갱신 실패: {error}', file=sys.stderr)
         return 1

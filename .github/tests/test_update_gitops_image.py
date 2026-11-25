@@ -50,6 +50,29 @@ images:
 '''
 
 
+class FakeGitHub:
+    def __init__(self, pulls=()):
+        self.pulls = list(pulls)
+        self.created = []
+        self.closed = []
+
+    def open_release_pulls(self):
+        return list(self.pulls)
+
+    def create_pull(self, branch, title, body):
+        url = f'https://github.com/{u.REPOSITORY}/pull/{100 + len(self.created)}'
+        self.created.append({'branch': branch, 'title': title, 'body': body})
+        self.pulls.append({'number': 100 + len(self.created), 'branch': branch, 'url': url})
+        return url
+
+    def close_pull(self, number, comment):
+        self.closed.append((number, comment))
+
+
+def pull(number, branch):
+    return {'number': number, 'branch': branch, 'url': f'https://github.com/{u.REPOSITORY}/pull/{number}'}
+
+
 class UpdateGitopsImageTest(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix='orbit-release-test-')
@@ -63,59 +86,93 @@ class UpdateGitopsImageTest(unittest.TestCase):
         subprocess.run(['git', 'clone', '-q', '--bare', str(self.repo), str(self.remote)], check=True)
         git(self.repo, 'remote', 'add', 'origin', str(self.remote))
         self.before = self.remote_head()
+        self.github = FakeGitHub()
 
     def update(self, version='1.0.1', digest=DIGEST):
-        return u.update(self.repo, version, SOURCE, digest, RUN)
+        return u.update(self.repo, version, SOURCE, digest, RUN, self.github)
 
-    def remote_head(self):
-        return git(self.remote, 'rev-parse', u.BRANCH)
+    def remote_head(self, branch=u.BRANCH):
+        return git(self.remote, 'rev-parse', branch)
 
-    def remote_file(self):
-        return git(self.remote, 'show', f'{u.BRANCH}:{u.TARGET}')
+    def remote_file(self, branch=u.BRANCH):
+        return git(self.remote, 'show', f'{branch}:{u.TARGET}')
 
     def push_fixture(self, content):
         commit(self.repo, str(u.TARGET), content)
         git(self.repo, 'push', '-q', 'origin', u.BRANCH)
         return self.remote_head()
 
-    def other_checkout(self):
-        other = self.root / 'other'
-        subprocess.run(['git', 'clone', '-q', '-b', u.BRANCH, str(self.remote), str(other)], check=True)
-        git(other, 'config', 'user.name', 'Other')
-        git(other, 'config', 'user.email', 'other@example.test')
-        return other
+    def assert_nothing_opened(self):
+        self.assertEqual(self.github.created, [])
+        self.assertEqual(git(self.remote, 'branch', '--list', u.RELEASE_PREFIX + '*'), '')
 
-    def test_updates_only_orbit_server_image_and_records_release(self):
-        self.assertTrue(self.update().startswith('updated:'))
-        text = self.remote_file()
+    def test_opens_pull_request_without_touching_main(self):
+        result = self.update()
+        self.assertTrue(result.startswith('opened: https://github.com/'))
+        self.assertEqual(self.remote_head(), self.before)
+        branch = u.RELEASE_PREFIX + '1.0.1'
+        self.assertEqual(self.github.created[0]['branch'], branch)
+        self.assertEqual(self.github.created[0]['title'], 'chore: orbit-server 1.0.1 배포')
+        for value in ('Version: 1.0.1', SOURCE, DIGEST, RUN):
+            self.assertIn(value, self.github.created[0]['body'])
+
+    def test_release_branch_changes_only_orbit_server_image(self):
+        self.update()
+        branch = u.RELEASE_PREFIX + '1.0.1'
+        text = self.remote_file(branch)
         self.assertIn('newTag: "1.0.1" # release', text)
         self.assertIn(f'digest: {DIGEST}', text)
         self.assertIn('# 이 주석과', text)
         self.assertIn('sha256:' + 'e' * 64, text)
-        self.assertEqual(git(self.remote, 'diff', '--name-only', self.before, u.BRANCH), str(u.TARGET))
-        message = git(self.remote, 'show', '-s', '--format=%B', u.BRANCH)
+        self.assertEqual(git(self.remote, 'diff', '--name-only', self.before, branch), str(u.TARGET))
+        message = git(self.remote, 'show', '-s', '--format=%B', branch)
         self.assertTrue(message.startswith('chore: orbit-server 1.0.1 배포'))
         for value in ('Version: 1.0.1', SOURCE, DIGEST, RUN):
             self.assertIn(value, message)
 
-    def test_same_release_rerun_is_noop(self):
+    def test_rerun_with_open_pull_request_is_kept(self):
         self.update()
-        before = self.remote_head()
-        self.assertTrue(self.update().startswith('no-op:'))
-        self.assertEqual(self.remote_head(), before)
+        head = self.remote_head(u.RELEASE_PREFIX + '1.0.1')
+        self.assertTrue(self.update().startswith('exists: '))
+        self.assertEqual(len(self.github.created), 1)
+        self.assertEqual(self.remote_head(u.RELEASE_PREFIX + '1.0.1'), head)
 
-    def test_late_older_release_does_not_downgrade(self):
-        self.update('1.2.0')
-        before = self.remote_head()
+    def test_rerun_after_failed_pull_request_overwrites_release_branch(self):
+        git(self.repo, 'push', '-q', 'origin', f'{u.BRANCH}:refs/heads/{u.RELEASE_PREFIX}1.0.1')
+        self.assertTrue(self.update().startswith('opened: '))
+        self.assertIn('"1.0.1"', self.remote_file(u.RELEASE_PREFIX + '1.0.1'))
+
+    def test_same_version_on_main_is_noop(self):
+        self.push_fixture(kustomization('1.0.1', DIGEST))
+        self.assertTrue(self.update().startswith('no-op:'))
+        self.assert_nothing_opened()
+
+    def test_late_older_release_does_not_downgrade_main(self):
+        self.push_fixture(kustomization('1.2.0'))
         self.assertIn('더 높은 버전', self.update('1.1.9', 'sha256:' + 'f' * 64))
-        self.assertEqual(self.remote_head(), before)
+        self.assert_nothing_opened()
+
+    def test_late_older_release_does_not_compete_with_open_higher_pull_request(self):
+        self.github.pulls = [pull(7, u.RELEASE_PREFIX + '1.2.0')]
+        self.assertIn('배포 PR이 열려 있음', self.update('1.1.9'))
+        self.assert_nothing_opened()
+        self.assertEqual(self.github.closed, [])
+
+    def test_new_release_closes_only_older_release_pull_requests(self):
+        self.github.pulls = [pull(5, u.RELEASE_PREFIX + '1.0.0'), pull(6, 'task/52-ota'),
+                             pull(8, u.RELEASE_PREFIX + 'manual')]
+        self.update('1.0.1')
+        self.assertEqual([number for number, _ in self.github.closed], [5])
+        self.assertIn('1.0.1', self.github.closed[0][1])
 
     def test_semver_compare_is_numeric(self):
         self.push_fixture(kustomization('1.9.0'))
-        self.assertTrue(self.update('1.10.0').startswith('updated:'))
+        self.assertTrue(self.update('1.10.0').startswith('opened:'))
+        self.github.pulls = [pull(9, u.RELEASE_PREFIX + '1.10.0')]
+        self.assertTrue(self.update('1.9.1', 'sha256:' + 'f' * 64).startswith('skipped:'))
 
     def test_same_version_with_other_digest_is_rejected(self):
-        self.update()
+        self.push_fixture(kustomization('1.0.1', DIGEST))
         with self.assertRaisesRegex(u.UpdateError, '다른 digest'):
             self.update(digest='sha256:' + 'f' * 64)
 
@@ -123,15 +180,14 @@ class UpdateGitopsImageTest(unittest.TestCase):
         git(self.repo, 'rm', '-q', str(u.TARGET))
         git(self.repo, 'commit', '-qm', 'remove base')
         git(self.repo, 'push', '-q', 'origin', u.BRANCH)
-        before = self.remote_head()
         self.assertIn('아직 없음', self.update())
-        self.assertEqual(self.remote_head(), before)
+        self.assert_nothing_opened()
 
     def test_entry_without_digest_is_rejected(self):
-        before = self.push_fixture(kustomization().replace(f'    digest: {OLD_DIGEST}\n', ''))
+        self.push_fixture(kustomization().replace(f'    digest: {OLD_DIGEST}\n', ''))
         with self.assertRaisesRegex(u.UpdateError, 'digest가 없습니다'):
             self.update()
-        self.assertEqual(self.remote_head(), before)
+        self.assert_nothing_opened()
 
     def test_duplicate_entry_is_rejected(self):
         text = kustomization()
@@ -142,8 +198,8 @@ class UpdateGitopsImageTest(unittest.TestCase):
     def test_new_name_entry_is_supported(self):
         text = kustomization().replace(f'  - name: {u.IMAGE}\n', f'  - name: orbit-server\n    newName: {u.IMAGE}\n')
         self.push_fixture(text)
-        self.assertTrue(self.update().startswith('updated:'))
-        self.assertIn(f'newName: {u.IMAGE}', self.remote_file())
+        self.assertTrue(self.update().startswith('opened:'))
+        self.assertIn(f'newName: {u.IMAGE}', self.remote_file(u.RELEASE_PREFIX + '1.0.1'))
 
     def test_duplicate_yaml_key_is_rejected(self):
         self.push_fixture(kustomization().replace('kind: Kustomization', 'kind: Kustomization\nkind: Kustomization'))
@@ -156,16 +212,16 @@ class UpdateGitopsImageTest(unittest.TestCase):
             self.update()
 
     def test_moving_tag_in_manifest_fails_closed(self):
-        before = self.push_fixture(kustomization('prod'))
+        self.push_fixture(kustomization('prod'))
         with self.assertRaisesRegex(u.UpdateError, '버전 형식'):
             self.update()
-        self.assertEqual(self.remote_head(), before)
+        self.assert_nothing_opened()
 
     def test_invalid_inputs_are_rejected(self):
         for args in (('1.0', DIGEST), ('v1.0.1', DIGEST), ('1.0.1', 'sha256:abc')):
             with self.subTest(args=args), self.assertRaisesRegex(u.UpdateError, '형식'):
                 self.update(*args)
-        self.assertEqual(self.remote_head(), self.before)
+        self.assert_nothing_opened()
 
     def test_dirty_checkout_is_not_overwritten(self):
         (self.repo / 'my-work.txt').write_text('work')
@@ -173,50 +229,24 @@ class UpdateGitopsImageTest(unittest.TestCase):
             self.update()
         self.assertEqual((self.repo / 'my-work.txt').read_text(), 'work')
 
-    def test_concurrent_change_is_kept_on_retry(self):
-        other = self.other_checkout()
-        real = u.git
-        pushes = []
-
-        def race(repo, *args, **kwargs):
-            if args[0] == 'push':
-                pushes.append(1)
-                if len(pushes) == 1:
-                    commit(other, 'cdn/keep.txt', 'teammate change')
-                    git(other, 'push', '-q', 'origin', u.BRANCH)
-            return real(repo, *args, **kwargs)
-
-        with patch.object(u, 'git', side_effect=race):
-            self.assertTrue(self.update().startswith('updated:'))
-        self.assertEqual(len(pushes), 2)
-        self.assertEqual(git(self.remote, 'show', f'{u.BRANCH}:cdn/keep.txt'), 'teammate change')
-        self.assertIn('1.0.1', self.remote_file())
-
-    def test_push_denied_without_concurrent_change_fails(self):
+    def test_push_denied_fails_without_pull_request(self):
         hook = self.remote / 'hooks/pre-receive'
         hook.write_text('#!/bin/sh\nexit 1\n')
         hook.chmod(0o755)
-        with self.assertRaisesRegex(u.UpdateError, 'ruleset'):
+        with self.assertRaisesRegex(u.UpdateError, 'push'):
             self.update()
-        self.assertEqual(self.remote_head(), self.before)
+        self.assertEqual(self.github.created, [])
 
-    def test_retry_count_is_bounded(self):
-        other = self.other_checkout()
-        real = u.git
-        pushes = []
+    def test_open_release_pulls_ignores_forks_and_other_branches(self):
+        def pr(number, ref, repo):
+            return {'number': number, 'html_url': f'u{number}',
+                    'head': {'ref': ref, 'repo': {'full_name': repo} if repo else None}}
 
-        def race(repo, *args, **kwargs):
-            if args[0] == 'push':
-                pushes.append(1)
-                git(other, 'pull', '-q', '--ff-only')
-                commit(other, 'cdn/keep.txt', str(len(pushes)))
-                git(other, 'push', '-q', 'origin', u.BRANCH)
-            return real(repo, *args, **kwargs)
-
-        with patch.object(u, 'git', side_effect=race), self.assertRaisesRegex(u.UpdateError, '3번'):
-            self.update()
-        self.assertEqual(len(pushes), 3)
-        self.assertIn('"1.0.0"', self.remote_file())
+        listing = [pr(1, u.RELEASE_PREFIX + '1.0.0', u.REPOSITORY), pr(2, u.RELEASE_PREFIX + '1.0.1', 'someone/fork'),
+                   pr(3, 'task/1', u.REPOSITORY), pr(4, u.RELEASE_PREFIX + '1.0.2', None)]
+        with patch.object(u.GitHub, '_api', return_value=listing):
+            self.assertEqual(u.GitHub().open_release_pulls(),
+                             [{'number': 1, 'branch': u.RELEASE_PREFIX + '1.0.0', 'url': 'u1'}])
 
 
 if __name__ == '__main__':
