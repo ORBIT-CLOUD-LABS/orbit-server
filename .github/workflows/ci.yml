@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ develop, phase1 ]
+    branches: [ develop, main, phase1 ]
   # 필수 검사이므로 대상 브랜치·paths 필터를 두지 않는다. 검사가 생기지 않은 PR은 머지가 막힌다.
   pull_request:
 
