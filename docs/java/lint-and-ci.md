@@ -67,7 +67,7 @@ orbit CI(`.github/workflows/ci.yml`)는 아래 명령을 실행한다. `spotless
 | `docker-build` | `CI` (`ci.yml`) | `Dockerfile`, `.dockerignore`, `build.gradle`, `settings.gradle`, `gradle/` 중 하나가 바뀐 PR만 이미지를 빌드해 본다. push 하지 않는다. 나머지 PR은 잡 안에서 건너뛰고 통과한다 |
 | `release-label` | `Release label` (`release-label.yml`) | `release:patch`·`release:minor`·`release:major` 중 0개 또는 1개. 2개 이상이면 실패한다. 라벨을 붙이거나 떼면 다시 검사한다 |
 
-`CI`는 `develop`, `phase1` push 에서도 돈다. push 에서 `docker-build` 는 건너뛴다.
+`CI`는 `develop`, `main`, `phase1` push 에서도 돈다. `main` 은 배포 브랜치라 `develop` → `main` 머지 커밋도 한 번 더 검사한다. push 에서 `docker-build` 는 건너뛴다.
 
 ### 릴리스 라벨
 
