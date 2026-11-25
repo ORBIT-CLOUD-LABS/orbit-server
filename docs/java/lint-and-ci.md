@@ -59,19 +59,22 @@ orbit CI(`.github/workflows/ci.yml`)는 아래 명령을 실행한다. `spotless
 
 ### PR 필수 검사
 
-모든 PR에서 아래 검사 3개가 돈다. 대상 브랜치·`paths` 필터를 두지 않는다. 필수 검사가 건너뛰어져 결과가 생기지 않으면 GitHub가 PR을 "검사 대기"로 두어 머지할 수 없기 때문이다.
+모든 PR에서 아래 검사 4개가 돈다. 대상 브랜치·`paths` 필터를 두지 않는다. 필수 검사가 건너뛰어져 결과가 생기지 않으면 GitHub가 PR을 "검사 대기"로 두어 머지할 수 없기 때문이다.
 
 | 검사 이름 | 워크플로 | 내용 |
 | --- | --- | --- |
 | `build` | `CI` (`ci.yml`) | `./gradlew build`. Testcontainers MySQL에 Flyway 마이그레이션까지 적용한 테스트를 포함한다 |
 | `docker-build` | `CI` (`ci.yml`) | `Dockerfile`, `.dockerignore`, `build.gradle`, `settings.gradle`, `gradle/` 중 하나가 바뀐 PR만 이미지를 빌드해 본다. push 하지 않는다. 나머지 PR은 잡 안에서 건너뛰고 통과한다 |
-| `release-label` | `Release label` (`release-label.yml`) | `release:patch`·`release:minor`·`release:major` 중 0개 또는 1개. 2개 이상이면 실패한다. 라벨을 붙이거나 떼면 다시 검사한다 |
+| `release-label` | `Release label` (`release-label.yml`) | `release:patch`·`release:minor`·`release:major` 중 0개 또는 1개. 2개 이상이거나 main이 아닌 PR에 붙으면 실패한다. 라벨을 붙이거나 떼면 다시 검사한다 |
+| `main-source` | `Main source` (`main-source.yml`) | main 대상 PR이면 이 저장소의 `develop`에서 온 것인지 본다. 아니면 실패한다. main이 아닌 PR은 통과한다 |
+
+브랜치는 `task/*` → `develop` → `main` 한 방향으로만 올라간다. ruleset에는 출발 브랜치를 제한하는 설정이 없어 `main-source` 검사로 막는다.
 
 `CI`는 `develop`, `main`, `phase1` push 에서도 돈다. `main` 은 배포 브랜치라 `develop` → `main` 머지 커밋도 한 번 더 검사한다. push 에서 `docker-build` 는 건너뛴다.
 
 ### 릴리스 라벨
 
-릴리스 라벨은 머지 뒤 배포할 버전을 정한다. 라벨이 없으면 검사만 하고 배포하지 않는다.
+릴리스 라벨은 `develop` → `main` PR에 붙여 머지 뒤 배포할 버전을 정한다. 라벨이 없으면 검사만 하고 배포하지 않는다. 다른 PR에는 붙이지 않는다.
 
 | 라벨 | 붙이는 변경 |
 | --- | --- |
@@ -91,11 +94,14 @@ orbit CI(`.github/workflows/ci.yml`)는 아래 명령을 실행한다. `spotless
 
 워크플로만으로는 머지를 막지 않는다. 기본 브랜치 ruleset 에서 설정한다.
 
-Settings → Rules → Rulesets → 기본 브랜치 ruleset
+Settings → Rules → Rulesets
 
-1. 기존 규칙은 그대로 둔다 (승인, 대화 해결, 머지 방식).
-2. Require status checks to pass 켜기 → `build`, `docker-build`, `release-label` 추가.
-   이름은 위 표의 검사 이름과 같아야 하고, PR 에서 한 번 돌아야 목록에 나온다.
+1. `develop` ruleset: 기존 규칙(승인, 대화 해결, 머지 방식)은 그대로 두고, Require status checks to pass 켜기 → `build`, `docker-build`, `release-label` 추가.
+2. `main` ruleset (없으면 대상 브랜치 `main`으로 새로 만든다):
+   - Restrict deletions, Block force pushes
+   - Require a pull request before merging, Allowed merge methods는 **Merge** 만 (Squash·Rebase는 `develop`과 이력이 갈라진다)
+   - Require status checks to pass → `build`, `docker-build`, `release-label`, `main-source` 추가
+   검사 이름은 위 표와 같아야 하고, PR 에서 한 번 돌아야 목록에 나온다.
 3. Settings → Labels 에 `release:patch`, `release:minor`, `release:major` 를 만든다.
 
 ### 설정 뒤 확인
