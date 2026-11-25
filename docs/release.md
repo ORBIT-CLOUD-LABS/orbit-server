@@ -1,11 +1,13 @@
 # 이미지 발행과 릴리스
 
-이미지는 `develop` 머지 때 한 번만 빌드한다. 릴리스는 그 이미지를 다시 빌드하지 않고 같은 digest에 버전 태그를 붙여 orbit-gitops에 반영한다.
+팀 작업은 `develop`에 모으고, 배포할 때만 `develop` → `main` PR을 머지한다. `develop` 머지에서는 검사만 돈다.
+
+이미지는 `main` 머지 때 한 번만 빌드한다. 릴리스는 그 이미지를 다시 빌드하지 않고 같은 digest에 버전 태그를 붙여 orbit-gitops에 반영한다.
 그래서 PR에서 검사한 코드로 만든 이미지가 그대로 운영에 나간다.
 
 ## 흐름
 
-워크플로 `.github/workflows/release.yml` (`develop` push 때 실행)
+워크플로 `.github/workflows/release.yml` (`main` push 때 실행)
 
 | 잡 | 단계 | 결과 |
 | --- | --- | --- |
@@ -23,7 +25,7 @@ orbit-gitops 커밋 메시지에는 버전, 소스 커밋 SHA, 이미지 digest,
 
 | 태그 | 붙는 때 | 바뀌는가 |
 | --- | --- | --- |
-| `sha-<7자리>` | 모든 `develop` 머지 | 바뀌지 않음. 버전 태그가 없으면 30일 뒤 지움 (`cleanup-images.yml`) |
+| `sha-<7자리>` | 모든 `main` 머지 | 바뀌지 않음. 버전 태그가 없으면 30일 뒤 지움 (`cleanup-images.yml`) |
 | `1.2.4` (이미지), `v1.2.4` (Git) | 릴리스 라벨이 붙은 PR 머지 | 바뀌지 않음. 이미 있으면 워크플로가 멈춤 |
 | `prod` | orbit-gitops에서 운영 버전이 바뀔 때 (orbit-gitops 워크플로) | 표시용. 배포에 쓰지 않음 |
 
@@ -31,7 +33,8 @@ orbit-gitops 커밋 메시지에는 버전, 소스 커밋 SHA, 이미지 digest,
 
 ## 규칙
 
-- 릴리스 라벨 기준은 [java/lint-and-ci.md](java/lint-and-ci.md)의 "릴리스 라벨"을 따른다. PR 하나에 하나만 붙인다.
+- 릴리스 라벨은 `develop` → `main` PR에 붙인다. 그 PR에 모인 변경 전체를 보고 기준([java/lint-and-ci.md](java/lint-and-ci.md)의 "릴리스 라벨")에 맞는 것 하나를 고른다.
+- `develop` → `main` PR은 **Create a merge commit**으로 머지한다. Squash나 Rebase로 머지하면 `develop`과 `main`의 이력이 갈라져 다음 PR에서 충돌이 나고, 워크플로가 머지 커밋으로 PR을 찾지 못한다.
 - 잘못 나간 릴리스는 태그를 지우거나 옮기지 않고 다음 버전으로 고친다. 급하면 orbit-gitops에서 해당 커밋을 revert해 이전 버전으로 되돌린 뒤 고친다.
 - 버전은 커밋 순서를 따른다. 직전 릴리스 태그가 이번 커밋의 조상이 아니면 (더 새 커밋이 이미 릴리스됨) 워크플로가 멈춘다.
 - 릴리스는 한 번에 하나만 진행한다 (`concurrency`). 대기 중인 릴리스가 있을 때 또 머지되면 GitHub가 먼저 대기하던 실행을 취소한다.
