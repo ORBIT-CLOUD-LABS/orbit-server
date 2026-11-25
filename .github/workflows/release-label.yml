@@ -1,0 +1,34 @@
+name: Release label
+
+# 머지 뒤 릴리스 버전을 하나로 정할 수 있도록 릴리스 라벨은 0개 또는 1개만 허용한다.
+# 라벨을 붙이거나 떼면 다시 검사한다. 필수 검사이므로 paths 필터를 두지 않는다.
+on:
+  pull_request:
+    types: [ opened, reopened, synchronize, labeled, unlabeled ]
+
+permissions: {}
+
+concurrency:
+  group: release-label-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  release-label:
+    runs-on: ubuntu-latest
+
+    steps:
+      # PR 코드를 받지 않고 이벤트의 라벨 목록만 읽는다.
+      - name: Check release label count
+        run: |
+          labels="$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH" \
+            | grep -Ex 'release:(patch|minor|major)' || true)"
+          count="$(printf '%s' "$labels" | grep -c . || true)"
+          if [ "$count" -gt 1 ]; then
+            echo "::error::릴리스 라벨은 하나만 붙일 수 있습니다: $(echo $labels)"
+            exit 1
+          fi
+          if [ "$count" -eq 0 ]; then
+            echo "릴리스 라벨 없음: 머지해도 배포하지 않습니다."
+          else
+            echo "릴리스 라벨: $labels"
+          fi
