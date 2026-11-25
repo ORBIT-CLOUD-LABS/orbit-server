@@ -1,0 +1,51 @@
+name: Cleanup images
+
+# 버전 태그가 붙지 않은 sha- 이미지를 30일 뒤 지운다.
+# 버전 태그나 prod 태그가 하나라도 있으면 남긴다. 태그가 없는 버전은 건드리지 않는다.
+on:
+  schedule:
+    - cron: '0 18 * * 0' # 매주 월요일 03:00 (KST)
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 지우지 않고 대상만 출력
+        type: boolean
+        default: true
+
+permissions:
+  packages: write
+
+env:
+  PACKAGE_PATH: orgs/ORBIT-CLOUD-LABS/packages/container/orbit-server
+  KEEP_DAYS: '30'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Delete old sha- only versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
+        run: |
+          set -euo pipefail
+          targets="$(gh api --paginate "$PACKAGE_PATH/versions?per_page=100" --jq '
+            .[]
+            | (.metadata.container.tags // []) as $tags
+            | select(($tags | length) > 0 and all($tags[]; startswith("sha-")))
+            | select((.created_at | fromdateiso8601) < (now - (env.KEEP_DAYS | tonumber) * 86400))
+            | "\(.id) \($tags | join(","))"')"
+          if [ -z "$targets" ]; then
+            echo "지울 이미지가 없습니다."
+            exit 0
+          fi
+          while read -r id tags; do
+            if [ "$DRY_RUN" = true ]; then
+              echo "지울 대상: $tags (version $id)"
+            else
+              gh api -X DELETE "$PACKAGE_PATH/versions/$id" > /dev/null
+              echo "지움: $tags (version $id)"
+            fi
+          done <<<"$targets"
