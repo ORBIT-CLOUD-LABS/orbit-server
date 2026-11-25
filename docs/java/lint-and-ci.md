@@ -69,6 +69,16 @@ orbit CI(`.github/workflows/ci.yml`)는 아래 명령을 실행한다. `spotless
 
 `CI`는 `develop`, `phase1` push 에서도 돈다. push 에서 `docker-build` 는 건너뛴다.
 
+### 릴리스 라벨
+
+릴리스 라벨은 머지 뒤 배포할 버전을 정한다. 라벨이 없으면 검사만 하고 배포하지 않는다.
+
+| 라벨 | 붙이는 변경 |
+| --- | --- |
+| `release:patch` | 버그 수정 |
+| `release:minor` | 기존 기기·클라이언트와 호환되는 기능 추가 |
+| `release:major` | 기존 기기·클라이언트를 깨는 변경 (API·프로토콜 호환이 깨짐) |
+
 ### CI 결과 코멘트
 
 - `CI result comment` 는 PR CI 완료 이벤트만 받아, 현재 head SHA 가 일치하는 열린 PR 에 결과를 게시한다. 대상 브랜치는 가리지 않는다.
