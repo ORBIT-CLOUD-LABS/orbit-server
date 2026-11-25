@@ -1,10 +1,11 @@
 name: Release
 
-# develop 머지마다 이미지를 한 번 빌드해 sha-<커밋 7자리>로 올린다.
+# main 머지마다 이미지를 한 번 빌드해 sha-<커밋 7자리>로 올린다.
+# 팀 작업은 develop에 모으고, 배포할 때만 develop→main PR을 머지한다 (develop 머지에서는 검사만 돈다).
 # 릴리스는 이 이미지를 다시 빌드하지 않고 같은 digest에 버전 태그만 붙인다.
 on:
   push:
-    branches: [ develop ]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -94,7 +95,7 @@ jobs:
         run: |
           set -euo pipefail
           pulls="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls")"
-          merged="$(jq -c '[.[] | select(.merged_at != null and .base.ref == "develop" and .merge_commit_sha == $ENV.GITHUB_SHA)]' <<<"$pulls")"
+          merged="$(jq -c '[.[] | select(.merged_at != null and .base.ref == "main" and .merge_commit_sha == $ENV.GITHUB_SHA)]' <<<"$pulls")"
           count="$(jq length <<<"$merged")"
           if [ "$count" -gt 1 ]; then
             echo "::error::이 커밋으로 머지된 PR이 둘 이상입니다"
