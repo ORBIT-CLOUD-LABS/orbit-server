@@ -3,7 +3,7 @@
 Closes #
 
 <!--
-릴리스 라벨: 머지 뒤 배포할 PR에만 하나를 붙입니다. 없으면 배포하지 않습니다.
+릴리스 라벨: develop → main PR에만, 배포할 때 하나를 붙입니다. 없으면 배포하지 않습니다.
 - release:patch  버그 수정
 - release:minor  기존 기기·클라이언트와 호환되는 기능 추가
 - release:major  기존 기기·클라이언트를 깨는 변경

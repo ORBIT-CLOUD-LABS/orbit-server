@@ -106,10 +106,12 @@ Settings → Rules → Rulesets
 
 ### 설정 뒤 확인
 
-1. 문서만 바꾼 PR 에서 검사 3개가 모두 생기고 통과하는지(`docker-build` 는 건너뜀 메시지) 확인한다.
+1. 문서만 바꾼 PR 에서 검사 4개가 모두 생기고 통과하는지(`docker-build` 는 건너뜀 메시지) 확인한다.
 2. `build.gradle` 을 바꾼 PR 에서 `docker-build` 가 실제로 이미지를 빌드하는지 확인한다.
 3. 릴리스 라벨 2개를 붙인 PR 에서 `release-label` 이 실패하고, 하나를 떼면 다시 통과하는지 확인한다.
 4. 검사가 대기 중이거나 실패한 PR 의 머지 버튼이 막히는지 확인한다.
+   - `task/*` → `main` PR 에서 `main-source` 가 실패하고, `develop` → `main` PR 에서는 통과하는지 확인한다.
+   - `develop` 대상 PR 에 릴리스 라벨을 붙이면 `release-label` 이 실패하는지 확인한다.
 5. CI 결과 코멘트: 실패하는 커밋을 push 하면 같은 코멘트가 새 SHA·실패로 바뀌고, 재실행해도 코멘트가 늘지 않는지 확인한다.
 
 ## 코드 규칙 테스트
