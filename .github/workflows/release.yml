@@ -182,3 +182,38 @@ jobs:
           test "$(digest_of "$IMAGE_NAME:$VERSION")" = "$DIGEST" \
             || { echo "::error::$VERSION 태그의 digest가 원본과 다릅니다"; exit 1; }
           echo "이미지 버전 태그: \`$IMAGE_NAME:$VERSION@$DIGEST\`" >> "$GITHUB_STEP_SUMMARY"
+
+      # 태그 ruleset이 v* 생성을 이 App에만 허용한다. orbit-gitops 커밋에도 같은 토큰을 쓴다.
+      - name: Create release App token
+        if: steps.version.outputs.version != ''
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        id: app-token
+        with:
+          client-id: ${{ vars.GITOPS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.GITOPS_APP_PRIVATE_KEY }}
+          owner: ORBIT-CLOUD-LABS
+          repositories: |
+            orbit-server
+            orbit-gitops
+          permission-contents: write
+
+      - name: Create Git tag
+        if: steps.version.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          test "$APP_SLUG" = orbit-cloud-gitops-bot || { echo "::error::예상하지 않은 App: $APP_SLUG"; exit 1; }
+          tag="v$VERSION"
+          if current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.sha' 2>/dev/null)"; then
+            if [ "$current" = "$GITHUB_SHA" ]; then
+              echo "$tag 태그가 이미 이 커밋에 있습니다 (재실행)."
+              exit 0
+            fi
+            echo "::error::$tag 태그가 다른 커밋($current)에 이미 있습니다."
+            exit 1
+          fi
+          gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" > /dev/null
+          echo "Git 태그: \`$tag\` → \`$GITHUB_SHA\`" >> "$GITHUB_STEP_SUMMARY"
