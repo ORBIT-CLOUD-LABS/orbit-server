@@ -63,3 +63,83 @@ jobs:
           DIGEST: ${{ steps.publish.outputs.digest }}
         run: |
           echo "이미지: \`$IMAGE_NAME:$TAG@$DIGEST\`" >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    needs: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+      packages: write
+    # 릴리스는 한 번에 하나만 진행한다. 버전 순서가 커밋 순서와 어긋나지 않게 한다.
+    concurrency:
+      group: orbit-server-release
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout released source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+          path: source
+
+      - name: Find merged pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          pulls="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls")"
+          merged="$(jq -c '[.[] | select(.merged_at != null and .base.ref == "develop" and .merge_commit_sha == $ENV.GITHUB_SHA)]' <<<"$pulls")"
+          count="$(jq length <<<"$merged")"
+          if [ "$count" -gt 1 ]; then
+            echo "::error::이 커밋으로 머지된 PR이 둘 이상입니다"
+            exit 1
+          fi
+          if [ "$count" -eq 0 ]; then
+            echo "PR 머지 커밋이 아닙니다. 릴리스하지 않습니다."
+            echo "number=" >> "$GITHUB_OUTPUT"
+            echo "labels=[]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "number=$(jq -r '.[0].number' <<<"$merged")" >> "$GITHUB_OUTPUT"
+          echo "labels=$(jq -c '.[0].labels | map(.name)' <<<"$merged")" >> "$GITHUB_OUTPUT"
+
+      - name: Decide version
+        id: version
+        working-directory: source
+        env:
+          LABELS: ${{ steps.pr.outputs.labels }}
+        run: |
+          set -euo pipefail
+          release_tags() { grep -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' || true; }
+          # 재실행: 이 커밋에 이미 버전 태그가 있으면 그 버전으로 남은 단계만 이어서 한다.
+          existing="$(git tag --points-at HEAD --list 'v*' | release_tags)"
+          if [ "$(printf '%s' "$existing" | grep -c .)" -gt 1 ]; then
+            echo "::error::이 커밋에 버전 태그가 둘 이상입니다: $(echo $existing)"
+            exit 1
+          fi
+          if [ -n "$existing" ]; then
+            echo "이 커밋은 이미 $existing 입니다. 남은 단계만 진행합니다."
+            echo "version=${existing#v}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git tag --list 'v*' | release_tags > "$RUNNER_TEMP/tags.txt"
+          version="$(python3 .github/scripts/release_version.py --labels-json "$LABELS" --tags-file "$RUNNER_TEMP/tags.txt")"
+          if [ -z "$version" ]; then
+            echo "릴리스 라벨이 없습니다. 이미지만 올리고 배포하지 않습니다."
+            echo "version=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # 오래된 커밋의 늦은 실행이 더 높은 버전을 받지 않게, 직전 릴리스가 이 커밋의 조상일 때만 진행한다.
+          latest="$(sort -V "$RUNNER_TEMP/tags.txt" | tail -n 1)"
+          if [ -n "$latest" ] && ! git merge-base --is-ancestor "$latest" HEAD; then
+            echo "::error::직전 릴리스 $latest 가 이 커밋의 조상이 아닙니다. 더 새 커밋이 이미 릴리스됐습니다."
+            exit 1
+          fi
+          echo "다음 버전: $version (직전: ${latest:-없음})"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
