@@ -9,7 +9,7 @@ permissions: {}
 
 # Serialize comment updates, including delayed events and re-runs of the same CI.
 concurrency:
-  group: phase1-ci-result-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  group: ci-result-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
           script: |
             const run = context.payload.workflow_run;
             const repo = context.repo;
-            const marker = '<!-- orbit:phase1-ci-result -->';
+            const marker = '<!-- orbit:ci-result -->';
             if (run.event !== 'pull_request' || run.status !== 'completed') return;
 
             // A delayed completion event can arrive after a newer attempt has started.
@@ -38,7 +38,7 @@ jobs:
 
             // The event's pull_requests array can be empty for fork PRs.
             const pulls = await github.paginate(github.rest.pulls.list, {
-              ...repo, state: 'open', base: 'phase1', per_page: 100,
+              ...repo, state: 'open', per_page: 100,
             });
             for (const candidate of pulls) {
               if (candidate.head.repo?.id !== run.head_repository?.id ||
@@ -58,7 +58,7 @@ jobs:
               const { data: pull } = await github.rest.pulls.get({
                 ...repo, pull_number: candidate.number,
               });
-              if (pull.state !== 'open' || pull.base.ref !== 'phase1' ||
+              if (pull.state !== 'open' || pull.base.ref !== candidate.base.ref ||
                   pull.head.sha !== run.head_sha || pull.head.repo?.id !== run.head_repository?.id ||
                   pull.head.ref !== run.head_branch) continue;
 
