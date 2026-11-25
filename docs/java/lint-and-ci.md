@@ -87,6 +87,25 @@ orbit CI(`.github/workflows/ci.yml`)는 아래 명령을 실행한다. `spotless
 - 게시 작업은 `actions: read`, `pull-requests: write` 만 사용한다. PR 코드·아티팩트·캐시를 실행하거나 읽지 않는다.
 - `workflow_run` 은 워크플로 파일이 기본 브랜치(`develop`)에 있어야 동작한다. 반영 전 PR 에서는 코멘트가 생기지 않는다.
 
+### Ruleset 설정 (GitHub 화면, 관리자)
+
+워크플로만으로는 머지를 막지 않는다. 기본 브랜치 ruleset 에서 설정한다.
+
+Settings → Rules → Rulesets → 기본 브랜치 ruleset
+
+1. 기존 규칙은 그대로 둔다 (승인, 대화 해결, 머지 방식).
+2. Require status checks to pass 켜기 → `build`, `docker-build`, `release-label` 추가.
+   이름은 위 표의 검사 이름과 같아야 하고, PR 에서 한 번 돌아야 목록에 나온다.
+3. Settings → Labels 에 `release:patch`, `release:minor`, `release:major` 를 만든다.
+
+### 설정 뒤 확인
+
+1. 문서만 바꾼 PR 에서 검사 3개가 모두 생기고 통과하는지(`docker-build` 는 건너뜀 메시지) 확인한다.
+2. `build.gradle` 을 바꾼 PR 에서 `docker-build` 가 실제로 이미지를 빌드하는지 확인한다.
+3. 릴리스 라벨 2개를 붙인 PR 에서 `release-label` 이 실패하고, 하나를 떼면 다시 통과하는지 확인한다.
+4. 검사가 대기 중이거나 실패한 PR 의 머지 버튼이 막히는지 확인한다.
+5. CI 결과 코멘트: 실패하는 커밋을 push 하면 같은 코멘트가 새 SHA·실패로 바뀌고, 재실행해도 코멘트가 늘지 않는지 확인한다.
+
 ## 코드 규칙 테스트
 
 `src/test/java/CodingRulesTest.java` 는 바이트코드로 판단할 수 있는 코드 작성 규칙을 ArchUnit 으로 검사한다. `./gradlew build` 에 테스트로 포함된다.
